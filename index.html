@@ -103,6 +103,55 @@
       width: 100%;
       max-width: 320px;
       padding: 0 32px;
+      transition: opacity 500ms ease;
+    }
+
+    .login-form.faded {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── Room Selection ── */
+    .room-selection {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 500ms ease 300ms;
+    }
+
+    .room-selection.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .room-btn {
+      display: inline-block;
+      width: 200px;
+      padding: 12px 32px;
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      font-weight: 400;
+      text-transform: uppercase;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 0;
+      background: transparent;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.25s ease, background-color 0.25s ease;
+    }
+
+    .room-btn:hover {
+      border-color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .room-btn:active {
+      background-color: rgba(255, 255, 255, 0.14);
     }
 
     .login-heading {
@@ -181,8 +230,12 @@
       justify-content: center;
       z-index: 10;
       transform: translateX(0);
-      transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4), 8px 0 20px rgba(0, 0, 0, 0.2);
+      transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 500ms ease;
+    }
+
+    .landing-page.shadow-hidden {
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0), 0 0 0 rgba(0, 0, 0, 0);
     }
 
     .landing-page.slid {
@@ -281,6 +334,11 @@
       <input type="password" class="login-input" placeholder="Password" autocomplete="current-password"/>
       <button type="submit" class="login-btn">Login</button>
     </form>
+    <div class="room-selection">
+      <button class="room-btn">Review Room</button>
+      <button class="room-btn">Session Room</button>
+      <button class="room-btn">Delivery Room</button>
+    </div>
   </div>
 
   <!-- Landing page overlay (slides left to reveal login) -->
@@ -297,15 +355,31 @@
     const landingPage = document.querySelector('.landing-page');
     const portalLink = document.querySelector('.portal-link');
     const backLink = document.querySelector('.back-link');
+    const loginForm = document.querySelector('.login-form');
+    const roomSelection = document.querySelector('.room-selection');
+    const loginBtn = document.querySelector('.login-btn');
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
       landingPage.classList.add('slid');
     });
 
+    loginBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      loginForm.classList.add('faded');
+      landingPage.classList.add('shadow-hidden');
+      roomSelection.classList.add('visible');
+    });
+
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
-      landingPage.classList.remove('slid');
+      if (roomSelection.classList.contains('visible')) {
+        roomSelection.classList.remove('visible');
+        loginForm.classList.remove('faded');
+        landingPage.classList.remove('shadow-hidden');
+      } else {
+        landingPage.classList.remove('slid');
+      }
     });
   </script>
 
