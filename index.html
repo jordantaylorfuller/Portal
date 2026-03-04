@@ -125,14 +125,33 @@
     .btn + .btn {
       margin-top: 12px;
     }
+
+    .portal-link {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgb(40, 36, 36);
+      text-decoration: none;
+      opacity: 0.45;
+      transition: opacity 0.2s ease;
+    }
+
+    .portal-link:hover {
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
+  <a href="#" class="portal-link">Client Portal</a>
   <div class="container">
     <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
     <h2 class="subheading">Sound on, please.</h2>
     <a href="#" class="btn">Play</a>
-    <a href="#" class="btn">Client Portal</a>
   </div>
 </body>
 </html>
