@@ -121,28 +121,22 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      gap: 16px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 500ms ease 300ms;
     }
 
     .room-welcome {
-      flex: 1;
-      display: flex;
-      align-items: center;
+      position: absolute;
+      top: calc(50% / 2);
+      transform: translateY(-50%);
       font-family: 'DM Mono', monospace;
       font-size: 24px;
       font-weight: 400;
       text-transform: uppercase;
       color: #fff;
-    }
-
-    .room-buttons {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
     }
 
     .room-selection.visible {
@@ -354,11 +348,9 @@
     </form>
     <div class="room-selection">
       <div class="room-welcome">Welcome Back</div>
-      <div class="room-buttons">
-        <button class="room-btn">Review Room</button>
-        <button class="room-btn">Session Room</button>
-        <button class="room-btn">Delivery Room</button>
-      </div>
+      <button class="room-btn">Review Room</button>
+      <button class="room-btn">Session Room</button>
+      <button class="room-btn">Delivery Room</button>
     </div>
   </div>
 
