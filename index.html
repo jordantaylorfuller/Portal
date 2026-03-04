@@ -231,11 +231,11 @@
       z-index: 10;
       transform: translateX(0);
       box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4), 8px 0 20px rgba(0, 0, 0, 0.2);
-      transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 500ms ease;
+      transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .landing-page.shadow-hidden {
-      box-shadow: 0 0 0 rgba(0, 0, 0, 0), 0 0 0 rgba(0, 0, 0, 0);
+      box-shadow: none;
     }
 
     .landing-page.slid {
@@ -362,12 +362,14 @@
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
       landingPage.classList.add('slid');
+      setTimeout(function() {
+        landingPage.classList.add('shadow-hidden');
+      }, 700);
     });
 
     loginBtn.addEventListener('click', function(e) {
       e.preventDefault();
       loginForm.classList.add('faded');
-      landingPage.classList.add('shadow-hidden');
       roomSelection.classList.add('visible');
     });
 
@@ -376,8 +378,8 @@
       if (roomSelection.classList.contains('visible')) {
         roomSelection.classList.remove('visible');
         loginForm.classList.remove('faded');
-        landingPage.classList.remove('shadow-hidden');
       } else {
+        landingPage.classList.remove('shadow-hidden');
         landingPage.classList.remove('slid');
       }
     });
