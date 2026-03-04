@@ -93,8 +93,16 @@
       letter-spacing: 0.05em;
       color: rgba(255, 255, 255, 0.6);
       text-decoration: none;
-      transition: opacity 0.2s ease;
+      transition: color 0.5s ease;
       z-index: 5;
+    }
+
+    .back-link.dark {
+      color: rgba(40, 36, 36, 0.45);
+    }
+
+    .back-link.dark:hover {
+      color: rgba(40, 36, 36, 0.8);
     }
 
     .back-link:hover {
@@ -168,7 +176,12 @@
       background: transparent;
       cursor: pointer;
       text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease;
+      transition: border-color 0.25s ease, background-color 0.25s ease, opacity 500ms ease;
+    }
+
+    .room-selection.buttons-faded .room-btn {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .room-btn:hover {
@@ -399,7 +412,9 @@
     sessionBtn.addEventListener('click', function(e) {
       e.preventDefault();
       roomWelcome.classList.add('faded');
+      roomSelection.classList.add('buttons-faded');
       loginScreen.classList.add('session-entering');
+      backLink.classList.add('dark');
     });
 
     backLink.addEventListener('click', function(e) {
