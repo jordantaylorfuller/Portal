@@ -50,6 +50,13 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    input, textarea {
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     body {
@@ -253,6 +260,379 @@
       object-fit: cover;
     }
 
+    .session-video.fit-aspect video {
+      object-fit: contain;
+    }
+
+    .session-back {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.6);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 300ms ease, color 200ms ease;
+      z-index: 2;
+    }
+
+    .session-video.mouse-active .session-back {
+      opacity: 1;
+    }
+
+    .session-back:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ── Transport Bar ── */
+    .transport-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 300ms ease;
+      z-index: 2;
+    }
+
+    .session-video.mouse-active .transport-bar {
+      opacity: 1;
+    }
+
+    .transport-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: color 200ms ease;
+      flex-shrink: 0;
+    }
+
+    .transport-btn:hover {
+      color: #fff;
+    }
+
+    .volume-group {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .volume-popup {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .volume-group.open .volume-popup {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .volume-slider-wrap {
+      width: 36px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      transform: rotate(-90deg);
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-track {
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+
+    .playhead-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 25%;
+      min-width: 120px;
+    }
+
+    .transport-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+    }
+
+    .playhead-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-moz-range-track {
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+
+    .live-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.4);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      transition: color 200ms ease;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-btn::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: background 200ms ease;
+    }
+
+    .live-btn.live {
+      color: rgba(255,255,255,0.9);
+    }
+
+    .live-btn.live::before {
+      background: rgb(220, 40, 40);
+    }
+
+    .live-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Annotation Overlay ── */
+    .annotation-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      cursor: crosshair;
+      display: none;
+    }
+
+    .session-video.annotating .annotation-canvas {
+      display: block;
+    }
+
+    .annotation-toolbar {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 8px;
+      padding: 8px;
+      z-index: 6;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .session-video.annotating .annotation-toolbar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .anno-tool-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: color 150ms ease, background 150ms ease;
+    }
+
+    .anno-tool-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .anno-tool-btn.active {
+      color: #fff;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .anno-divider {
+      width: 20px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin: 4px 0;
+    }
+
+    .anno-color-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 150ms ease, transform 150ms ease;
+      margin: 2px 0;
+    }
+
+    .anno-color-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .anno-color-btn.active {
+      border-color: #fff;
+    }
+
+    .anno-done-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .anno-done-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .video-controls {
+      position: absolute;
+      bottom: 56px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 300ms ease;
+      z-index: 2;
+    }
+
+    .session-video.mouse-active .video-controls {
+      opacity: 1;
+    }
+
+    .video-control-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: color 200ms ease;
+    }
+
+    .video-control-btn:hover {
+      color: #fff;
+    }
+
     .login-heading {
       font-family: 'DM Mono', monospace;
       font-size: 14px;
@@ -444,11 +824,125 @@
   <!-- Session video player -->
   <div class="session-video">
     <video id="session-video" playsinline src="video.mp4"></video>
+    <button class="session-back" aria-label="Exit session">&#8592; Back</button>
+    <canvas id="annotation-canvas" class="annotation-canvas"></canvas>
+    <div class="annotation-toolbar" id="annotation-toolbar">
+      <!-- Drawing tools -->
+      <button class="anno-tool-btn active" data-tool="freehand" aria-label="Freehand draw">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.5 1.5l4 4-9 9H1.5v-4z"/>
+          <line x1="8.5" y1="3.5" x2="12.5" y2="7.5"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="rectangle" aria-label="Rectangle">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="12" height="10" rx="1"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="arrow" aria-label="Arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="1" y1="15" x2="12" y2="4"/>
+          <polyline points="12 9 12 4 7 4"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="line" aria-label="Line">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <line x1="2" y1="14" x2="14" y2="2"/>
+        </svg>
+      </button>
+      <div class="anno-divider"></div>
+      <!-- Colors: red, orange, teal, green, blue (Frame.io palette) -->
+      <button class="anno-color-btn active" data-color="#E74C3C" style="background:#E74C3C;" aria-label="Red"></button>
+      <button class="anno-color-btn" data-color="#F39C12" style="background:#F39C12;" aria-label="Orange"></button>
+      <button class="anno-color-btn" data-color="#1ABC9C" style="background:#1ABC9C;" aria-label="Teal"></button>
+      <button class="anno-color-btn" data-color="#2ECC71" style="background:#2ECC71;" aria-label="Green"></button>
+      <button class="anno-color-btn" data-color="#3498DB" style="background:#3498DB;" aria-label="Blue"></button>
+      <div class="anno-divider"></div>
+      <!-- Undo / Redo -->
+      <button class="anno-tool-btn" id="anno-undo" aria-label="Undo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 7 1 4 4 1"/>
+          <path d="M1 4h9a5 5 0 0 1 0 10H7"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" id="anno-redo" aria-label="Redo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="12 7 15 4 12 1"/>
+          <path d="M15 4H6a5 5 0 0 0 0 10h3"/>
+        </svg>
+      </button>
+      <div class="anno-divider"></div>
+      <!-- Done -->
+      <button class="anno-done-btn" id="anno-done" aria-label="Done annotating">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2 7 5.5 10.5 12 3.5"/>
+        </svg>
+      </button>
+    </div>
+    <div class="video-controls">
+      <button id="annotate-toggle" class="video-control-btn" aria-label="Annotate">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 16l1.5-4.5L13 2l3 3L6.5 14.5z"/>
+          <line x1="10.5" y1="4.5" x2="13.5" y2="7.5"/>
+        </svg>
+      </button>
+      <button id="mic-toggle" class="video-control-btn" aria-label="Toggle microphone">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="1" width="6" height="10" rx="3"/>
+          <path d="M3 8a6 6 0 0 0 12 0"/>
+          <line x1="9" y1="14" x2="9" y2="17"/>
+          <line x1="6" y1="17" x2="12" y2="17"/>
+        </svg>
+      </button>
+      <button id="aspect-toggle" class="video-control-btn" aria-label="Toggle aspect ratio">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="16" height="10" rx="1"/>
+          <line x1="5" y1="1" x2="13" y2="1"/>
+          <line x1="5" y1="17" x2="13" y2="17"/>
+        </svg>
+      </button>
+      <button id="fullscreen-toggle" class="video-control-btn" aria-label="Toggle fullscreen">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 1 1 1 1 6"/>
+          <polyline points="12 1 17 1 17 6"/>
+          <polyline points="6 17 1 17 1 12"/>
+          <polyline points="12 17 17 17 17 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="transport-bar">
+      <button id="play-pause" class="transport-btn" aria-label="Play/Pause">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" stroke="none">
+          <rect x="3" y="2" width="4" height="14" rx="1"/>
+          <rect x="11" y="2" width="4" height="14" rx="1"/>
+        </svg>
+      </button>
+      <div class="volume-group" id="volume-group">
+        <div class="volume-popup">
+          <div class="volume-slider-wrap">
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1"/>
+          </div>
+        </div>
+        <button id="volume-toggle" class="transport-btn" aria-label="Mute/Unmute">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/>
+            <path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/>
+            <path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="playhead-group">
+        <span id="time-current" class="transport-time">00:00</span>
+        <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="100"/>
+        <span id="time-duration" class="transport-time">00:00</span>
+      </div>
+      <button id="live-toggle" class="live-btn live" aria-label="Jump to live">LIVE</button>
+    </div>
   </div>
 
   <!-- Landing page overlay (slides left to reveal login) -->
   <div class="landing-page">
-    <a href="#" class="portal-link">Client Portal</a>
+    <a href="#" class="portal-link">Clients</a>
     <div class="container">
       <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
       <h2 class="subheading">Sound on, please.</h2>
@@ -529,8 +1023,438 @@
       if (roomSelection.classList.contains('visible')) {
         roomSelection.classList.remove('visible');
         loginForm.classList.remove('faded');
+      }
+      landingPage.classList.remove('slid');
+    });
+
+    // Session back button
+    var sessionBackBtn = document.querySelector('.session-back');
+    sessionBackBtn.addEventListener('click', function() {
+      sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active');
+      videoEl.pause();
+      videoEl.currentTime = 0;
+      clearTimeout(mouseTimer);
+      // Restore room selection screen
+      roomSelection.classList.remove('buttons-faded');
+      roomWelcome.classList.remove('faded');
+      loginScreen.classList.remove('session-entering');
+      backLink.classList.remove('dark');
+      sessionWaiting.classList.remove('visible');
+    });
+
+    // Aspect ratio toggle
+    var aspectToggle = document.getElementById('aspect-toggle');
+    var mouseTimer = null;
+
+    function updateAspectButtonVisibility() {
+      if (videoEl.videoWidth && videoEl.videoHeight) {
+        var videoRatio = videoEl.videoWidth / videoEl.videoHeight;
+        var screenRatio = window.innerWidth / window.innerHeight;
+        var match = Math.abs(videoRatio - screenRatio) < 0.05;
+        aspectToggle.style.display = match ? 'none' : '';
+      }
+    }
+
+    videoEl.addEventListener('loadedmetadata', updateAspectButtonVisibility);
+    window.addEventListener('resize', updateAspectButtonVisibility);
+    document.addEventListener('fullscreenchange', function() {
+      setTimeout(updateAspectButtonVisibility, 100);
+    });
+
+    sessionVideo.addEventListener('mousemove', function() {
+      sessionVideo.classList.add('mouse-active');
+      clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(function() {
+        sessionVideo.classList.remove('mouse-active');
+      }, 2000);
+    });
+
+    aspectToggle.addEventListener('click', function() {
+      var isFit = sessionVideo.classList.toggle('fit-aspect');
+      var svg = aspectToggle.querySelector('svg');
+      if (isFit) {
+        svg.innerHTML = '<rect x="3" y="1" width="12" height="16" rx="1"/><line x1="1" y1="5" x2="1" y2="13"/><line x1="17" y1="5" x2="17" y2="13"/>';
       } else {
-        landingPage.classList.remove('slid');
+        svg.innerHTML = '<rect x="1" y="4" width="16" height="10" rx="1"/><line x1="5" y1="1" x2="13" y2="1"/><line x1="5" y1="17" x2="13" y2="17"/>';
+      }
+    });
+
+    // Fullscreen toggle
+    var fullscreenToggle = document.getElementById('fullscreen-toggle');
+    fullscreenToggle.addEventListener('click', function() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function() {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', function() {
+      var svg = fullscreenToggle.querySelector('svg');
+      if (document.fullscreenElement) {
+        svg.innerHTML = '<polyline points="7 1 7 7 1 7"/><polyline points="11 1 11 7 17 7"/><polyline points="7 17 7 11 1 11"/><polyline points="11 17 11 11 17 11"/>';
+      } else {
+        svg.innerHTML = '<polyline points="6 1 1 1 1 6"/><polyline points="12 1 17 1 17 6"/><polyline points="6 17 1 17 1 12"/><polyline points="12 17 17 17 17 12"/>';
+      }
+    });
+
+    // ── Transport Bar Controls ──
+
+    var playPauseBtn = document.getElementById('play-pause');
+    var volumeToggleBtn = document.getElementById('volume-toggle');
+    var volumeSlider = document.getElementById('volume-slider');
+    var playheadSlider = document.getElementById('playhead');
+    var timeCurrent = document.getElementById('time-current');
+    var timeDuration = document.getElementById('time-duration');
+    var liveToggle = document.getElementById('live-toggle');
+    var micToggle = document.getElementById('mic-toggle');
+    var isScrubbing = false;
+    var micMuted = false;
+
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = Math.floor(s % 60);
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    // Play/Pause
+    var pauseIcon = '<rect x="3" y="2" width="4" height="14" rx="1"/><rect x="11" y="2" width="4" height="14" rx="1"/>';
+    var playIcon = '<polygon points="4,2 16,9 4,16"/>';
+
+    playPauseBtn.addEventListener('click', function() {
+      if (videoEl.paused) {
+        videoEl.play().catch(function() {});
+      } else {
+        videoEl.pause();
+      }
+    });
+
+    videoEl.addEventListener('play', function() {
+      playPauseBtn.querySelector('svg').innerHTML = pauseIcon;
+    });
+
+    videoEl.addEventListener('pause', function() {
+      playPauseBtn.querySelector('svg').innerHTML = playIcon;
+    });
+
+    // Volume
+    var speakerIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/><path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>';
+    var mutedIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><line x1="14" y1="6" x2="14" y2="12" stroke-width="1.5"/>';
+
+    var volumeGroup = document.getElementById('volume-group');
+
+    volumeToggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      volumeGroup.classList.toggle('open');
+    });
+
+    // Close volume popup when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!volumeGroup.contains(e.target)) {
+        volumeGroup.classList.remove('open');
+      }
+    });
+
+    volumeSlider.addEventListener('input', function() {
+      videoEl.volume = parseFloat(this.value);
+      if (videoEl.muted && videoEl.volume > 0) {
+        videoEl.muted = false;
+      }
+    });
+
+    videoEl.addEventListener('volumechange', function() {
+      var svg = volumeToggleBtn.querySelector('svg');
+      if (videoEl.muted || videoEl.volume === 0) {
+        svg.innerHTML = mutedIcon;
+        volumeSlider.value = 0;
+      } else {
+        svg.innerHTML = speakerIcon;
+        volumeSlider.value = videoEl.volume;
+      }
+    });
+
+    // Playhead
+    videoEl.addEventListener('loadedmetadata', function() {
+      playheadSlider.max = videoEl.duration;
+      timeDuration.textContent = formatTime(videoEl.duration);
+    });
+
+    videoEl.addEventListener('timeupdate', function() {
+      if (!isScrubbing) {
+        playheadSlider.value = videoEl.currentTime;
+        timeCurrent.textContent = formatTime(videoEl.currentTime);
+        updateLiveState();
+      }
+    });
+
+    playheadSlider.addEventListener('input', function() {
+      isScrubbing = true;
+      videoEl.currentTime = parseFloat(this.value);
+      timeCurrent.textContent = formatTime(videoEl.currentTime);
+      updateLiveState();
+    });
+
+    playheadSlider.addEventListener('change', function() {
+      isScrubbing = false;
+    });
+
+    // Live indicator
+    function updateLiveState() {
+      var atLiveEdge = videoEl.duration && (videoEl.duration - videoEl.currentTime) < 1;
+      if (atLiveEdge) {
+        liveToggle.classList.add('live');
+      } else {
+        liveToggle.classList.remove('live');
+      }
+    }
+
+    liveToggle.addEventListener('click', function() {
+      if (videoEl.duration) {
+        videoEl.currentTime = videoEl.duration;
+        if (videoEl.paused) {
+          videoEl.play().catch(function() {});
+        }
+        updateLiveState();
+      }
+    });
+
+    // Mic mute (UI mock only)
+    var micOnIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/>';
+    var micOffIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/><line x1="2" y1="2" x2="16" y2="16" stroke-width="2"/>';
+
+    micToggle.addEventListener('click', function() {
+      micMuted = !micMuted;
+      var svg = micToggle.querySelector('svg');
+      svg.innerHTML = micMuted ? micOffIcon : micOnIcon;
+    });
+
+    // ── Annotation System ──
+
+    var annotateToggle = document.getElementById('annotate-toggle');
+    var annoCanvas = document.getElementById('annotation-canvas');
+    var annoToolbar = document.getElementById('annotation-toolbar');
+    var annoCtx = annoCanvas.getContext('2d');
+    var annoTool = 'freehand';
+    var annoColor = '#E74C3C';
+    var annoLineWidth = 4;
+    var annoDrawing = false;
+    var annoStartX = 0;
+    var annoStartY = 0;
+    var annoHistory = [];
+    var annoRedoStack = [];
+    var annoWasPlaying = false;
+
+    // Resize canvas to match display size
+    function resizeAnnoCanvas() {
+      annoCanvas.width = annoCanvas.offsetWidth;
+      annoCanvas.height = annoCanvas.offsetHeight;
+      redrawAnnotations();
+    }
+
+    // Enter annotation mode
+    annotateToggle.addEventListener('click', function() {
+      var entering = !sessionVideo.classList.contains('annotating');
+      if (entering) {
+        annoWasPlaying = !videoEl.paused;
+        videoEl.pause();
+        sessionVideo.classList.add('annotating');
+        resizeAnnoCanvas();
+        // Keep controls visible while annotating
+        sessionVideo.classList.add('mouse-active');
+        clearTimeout(mouseTimer);
+      } else {
+        exitAnnotationMode();
+      }
+    });
+
+    function exitAnnotationMode() {
+      sessionVideo.classList.remove('annotating');
+      annoHistory = [];
+      annoRedoStack = [];
+      annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
+      if (annoWasPlaying) {
+        videoEl.play().catch(function() {});
+      }
+    }
+
+    // Done button
+    document.getElementById('anno-done').addEventListener('click', exitAnnotationMode);
+
+    // ESC to exit
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && sessionVideo.classList.contains('annotating')) {
+        exitAnnotationMode();
+      }
+    });
+
+    // Keep mouse-active while annotating
+    var origMouseMove = sessionVideo.onmousemove;
+    sessionVideo.addEventListener('mousemove', function() {
+      if (sessionVideo.classList.contains('annotating')) {
+        sessionVideo.classList.add('mouse-active');
+        clearTimeout(mouseTimer);
+      }
+    });
+
+    // Tool selection
+    annoToolbar.addEventListener('click', function(e) {
+      var toolBtn = e.target.closest('[data-tool]');
+      if (toolBtn) {
+        annoToolbar.querySelectorAll('[data-tool]').forEach(function(b) { b.classList.remove('active'); });
+        toolBtn.classList.add('active');
+        annoTool = toolBtn.dataset.tool;
+        return;
+      }
+      var colorBtn = e.target.closest('[data-color]');
+      if (colorBtn) {
+        annoToolbar.querySelectorAll('[data-color]').forEach(function(b) { b.classList.remove('active'); });
+        colorBtn.classList.add('active');
+        annoColor = colorBtn.dataset.color;
+      }
+    });
+
+    // Undo
+    document.getElementById('anno-undo').addEventListener('click', function() {
+      if (annoHistory.length > 0) {
+        annoRedoStack.push(annoHistory.pop());
+        redrawAnnotations();
+      }
+    });
+
+    // Redo
+    document.getElementById('anno-redo').addEventListener('click', function() {
+      if (annoRedoStack.length > 0) {
+        annoHistory.push(annoRedoStack.pop());
+        redrawAnnotations();
+      }
+    });
+
+    // Drawing handlers
+    annoCanvas.addEventListener('mousedown', function(e) {
+      if (!sessionVideo.classList.contains('annotating')) return;
+      annoDrawing = true;
+      var rect = annoCanvas.getBoundingClientRect();
+      annoStartX = e.clientX - rect.left;
+      annoStartY = e.clientY - rect.top;
+
+      if (annoTool === 'freehand') {
+        annoHistory.push({
+          tool: 'freehand',
+          color: annoColor,
+          width: annoLineWidth,
+          points: [{ x: annoStartX, y: annoStartY }]
+        });
+        annoRedoStack = [];
+      }
+    });
+
+    annoCanvas.addEventListener('mousemove', function(e) {
+      if (!annoDrawing) return;
+      var rect = annoCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+
+      if (annoTool === 'freehand') {
+        var stroke = annoHistory[annoHistory.length - 1];
+        stroke.points.push({ x: x, y: y });
+        redrawAnnotations();
+      } else {
+        // Preview shape
+        redrawAnnotations();
+        drawShape(annoCtx, annoTool, annoStartX, annoStartY, x, y, annoColor, annoLineWidth);
+      }
+    });
+
+    annoCanvas.addEventListener('mouseup', function(e) {
+      if (!annoDrawing) return;
+      annoDrawing = false;
+      var rect = annoCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+
+      if (annoTool !== 'freehand') {
+        annoHistory.push({
+          tool: annoTool,
+          color: annoColor,
+          width: annoLineWidth,
+          x1: annoStartX,
+          y1: annoStartY,
+          x2: x,
+          y2: y
+        });
+        annoRedoStack = [];
+        redrawAnnotations();
+      }
+    });
+
+    annoCanvas.addEventListener('mouseleave', function() {
+      if (annoDrawing && annoTool !== 'freehand') {
+        annoDrawing = false;
+        redrawAnnotations();
+      } else if (annoDrawing && annoTool === 'freehand') {
+        annoDrawing = false;
+      }
+    });
+
+    function redrawAnnotations() {
+      annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
+      annoHistory.forEach(function(item) {
+        if (item.tool === 'freehand') {
+          drawFreehand(annoCtx, item);
+        } else {
+          drawShape(annoCtx, item.tool, item.x1, item.y1, item.x2, item.y2, item.color, item.width);
+        }
+      });
+    }
+
+    function drawFreehand(ctx, stroke) {
+      if (stroke.points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (var i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      }
+      ctx.stroke();
+    }
+
+    function drawShape(ctx, tool, x1, y1, x2, y2, color, width) {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (tool === 'rectangle') {
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      } else if (tool === 'line') {
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      } else if (tool === 'arrow') {
+        // Line
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        // Arrowhead
+        var angle = Math.atan2(y2 - y1, x2 - x1);
+        var headLen = 12;
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+      }
+    }
+
+    // Resize canvas on window resize while annotating
+    window.addEventListener('resize', function() {
+      if (sessionVideo.classList.contains('annotating')) {
+        resizeAnnoCanvas();
       }
     });
   </script>
