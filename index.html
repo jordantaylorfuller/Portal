@@ -53,8 +53,8 @@
     }
 
     body {
-      background-color: #000;
-      color: #fff;
+      background-color: #ece7df;
+      color: #1a1a1a;
       font-family: 'DM Mono', monospace;
       min-height: 100vh;
       display: flex;
@@ -72,54 +72,61 @@
       justify-content: center;
       text-align: center;
       padding: 2rem;
-      gap: 3rem;
     }
 
-    .logo {
-      width: 280px;
-      max-width: 80vw;
-      opacity: 0.95;
-    }
-
-    .coming-soon {
-      font-size: 0.875rem;
-      font-weight: 300;
-      letter-spacing: 0.35em;
+    .heading {
+      font-size: 1.125rem;
+      font-weight: 500;
+      line-height: 1.6;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 1.25rem;
     }
 
-    .portal-btn {
+    .subheading {
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
       display: inline-block;
-      padding: 0.75rem 2rem;
+      padding: 0.7rem 3rem;
       font-family: 'DM Mono', monospace;
       font-size: 0.75rem;
       font-weight: 400;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #c0522e;
+      border: 1px solid #c8c3bb;
       background: transparent;
       text-decoration: none;
       cursor: pointer;
       transition: border-color 0.25s ease, background-color 0.25s ease;
     }
 
-    .portal-btn:hover {
-      border-color: rgba(255, 255, 255, 0.7);
-      background-color: rgba(255, 255, 255, 0.05);
+    .btn:hover {
+      border-color: #a09a92;
+      background-color: rgba(0, 0, 0, 0.03);
     }
 
-    .portal-btn:active {
-      background-color: rgba(255, 255, 255, 0.1);
+    .btn:active {
+      background-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .btn + .btn {
+      margin-top: 0.75rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="images/nipc-logo.png" alt="NIPC - New International Picture Company" class="logo"/>
-    <p class="coming-soon">Coming Soon</p>
-    <a href="#" class="portal-btn">Client Portal</a>
+    <p class="heading">While we're busy building a<br/>New International Picture Company,<br/>feel free to play around with our logo.</p>
+    <p class="subheading">Sound on, please.</p>
+    <a href="#" class="btn">Play</a>
+    <a href="#" class="btn">Client Portal</a>
   </div>
 </body>
 </html>
