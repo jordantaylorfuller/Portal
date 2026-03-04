@@ -75,6 +75,11 @@
       align-items: center;
       justify-content: center;
       z-index: 1;
+      transition: background-color 700ms ease;
+    }
+
+    .login-screen.session-entering {
+      background-color: rgb(243, 240, 237);
     }
 
     .back-link {
@@ -137,6 +142,11 @@
       font-weight: 400;
       text-transform: uppercase;
       color: #fff;
+      transition: opacity 500ms ease;
+    }
+
+    .room-welcome.faded {
+      opacity: 0;
     }
 
     .room-selection.visible {
@@ -371,6 +381,9 @@
     const loginForm = document.querySelector('.login-form');
     const roomSelection = document.querySelector('.room-selection');
     const loginBtn = document.querySelector('.login-btn');
+    const loginScreen = document.querySelector('.login-screen');
+    const roomWelcome = document.querySelector('.room-welcome');
+    const sessionBtn = document.querySelectorAll('.room-btn')[1];
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
@@ -381,6 +394,12 @@
       e.preventDefault();
       loginForm.classList.add('faded');
       roomSelection.classList.add('visible');
+    });
+
+    sessionBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      roomWelcome.classList.add('faded');
+      loginScreen.classList.add('session-entering');
     });
 
     backLink.addEventListener('click', function(e) {
