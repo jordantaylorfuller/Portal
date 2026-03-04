@@ -228,6 +228,31 @@
       letter-spacing: 0.05em;
     }
 
+    /* ── Session Video Player ── */
+    .session-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 800ms ease;
+    }
+
+    .session-video.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .session-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .login-heading {
       font-family: 'DM Mono', monospace;
       font-size: 14px;
@@ -412,8 +437,13 @@
     </div>
     <div class="session-waiting">
       <div class="session-message">The session will start shortly.</div>
-      <div class="session-timer">05:00</div>
+      <div class="session-timer">00:04</div>
     </div>
+  </div>
+
+  <!-- Session video player -->
+  <div class="session-video">
+    <video id="session-video" playsinline></video>
   </div>
 
   <!-- Landing page overlay (slides left to reveal login) -->
@@ -438,6 +468,8 @@
     const sessionBtn = document.querySelectorAll('.room-btn')[1];
     const sessionWaiting = document.querySelector('.session-waiting');
     const sessionTimer = document.querySelector('.session-timer');
+    const sessionVideo = document.querySelector('.session-video');
+    const videoEl = document.getElementById('session-video');
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
@@ -461,7 +493,7 @@
 
       setTimeout(function() {
         sessionWaiting.classList.add('visible');
-        startCountdown(5 * 60);
+        startCountdown(4);
       }, 700);
     });
 
@@ -474,6 +506,7 @@
         if (remaining <= 0) {
           clearInterval(countdownInterval);
           countdownInterval = null;
+          showSessionVideo();
         }
       }, 1000);
     }
@@ -483,6 +516,12 @@
       var s = seconds % 60;
       sessionTimer.textContent =
         String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function showSessionVideo() {
+      sessionWaiting.classList.remove('visible');
+      sessionVideo.classList.add('visible');
+      videoEl.play().catch(function() {});
     }
 
     backLink.addEventListener('click', function(e) {
