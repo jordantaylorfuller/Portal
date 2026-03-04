@@ -53,8 +53,8 @@
     }
 
     body {
-      background-color: #ece7df;
-      color: #1a1a1a;
+      background-color: rgb(243, 240, 237);
+      color: rgb(40, 36, 36);
       font-family: 'DM Mono', monospace;
       min-height: 100vh;
       display: flex;
@@ -71,44 +71,50 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 2rem;
     }
 
     .heading {
-      font-size: 1.125rem;
-      font-weight: 500;
-      line-height: 1.6;
-      letter-spacing: 0.05em;
+      font-family: 'DM Mono', serif;
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 26.4px;
       text-transform: uppercase;
-      margin-bottom: 1.25rem;
+      color: rgb(40, 36, 36);
+      padding: 0 32px;
+      margin: 0 0 16px;
     }
 
     .subheading {
-      font-size: 0.75rem;
+      font-family: 'DM Mono', serif;
+      font-size: 16px;
       font-weight: 400;
-      letter-spacing: 0.08em;
+      line-height: 22.4px;
       text-transform: uppercase;
-      margin-bottom: 1.75rem;
+      color: rgb(40, 36, 36);
+      padding: 0 32px;
+      margin: 0 0 32px;
     }
 
     .btn {
       display: inline-block;
-      padding: 0.7rem 3rem;
+      width: 200px;
+      padding: 12px 32px;
       font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 16px;
       font-weight: 400;
-      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #c0522e;
-      border: 1px solid #c8c3bb;
+      color: rgb(220, 40, 40);
+      border: 1px solid rgb(209, 204, 199);
+      border-radius: 0;
       background: transparent;
       text-decoration: none;
       cursor: pointer;
+      text-align: center;
       transition: border-color 0.25s ease, background-color 0.25s ease;
     }
 
     .btn:hover {
-      border-color: #a09a92;
+      border-color: rgb(170, 165, 160);
       background-color: rgba(0, 0, 0, 0.03);
     }
 
@@ -117,14 +123,14 @@
     }
 
     .btn + .btn {
-      margin-top: 0.75rem;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <p class="heading">While we're busy building a<br/>New International Picture Company,<br/>feel free to play around with our logo.</p>
-    <p class="subheading">Sound on, please.</p>
+    <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
+    <h2 class="subheading">Sound on, please.</h2>
     <a href="#" class="btn">Play</a>
     <a href="#" class="btn">Client Portal</a>
   </div>
