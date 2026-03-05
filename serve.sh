@@ -27,7 +27,9 @@ if [ -n "$EXISTING_PID" ]; then
 fi
 
 # Inject branch name into page title via live-server middleware
-MIDDLEWARE_FILE=$(mktemp /tmp/portal-middleware-XXXXXX.js)
+MIDDLEWARE_FILE=$(mktemp /tmp/portal-middleware-XXXXXXXX)
+mv "$MIDDLEWARE_FILE" "${MIDDLEWARE_FILE}.js"
+MIDDLEWARE_FILE="${MIDDLEWARE_FILE}.js"
 cat > "$MIDDLEWARE_FILE" << JSEOF
 module.exports = function(req, res, next) {
   var originalWrite = res.write;
