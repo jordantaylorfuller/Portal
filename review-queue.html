@@ -283,6 +283,68 @@
     /* ── Section wrapper ── */
     .section-group {
     }
+
+    /* ── Mobile: Card Layout ── */
+    @media (max-width: 600px) {
+      .queue-container {
+        padding: 72px 16px 40px;
+      }
+
+      .asset-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        border-bottom: none;
+        border: 1px solid rgb(209, 204, 199);
+        margin-bottom: 12px;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .asset-link {
+        display: contents;
+      }
+
+      .asset-info {
+        display: contents;
+      }
+
+      .asset-title {
+        grid-column: 1;
+        grid-row: 1;
+        padding: 10px 0 10px 12px;
+        margin-bottom: 0;
+        font-size: 12px;
+        align-self: center;
+      }
+
+      .status-btn-wrap {
+        grid-column: 2;
+        grid-row: 1;
+        margin-left: 8px;
+        margin-right: 12px;
+        align-self: center;
+      }
+
+      .asset-thumb {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        height: 180px;
+        border: none;
+        border-top: 1px solid rgb(209, 204, 199);
+        border-bottom: 1px solid rgb(209, 204, 199);
+      }
+
+      .asset-meta {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        padding: 10px 12px;
+      }
+
+      .status-dropdown {
+        right: 0;
+      }
+    }
   </style>
 </head>
 <body>
