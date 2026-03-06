@@ -1766,6 +1766,13 @@
       loginScreen.classList.add('session-entering');
       backLink.classList.add('dark');
 
+      // Prime video on user gesture so iOS allows playback after countdown
+      videoEl.muted = true;
+      videoEl.play().then(function() {
+        videoEl.pause();
+        videoEl.currentTime = 0;
+      }).catch(function() {});
+
       setTimeout(function() {
         sessionWaiting.classList.add('visible');
         startCountdown(SESSION_WAIT_SECONDS);
@@ -1812,17 +1819,15 @@
     function showSessionVideo() {
       sessionWaiting.classList.remove('visible');
       sessionVideo.classList.add('visible');
-      // Mobile browsers block autoplay with audio; mute first, then unmute
-      var wasMuted = videoEl.muted;
+      videoEl.muted = false;
       videoEl.play().catch(function() {
+        // iOS fallback: play muted, unmute on first tap
         videoEl.muted = true;
-        videoEl.play().then(function() {
-          // Restore audio on next user tap
-          document.addEventListener('touchstart', function unmute() {
-            videoEl.muted = wasMuted;
-            document.removeEventListener('touchstart', unmute);
-          }, { once: true });
-        }).catch(function() {});
+        videoEl.play().catch(function() {});
+        document.addEventListener('touchstart', function unmute() {
+          videoEl.muted = false;
+          document.removeEventListener('touchstart', unmute);
+        }, { once: true });
       });
     }
 
