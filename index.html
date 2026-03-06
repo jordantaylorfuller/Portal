@@ -1709,6 +1709,14 @@
     const roomWelcome = document.querySelector('.room-welcome');
     const reviewBtn = document.querySelectorAll('.room-btn')[0];
     const sessionBtn = document.querySelectorAll('.room-btn')[1];
+
+    // Deep-link: skip to room selection if returning from a sub-page
+    if (new URLSearchParams(window.location.search).get('room') === 'select') {
+      landingPage.classList.add('slid');
+      loginForm.classList.add('faded');
+      roomSelection.classList.add('visible');
+      history.replaceState(null, '', window.location.pathname);
+    }
     const sessionWaiting = document.querySelector('.session-waiting');
     const sessionTimer = document.querySelector('.session-timer');
     const sessionVideo = document.querySelector('.session-video');
@@ -1911,10 +1919,36 @@
 
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
+      // If in session waiting, go back to room selection
+      if (sessionWaiting.classList.contains('visible')) {
+        sessionWaiting.classList.remove('visible');
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+        }
+        roomSelection.classList.remove('buttons-faded');
+        roomWelcome.classList.remove('faded');
+        loginScreen.classList.remove('session-entering');
+        backLink.classList.remove('dark');
+        revisitBtn.disabled = false;
+        revisitBtn.style.opacity = '';
+        return;
+      }
+      // If in delivery room, go back to room selection
+      if (deliveryRoom.classList.contains('visible')) {
+        deliveryRoom.classList.remove('visible');
+        roomSelection.classList.remove('buttons-faded');
+        roomWelcome.classList.remove('faded');
+        loginScreen.classList.remove('delivery-entering');
+        return;
+      }
+      // If at room selection, go back to login
       if (roomSelection.classList.contains('visible')) {
         roomSelection.classList.remove('visible');
         loginForm.classList.remove('faded');
+        return;
       }
+      // Otherwise go back to landing
       landingPage.classList.remove('slid');
     });
 
