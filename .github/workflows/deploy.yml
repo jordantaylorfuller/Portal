@@ -26,7 +26,10 @@ jobs:
       - name: Rewrite video source to release asset
         run: |
           VIDEO_URL="https://github.com/${{ github.repository }}/releases/download/v1.0/video.mp4"
-          sed -i "s|src=\"video.mp4\"|src=\"${VIDEO_URL}\"|g" index.html
+          # Rewrite all video.mp4 references (HTML attributes and JS strings) across all HTML files
+          for f in index.html review-queue.html review-mux.html; do
+            [ -f "$f" ] && sed -i "s|video\.mp4|${VIDEO_URL}|g" "$f"
+          done
 
       - name: Remove LFS video from deploy (served from release)
         run: rm -f video.mp4
