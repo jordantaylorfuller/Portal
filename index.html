@@ -1359,6 +1359,47 @@
         width: 32px;
         height: 32px;
       }
+
+      /* Annotation toolbar: horizontal bottom bar on mobile */
+      .annotation-toolbar {
+        top: auto;
+        bottom: 16px;
+        right: 50%;
+        transform: translateX(50%);
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: calc(100% - 32px);
+        padding: 6px 10px;
+        gap: 1px;
+      }
+
+      .anno-divider {
+        width: 1px;
+        height: 20px;
+        margin: 0 4px;
+      }
+
+      .anno-tool-btn {
+        width: 28px;
+        height: 28px;
+      }
+
+      .anno-color-btn {
+        width: 16px;
+        height: 16px;
+        margin: 0 1px;
+      }
+
+      .anno-done-btn {
+        width: 28px;
+        height: 28px;
+      }
+
+      /* Hide video controls when annotating on mobile */
+      .session-video.annotating .video-controls {
+        display: none;
+      }
     }
   </style>
 </head>
