@@ -1812,7 +1812,18 @@
     function showSessionVideo() {
       sessionWaiting.classList.remove('visible');
       sessionVideo.classList.add('visible');
-      videoEl.play().catch(function() {});
+      // Mobile browsers block autoplay with audio; mute first, then unmute
+      var wasMuted = videoEl.muted;
+      videoEl.play().catch(function() {
+        videoEl.muted = true;
+        videoEl.play().then(function() {
+          // Restore audio on next user tap
+          document.addEventListener('touchstart', function unmute() {
+            videoEl.muted = wasMuted;
+            document.removeEventListener('touchstart', unmute);
+          }, { once: true });
+        }).catch(function() {});
+      });
     }
 
     backLink.addEventListener('click', function(e) {
@@ -2427,7 +2438,10 @@
         videoEl.src = session.src;
         videoEl.load();
         sessionVideo.classList.add('visible');
-        videoEl.play().catch(function() {});
+        videoEl.play().catch(function() {
+          videoEl.muted = true;
+          videoEl.play().catch(function() {});
+        });
 
         // Switch LIVE to recording mode
         liveToggle.classList.remove('live');
