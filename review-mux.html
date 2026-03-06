@@ -2,49 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>NIPC | New International Picture Company - Carla Luffe, Post-Production Studio NYC</title>
-  <meta content="New International Picture Company (NIPC), led by editor Carla Luffe, is a post-production studio in New York specializing in editorial, color grading, and motion graphics for brands, agencies, and entertainment studios." name="description"/>
-  <meta content="NIPC | New International Picture Company - Coming Soon" property="og:title"/>
-  <meta content="New International Picture Company (NIPC), founded by editor Carla Luffe. Post-production studio in New York specializing in editorial, color, and sound." property="og:description"/>
-  <meta content="images/nipc-logo.png" property="og:image"/>
-  <meta content="NIPC | New International Picture Company - Coming Soon" property="twitter:title"/>
-  <meta content="New International Picture Company (NIPC), founded by editor Carla Luffe. Post-production studio in New York specializing in editorial, color, and sound." property="twitter:description"/>
-  <meta property="og:type" content="website"/>
-  <meta content="summary_large_image" name="twitter:card"/>
+  <title>NIPC | Review Room -- Davis</title>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
-  <link href="images/webclip.png" rel="apple-touch-icon"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "New International Picture Company",
-    "alternateName": "NIPC",
-    "url": "https://www.nipc.tv",
-    "email": "hi@nipc.tv",
-    "founder": {
-      "@type": "Person",
-      "name": "Carla Luffe",
-      "jobTitle": "Editor"
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "39 Great Jones Street #1",
-      "addressLocality": "New York",
-      "addressRegion": "NY",
-      "postalCode": "10012",
-      "addressCountry": "US"
-    },
-    "sameAs": [
-      "https://www.instagram.com/nipc.tv",
-      "https://www.linkedin.com/company/nipc-tv/"
-    ],
-    "description": "Post-production studio led by editor Carla Luffe, specializing in editorial, motion graphics, and color grading for brands, agencies, and entertainment studios."
-  }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
   <style>
     * {
       margin: 0;
@@ -60,79 +24,37 @@
     }
 
     body {
-      background-color: rgb(220, 40, 40);
-      color: rgb(40, 36, 36);
+      background: #000;
+      color: #fff;
       font-family: 'DM Mono', monospace;
-      min-height: 100vh;
+      height: 100vh;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ── Login Screen (sits behind landing page) ── */
-    .login-screen {
+    /* ── Review Player (full viewport) ── */
+    .review-player {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgb(220, 40, 40);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1;
-      transition: background-color 700ms ease;
+      background: #000;
     }
 
-    .login-screen.session-entering {
-      background-color: rgb(243, 240, 237);
-    }
-
-    .back-link {
-      position: fixed;
-      top: 20px;
-      left: 24px;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: rgba(255, 255, 255, 0.6);
-      text-decoration: none;
-      transition: color 0.5s ease;
-      z-index: 5;
-    }
-
-    .back-link.dark {
-      color: rgba(40, 36, 36, 0.45);
-    }
-
-    .back-link.dark:hover {
-      color: rgba(40, 36, 36, 0.8);
-    }
-
-    .back-link:hover {
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .login-form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    mux-player {
       width: 100%;
-      max-width: 320px;
-      padding: 0 32px;
-      transition: opacity 500ms ease;
+      height: 100%;
+      --controls: none;
+      --media-object-fit: cover;
     }
 
-    .login-form.faded {
-      opacity: 0;
-      pointer-events: none;
+    .review-player.fit-aspect mux-player {
+      --media-object-fit: contain;
     }
 
-    /* ── Room Selection ── */
-    .room-selection {
+    .mux-fallback {
       position: absolute;
       top: 0;
       left: 0;
@@ -143,128 +65,29 @@
       align-items: center;
       justify-content: center;
       gap: 16px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 500ms ease 300ms;
     }
 
-    .room-welcome {
-      position: absolute;
-      top: calc(50% / 2);
-      transform: translateY(-50%);
-      font-family: 'DM Mono', monospace;
-      font-size: 24px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: #fff;
-      transition: opacity 500ms ease;
-    }
-
-    .room-welcome.faded {
-      opacity: 0;
-    }
-
-    .room-selection.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .room-btn {
-      display: inline-block;
-      width: 200px;
-      padding: 12px 32px;
-      font-family: 'DM Mono', monospace;
-      font-size: 16px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 0;
-      background: transparent;
-      cursor: pointer;
-      text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease, opacity 500ms ease;
-    }
-
-    .room-selection.buttons-faded .room-btn {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .room-btn:hover {
-      border-color: rgba(255, 255, 255, 0.9);
-      background-color: rgba(255, 255, 255, 0.08);
-    }
-
-    .room-btn:active {
-      background-color: rgba(255, 255, 255, 0.14);
-    }
-
-    /* ── Session Waiting Screen ── */
-    .session-waiting {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 600ms ease;
-    }
-
-    .session-waiting.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .session-message {
-      font-family: 'DM Mono', monospace;
-      font-size: 16px;
-      font-weight: 400;
+    .mux-fallback-badge {
+      font-size: 10px;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: rgb(40, 36, 36);
+      color: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 12px;
     }
 
-    .session-timer {
-      font-family: 'DM Mono', monospace;
-      font-size: 48px;
+    .mux-fallback-text {
+      font-size: 12px;
       font-weight: 300;
-      color: rgb(40, 36, 36);
-      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.25);
+      max-width: 320px;
+      text-align: center;
+      line-height: 1.6;
     }
 
-    /* ── Session Video Player ── */
-    .session-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 20;
-      background: #000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 800ms ease;
-    }
-
-    .session-video.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .session-video video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .session-video.fit-aspect video {
-      object-fit: contain;
-    }
-
-    .session-back {
+    /* ── Back Button ── */
+    .review-back {
       position: absolute;
       top: 20px;
       left: 24px;
@@ -277,17 +100,39 @@
       background: transparent;
       border: none;
       cursor: pointer;
+      text-decoration: none;
       opacity: 0;
       transition: opacity 300ms ease, color 200ms ease;
       z-index: 2;
     }
 
-    .session-video.mouse-active .session-back {
+    .review-player.mouse-active .review-back {
       opacity: 1;
     }
 
-    .session-back:hover {
+    .review-back:hover {
       color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ── Project Label ── */
+    .project-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35);
+      z-index: 2;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .review-player.mouse-active .project-label {
+      opacity: 1;
     }
 
     /* ── Transport Bar ── */
@@ -307,7 +152,7 @@
       z-index: 2;
     }
 
-    .session-video.mouse-active .transport-bar {
+    .review-player.mouse-active .transport-bar {
       opacity: 1;
     }
 
@@ -330,6 +175,7 @@
       color: #fff;
     }
 
+    /* ── Volume ── */
     .volume-group {
       position: relative;
       flex-shrink: 0;
@@ -399,6 +245,7 @@
       border-radius: 2px;
     }
 
+    /* ── Playhead ── */
     .playhead-group {
       display: flex;
       align-items: center;
@@ -418,7 +265,7 @@
     .playhead-slider {
       -webkit-appearance: none;
       appearance: none;
-      flex: 1;
+      width: 100%;
       height: 3px;
       background: rgba(255,255,255,0.3);
       border-radius: 2px;
@@ -451,6 +298,7 @@
       border-radius: 2px;
     }
 
+    /* ── Live Button ── */
     .live-btn {
       font-family: 'DM Mono', monospace;
       font-size: 10px;
@@ -491,6 +339,41 @@
       color: #fff;
     }
 
+    /* ── Video Controls Stack ── */
+    .video-controls {
+      position: absolute;
+      bottom: 56px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 300ms ease;
+      z-index: 2;
+    }
+
+    .review-player.mouse-active .video-controls {
+      opacity: 1;
+    }
+
+    .video-control-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: color 200ms ease;
+    }
+
+    .video-control-btn:hover {
+      color: #fff;
+    }
+
     /* ── Annotation Overlay ── */
     .annotation-canvas {
       position: absolute;
@@ -503,7 +386,7 @@
       display: none;
     }
 
-    .session-video.annotating .annotation-canvas {
+    .review-player.annotating .annotation-canvas {
       display: block;
     }
 
@@ -527,7 +410,7 @@
       transition: opacity 200ms ease;
     }
 
-    .session-video.annotating .annotation-toolbar {
+    .review-player.annotating .annotation-toolbar {
       opacity: 1;
       pointer-events: auto;
     }
@@ -599,235 +482,321 @@
       background: rgba(255,255,255,0.25);
     }
 
-    .video-controls {
-      position: absolute;
-      bottom: 56px;
-      right: 20px;
+    /* ── Comment Panel ── */
+    .comment-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 320px;
+      height: 100vh;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-left: 1px solid rgba(255,255,255,0.08);
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      opacity: 0;
-      transition: opacity 300ms ease;
-      z-index: 2;
+      z-index: 10;
+      transform: translateX(100%);
+      transition: transform 300ms ease;
     }
 
-    .session-video.mouse-active .video-controls {
-      opacity: 1;
+    .comment-panel.open {
+      transform: translateX(0);
     }
 
-    .video-control-btn {
-      width: 36px;
-      height: 36px;
+    .panel-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .panel-count {
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .panel-close {
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: transparent;
       border: none;
-      border-radius: 4px;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255,255,255,0.4);
       cursor: pointer;
       transition: color 200ms ease;
     }
 
-    .video-control-btn:hover {
-      color: #fff;
+    .panel-close:hover {
+      color: rgba(255,255,255,0.8);
     }
 
-    .login-heading {
-      font-family: 'DM Mono', monospace;
-      font-size: 14px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #fff;
-      margin-bottom: 48px;
+    .comment-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
     }
 
-    .login-input {
-      width: 100%;
+    .comment-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .comment-list::-webkit-scrollbar-track {
       background: transparent;
-      border: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-      padding: 12px 0;
-      font-family: 'DM Mono', monospace;
-      font-size: 14px;
-      color: #fff;
-      outline: none;
-      margin-bottom: 24px;
-      transition: border-color 0.2s ease;
     }
 
-    .login-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+    .comment-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+
+    .comment-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .comment-item:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .comment-item.resolved {
+      opacity: 0.45;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .comment-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgb(220, 40, 40);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .comment-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .comment-timecode {
+      font-size: 10px;
+      font-weight: 500;
+      color: rgb(220, 40, 40);
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: color 150ms ease;
+    }
+
+    .comment-timecode:hover {
+      color: rgb(255, 80, 80);
+    }
+
+    .comment-item.resolved .comment-timecode {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .comment-author {
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
       text-transform: uppercase;
-      font-size: 11px;
       letter-spacing: 0.05em;
     }
 
-    .login-input:focus {
-      border-bottom-color: rgba(255, 255, 255, 0.8);
+    .comment-text {
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      margin-bottom: 8px;
     }
 
-    .login-btn {
-      margin-top: 16px;
-      display: inline-block;
-      width: 200px;
-      padding: 12px 32px;
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .resolve-btn {
       font-family: 'DM Mono', monospace;
-      font-size: 16px;
+      font-size: 9px;
       font-weight: 400;
       text-transform: uppercase;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 0;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.3);
       background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 3px 8px;
       cursor: pointer;
-      text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease;
+      transition: color 200ms ease, border-color 200ms ease;
     }
 
-    .login-btn:hover {
-      border-color: rgba(255, 255, 255, 0.9);
-      background-color: rgba(255, 255, 255, 0.08);
+    .resolve-btn:hover {
+      color: rgba(255,255,255,0.7);
+      border-color: rgba(255,255,255,0.3);
     }
 
-    .login-btn:active {
-      background-color: rgba(255, 255, 255, 0.14);
+    .resolve-btn.is-resolved {
+      color: rgba(255,255,255,0.5);
+      border-color: rgba(255,255,255,0.2);
     }
 
-    /* ── Landing Page Overlay ── */
-    .landing-page {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .comment-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .comment-input-label {
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 8px;
+    }
+
+    .comment-input {
       width: 100%;
-      height: 100%;
-      background-color: rgb(243, 240, 237);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      transform: translateX(0);
-      box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4), 8px 0 20px rgba(0, 0, 0, 0.2);
-      transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .landing-page.slid {
-      transform: translateX(calc(-100% - 80px));
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .heading {
-      font-family: 'DM Mono', serif;
-      font-size: 24px;
-      font-weight: 400;
-      line-height: 26.4px;
-      text-transform: uppercase;
-      color: rgb(40, 36, 36);
-      padding: 0 32px;
-      margin: 0 0 16px;
-    }
-
-    .subheading {
-      font-family: 'DM Mono', serif;
-      font-size: 16px;
-      font-weight: 400;
-      line-height: 22.4px;
-      text-transform: uppercase;
-      color: rgb(40, 36, 36);
-      padding: 0 32px;
-      margin: 0 0 32px;
-    }
-
-    .btn {
-      display: inline-block;
-      width: 200px;
-      padding: 12px 32px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 10px 12px;
       font-family: 'DM Mono', monospace;
-      font-size: 16px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: rgb(220, 40, 40);
-      border: 1px solid rgb(209, 204, 199);
-      border-radius: 0;
-      background: transparent;
-      text-decoration: none;
-      cursor: pointer;
-      text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease;
+      font-size: 12px;
+      font-weight: 300;
+      color: #fff;
+      outline: none;
+      resize: none;
+      min-height: 60px;
+      transition: border-color 200ms ease;
     }
 
-    .btn:hover {
-      border-color: rgb(170, 165, 160);
-      background-color: rgba(0, 0, 0, 0.03);
+    .comment-input::placeholder {
+      color: rgba(255,255,255,0.25);
     }
 
-    .btn:active {
-      background-color: rgba(0, 0, 0, 0.06);
+    .comment-input:focus {
+      border-color: rgba(255,255,255,0.25);
     }
 
-    .btn + .btn {
-      margin-top: 12px;
+    .comment-submit-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
     }
 
-    .portal-link {
-      position: fixed;
-      top: 20px;
-      right: 24px;
+    .comment-submit {
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: rgb(40, 36, 36);
-      text-decoration: none;
-      opacity: 0.45;
-      transition: opacity 0.2s ease;
+      color: rgb(220, 40, 40);
+      background: transparent;
+      border: 1px solid rgba(220, 40, 40, 0.4);
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: border-color 200ms ease, background 200ms ease;
     }
 
-    .portal-link:hover {
-      opacity: 0.8;
+    .comment-submit:hover {
+      border-color: rgb(220, 40, 40);
+      background: rgba(220, 40, 40, 0.08);
+    }
+
+    /* ── Scrub Markers ── */
+    .playhead-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .scrub-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .scrub-marker {
+      position: absolute;
+      width: 3px;
+      height: 10px;
+      background: rgb(220, 40, 40);
+      border-radius: 1px;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 150ms ease;
+    }
+
+    .scrub-marker:hover {
+      transform: scaleY(1.5);
+    }
+
+    .scrub-marker.resolved {
+      background: rgba(255,255,255,0.3);
     }
   </style>
 </head>
 <body>
 
-  <!-- Login screen (behind) -->
-  <div class="login-screen">
-    <a href="#" class="back-link">&#8592; Back</a>
-    <form class="login-form" onsubmit="return false;">
-      <h2 class="login-heading">Client Portal</h2>
-      <input type="email" class="login-input" placeholder="Email" autocomplete="email"/>
-      <input type="password" class="login-input" placeholder="Password" autocomplete="current-password"/>
-      <button type="submit" class="login-btn">Login</button>
-    </form>
-    <div class="room-selection">
-      <div class="room-welcome">Welcome Back, Jordan.</div>
-      <button class="room-btn">Review Room</button>
-      <button class="room-btn">Session Room</button>
-      <button class="room-btn">Delivery Room</button>
-    </div>
-    <div class="session-waiting">
-      <div class="session-message">The session will start shortly.</div>
-      <div class="session-timer">00:04</div>
-    </div>
-  </div>
+  <div class="review-player" id="review-player">
+    <a href="review-queue.html" class="review-back">&larr; Back</a>
+    <div class="project-label">Davis &mdash; Rough Cut V3</div>
 
-  <!-- Session video player -->
-  <div class="session-video">
-    <video id="session-video" playsinline src="video.mp4"></video>
-    <button class="session-back" aria-label="Exit session">&#8592; Back</button>
+    <!-- Mux Player -->
+    <mux-player
+      id="mux-player"
+      playback-id="vYQ3CRWQFmsVzL02InTa7JVlgbqMhilWzRBBA02LQOnXU"
+      stream-type="on-demand"
+      style="width:100%;height:100%;"
+    ></mux-player>
+
+    <!-- Fallback if Mux doesn't load -->
+    <div class="mux-fallback" id="mux-fallback" style="display:none;">
+      <div class="mux-fallback-badge">Mux Player</div>
+      <div class="mux-fallback-text">
+        Mux web component would render here with adaptive bitrate streaming.
+      </div>
+    </div>
+
+    <!-- Annotation Canvas -->
     <canvas id="annotation-canvas" class="annotation-canvas"></canvas>
+
+    <!-- Annotation Toolbar -->
     <div class="annotation-toolbar" id="annotation-toolbar">
-      <!-- Drawing tools -->
       <button class="anno-tool-btn active" data-tool="freehand" aria-label="Freehand draw">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M10.5 1.5l4 4-9 9H1.5v-4z"/>
@@ -851,14 +820,12 @@
         </svg>
       </button>
       <div class="anno-divider"></div>
-      <!-- Colors: red, orange, teal, green, blue (Frame.io palette) -->
       <button class="anno-color-btn active" data-color="#E74C3C" style="background:#E74C3C;" aria-label="Red"></button>
       <button class="anno-color-btn" data-color="#F39C12" style="background:#F39C12;" aria-label="Orange"></button>
       <button class="anno-color-btn" data-color="#1ABC9C" style="background:#1ABC9C;" aria-label="Teal"></button>
       <button class="anno-color-btn" data-color="#2ECC71" style="background:#2ECC71;" aria-label="Green"></button>
       <button class="anno-color-btn" data-color="#3498DB" style="background:#3498DB;" aria-label="Blue"></button>
       <div class="anno-divider"></div>
-      <!-- Undo / Redo -->
       <button class="anno-tool-btn" id="anno-undo" aria-label="Undo">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="4 7 1 4 4 1"/>
@@ -872,18 +839,24 @@
         </svg>
       </button>
       <div class="anno-divider"></div>
-      <!-- Done -->
       <button class="anno-done-btn" id="anno-done" aria-label="Done annotating">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="2 7 5.5 10.5 12 3.5"/>
         </svg>
       </button>
     </div>
+
+    <!-- Video Controls Stack -->
     <div class="video-controls">
       <button id="annotate-toggle" class="video-control-btn" aria-label="Annotate">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2 16l1.5-4.5L13 2l3 3L6.5 14.5z"/>
           <line x1="10.5" y1="4.5" x2="13.5" y2="7.5"/>
+        </svg>
+      </button>
+      <button id="chat-toggle" class="video-control-btn" aria-label="Chat">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h14v10H6l-4 3V3z"/>
         </svg>
       </button>
       <button id="mic-toggle" class="video-control-btn" aria-label="Toggle microphone">
@@ -910,11 +883,12 @@
         </svg>
       </button>
     </div>
+
+    <!-- Transport Bar -->
     <div class="transport-bar">
       <button id="play-pause" class="transport-btn" aria-label="Play/Pause">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" stroke="none">
-          <rect x="3" y="2" width="4" height="14" rx="1"/>
-          <rect x="11" y="2" width="4" height="14" rx="1"/>
+          <polygon points="4,2 16,9 4,16"/>
         </svg>
       </button>
       <div class="volume-group" id="volume-group">
@@ -933,151 +907,232 @@
       </div>
       <div class="playhead-group">
         <span id="time-current" class="transport-time">00:00</span>
-        <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="100"/>
+        <div class="playhead-wrap">
+          <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="0"/>
+          <div class="scrub-markers" id="scrub-markers"></div>
+        </div>
         <span id="time-duration" class="transport-time">00:00</span>
       </div>
       <button id="live-toggle" class="live-btn live" aria-label="Jump to live">LIVE</button>
     </div>
-  </div>
 
-  <!-- Landing page overlay (slides left to reveal login) -->
-  <div class="landing-page">
-    <a href="#" class="portal-link">Clients</a>
-    <div class="container">
-      <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
-      <h2 class="subheading">Sound on, please.</h2>
-      <a href="#" class="btn">Play</a>
+    <!-- Comment Panel -->
+    <div class="comment-panel" id="comment-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-title">Notes</span>
+          <span class="panel-count" id="panel-count"></span>
+        </div>
+        <button class="panel-close" id="panel-close" aria-label="Close panel">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="1" y1="1" x2="13" y2="13"/>
+            <line x1="13" y1="1" x2="1" y2="13"/>
+          </svg>
+        </button>
+      </div>
+      <div class="comment-list" id="comment-list"></div>
+      <div class="comment-input-area">
+        <div class="comment-input-label" id="comment-input-label">Add note at 00:00</div>
+        <textarea class="comment-input" id="comment-input" placeholder="Type a note..."></textarea>
+        <div class="comment-submit-row">
+          <button class="comment-submit" id="comment-submit">Post</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    const landingPage = document.querySelector('.landing-page');
-    const portalLink = document.querySelector('.portal-link');
-    const backLink = document.querySelector('.back-link');
-    const loginForm = document.querySelector('.login-form');
-    const roomSelection = document.querySelector('.room-selection');
-    const loginBtn = document.querySelector('.login-btn');
-    const loginScreen = document.querySelector('.login-screen');
-    const roomWelcome = document.querySelector('.room-welcome');
-    const reviewBtn = document.querySelectorAll('.room-btn')[0];
-    const sessionBtn = document.querySelectorAll('.room-btn')[1];
-    const sessionWaiting = document.querySelector('.session-waiting');
-    const sessionTimer = document.querySelector('.session-timer');
-    const sessionVideo = document.querySelector('.session-video');
-    const videoEl = document.getElementById('session-video');
-
-    // Review Room button -> navigate to review prototype
-    reviewBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = 'review-queue.html';
-    });
-
-    portalLink.addEventListener('click', function(e) {
-      e.preventDefault();
-      landingPage.classList.add('slid');
-    });
-
-    loginBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      loginForm.classList.add('faded');
-      roomSelection.classList.add('visible');
-    });
-
-    var countdownInterval = null;
-
-    sessionBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      roomWelcome.classList.add('faded');
-      roomSelection.classList.add('buttons-faded');
-      loginScreen.classList.add('session-entering');
-      backLink.classList.add('dark');
-
-      setTimeout(function() {
-        sessionWaiting.classList.add('visible');
-        startCountdown(4);
-      }, 700);
-    });
-
-    function startCountdown(seconds) {
-      var remaining = seconds;
-      updateTimerDisplay(remaining);
-      countdownInterval = setInterval(function() {
-        remaining--;
-        updateTimerDisplay(remaining);
-        if (remaining <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          showSessionVideo();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay(seconds) {
-      var m = Math.floor(seconds / 60);
-      var s = seconds % 60;
-      sessionTimer.textContent =
-        String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    }
-
-    function showSessionVideo() {
-      sessionWaiting.classList.remove('visible');
-      sessionVideo.classList.add('visible');
-      videoEl.play().catch(function() {});
-    }
-
-    backLink.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (roomSelection.classList.contains('visible')) {
-        roomSelection.classList.remove('visible');
-        loginForm.classList.remove('faded');
-      }
-      landingPage.classList.remove('slid');
-    });
-
-    // Session back button
-    var sessionBackBtn = document.querySelector('.session-back');
-    sessionBackBtn.addEventListener('click', function() {
-      sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active');
-      videoEl.pause();
-      videoEl.currentTime = 0;
-      clearTimeout(mouseTimer);
-      // Restore room selection screen
-      roomSelection.classList.remove('buttons-faded');
-      roomWelcome.classList.remove('faded');
-      loginScreen.classList.remove('session-entering');
-      backLink.classList.remove('dark');
-      sessionWaiting.classList.remove('visible');
-    });
-
-    // Aspect ratio toggle
+    var reviewPlayer = document.getElementById('review-player');
+    var muxPlayer = document.getElementById('mux-player');
+    var muxFallback = document.getElementById('mux-fallback');
+    var playPauseBtn = document.getElementById('play-pause');
+    var volumeToggleBtn = document.getElementById('volume-toggle');
+    var volumeSlider = document.getElementById('volume-slider');
+    var volumeGroup = document.getElementById('volume-group');
+    var playheadSlider = document.getElementById('playhead');
+    var timeCurrent = document.getElementById('time-current');
+    var timeDuration = document.getElementById('time-duration');
     var aspectToggle = document.getElementById('aspect-toggle');
-    var mouseTimer = null;
+    var fullscreenToggle = document.getElementById('fullscreen-toggle');
 
-    function updateAspectButtonVisibility() {
-      if (videoEl.videoWidth && videoEl.videoHeight) {
-        var videoRatio = videoEl.videoWidth / videoEl.videoHeight;
-        var screenRatio = window.innerWidth / window.innerHeight;
-        var match = Math.abs(videoRatio - screenRatio) < 0.05;
-        aspectToggle.style.display = match ? 'none' : '';
-      }
+    var liveToggle = document.getElementById('live-toggle');
+    var micToggle = document.getElementById('mic-toggle');
+
+    var isScrubbing = false;
+    var videoReady = false;
+    var mouseTimer = null;
+    var micMuted = false;
+
+    // ── Media access ──
+
+    function getMedia() {
+      if (muxPlayer && muxPlayer.media) return muxPlayer.media;
+      if (muxPlayer) return muxPlayer;
+      return null;
     }
 
-    videoEl.addEventListener('loadedmetadata', updateAspectButtonVisibility);
-    window.addEventListener('resize', updateAspectButtonVisibility);
-    document.addEventListener('fullscreenchange', function() {
-      setTimeout(updateAspectButtonVisibility, 100);
-    });
+    // Show fallback if Mux fails to load
+    setTimeout(function() {
+      var media = getMedia();
+      if (!media || (media.readyState === 0 && !videoReady)) {
+        muxPlayer.style.display = 'none';
+        muxFallback.style.display = 'flex';
+      }
+    }, 5000);
 
-    sessionVideo.addEventListener('mousemove', function() {
-      sessionVideo.classList.add('mouse-active');
+    // ── Time formatting ──
+
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = Math.floor(s % 60);
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ── Mouse-hide controls ──
+
+    reviewPlayer.addEventListener('mousemove', function() {
+      reviewPlayer.classList.add('mouse-active');
       clearTimeout(mouseTimer);
       mouseTimer = setTimeout(function() {
-        sessionVideo.classList.remove('mouse-active');
+        if (!reviewPlayer.classList.contains('annotating')) {
+          reviewPlayer.classList.remove('mouse-active');
+        }
       }, 2000);
     });
 
+    // ── Play / Pause ──
+
+    var pauseIcon = '<rect x="3" y="2" width="4" height="14" rx="1"/><rect x="11" y="2" width="4" height="14" rx="1"/>';
+    var playIcon = '<polygon points="4,2 16,9 4,16"/>';
+
+    playPauseBtn.addEventListener('click', function() {
+      var media = getMedia();
+      if (!media) return;
+      if (media.paused) {
+        media.play().catch(function() {});
+      } else {
+        media.pause();
+      }
+    });
+
+    muxPlayer.addEventListener('play', function() {
+      playPauseBtn.querySelector('svg').innerHTML = pauseIcon;
+    });
+
+    muxPlayer.addEventListener('pause', function() {
+      playPauseBtn.querySelector('svg').innerHTML = playIcon;
+    });
+
+    // ── Volume ──
+
+    var speakerIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/><path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>';
+    var mutedIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><line x1="14" y1="6" x2="14" y2="12" stroke-width="1.5"/>';
+
+    volumeToggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      volumeGroup.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!volumeGroup.contains(e.target)) {
+        volumeGroup.classList.remove('open');
+      }
+    });
+
+    volumeSlider.addEventListener('input', function() {
+      var media = getMedia();
+      if (!media) return;
+      media.volume = parseFloat(this.value);
+      if (media.muted && media.volume > 0) {
+        media.muted = false;
+      }
+    });
+
+    muxPlayer.addEventListener('volumechange', function() {
+      var media = getMedia();
+      if (!media) return;
+      var svg = volumeToggleBtn.querySelector('svg');
+      if (media.muted || media.volume === 0) {
+        svg.innerHTML = mutedIcon;
+        volumeSlider.value = 0;
+      } else {
+        svg.innerHTML = speakerIcon;
+        volumeSlider.value = media.volume;
+      }
+    });
+
+    // ── Playhead ──
+
+    muxPlayer.addEventListener('loadedmetadata', function() {
+      videoReady = true;
+      var media = getMedia();
+      if (media && media.duration) {
+        playheadSlider.max = media.duration;
+        timeDuration.textContent = formatTime(media.duration);
+      }
+    });
+
+    muxPlayer.addEventListener('timeupdate', function() {
+      if (isScrubbing) return;
+      var media = getMedia();
+      if (!media) return;
+      playheadSlider.value = media.currentTime;
+      timeCurrent.textContent = formatTime(media.currentTime);
+      updateLiveState();
+    });
+
+    playheadSlider.addEventListener('input', function() {
+      isScrubbing = true;
+      var media = getMedia();
+      if (media) media.currentTime = parseFloat(this.value);
+      timeCurrent.textContent = formatTime(parseFloat(this.value));
+      updateLiveState();
+    });
+
+    playheadSlider.addEventListener('change', function() {
+      isScrubbing = false;
+    });
+
+    // ── Live Indicator ──
+
+    function updateLiveState() {
+      var media = getMedia();
+      if (!media) return;
+      var atLiveEdge = media.duration && (media.duration - media.currentTime) < 1;
+      if (atLiveEdge) {
+        liveToggle.classList.add('live');
+      } else {
+        liveToggle.classList.remove('live');
+      }
+    }
+
+    liveToggle.addEventListener('click', function() {
+      var media = getMedia();
+      if (!media) return;
+      if (media.duration) {
+        media.currentTime = media.duration;
+        if (media.paused) {
+          media.play().catch(function() {});
+        }
+        updateLiveState();
+      }
+    });
+
+    // ── Mic Toggle (UI mock) ──
+
+    var micOnIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/>';
+    var micOffIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/><line x1="2" y1="2" x2="16" y2="16" stroke-width="2"/>';
+
+    micToggle.addEventListener('click', function() {
+      micMuted = !micMuted;
+      var svg = micToggle.querySelector('svg');
+      svg.innerHTML = micMuted ? micOffIcon : micOnIcon;
+    });
+
+    // ── Aspect Ratio Toggle ──
+
     aspectToggle.addEventListener('click', function() {
-      var isFit = sessionVideo.classList.toggle('fit-aspect');
+      var isFit = reviewPlayer.classList.toggle('fit-aspect');
       var svg = aspectToggle.querySelector('svg');
       if (isFit) {
         svg.innerHTML = '<rect x="3" y="1" width="12" height="16" rx="1"/><line x1="1" y1="5" x2="1" y2="13"/><line x1="17" y1="5" x2="17" y2="13"/>';
@@ -1086,8 +1141,8 @@
       }
     });
 
-    // Fullscreen toggle
-    var fullscreenToggle = document.getElementById('fullscreen-toggle');
+    // ── Fullscreen Toggle ──
+
     fullscreenToggle.addEventListener('click', function() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(function() {});
@@ -1105,134 +1160,159 @@
       }
     });
 
-    // ── Transport Bar Controls ──
+    // ── Comment Panel ──
 
-    var playPauseBtn = document.getElementById('play-pause');
-    var volumeToggleBtn = document.getElementById('volume-toggle');
-    var volumeSlider = document.getElementById('volume-slider');
-    var playheadSlider = document.getElementById('playhead');
-    var timeCurrent = document.getElementById('time-current');
-    var timeDuration = document.getElementById('time-duration');
-    var liveToggle = document.getElementById('live-toggle');
-    var micToggle = document.getElementById('mic-toggle');
-    var isScrubbing = false;
-    var micMuted = false;
+    var comments = [
+      { id: 1, initials: 'CL', author: 'Carla Luffe', timecode: 12, text: 'Color feels warm here. Can we push the highlights cooler?', resolved: false },
+      { id: 2, initials: 'JD', author: 'Jordan Davis', timecode: 34, text: 'Love this transition. Keep as-is.', resolved: true },
+      { id: 3, initials: 'CL', author: 'Carla Luffe', timecode: 62, text: 'Audio dip at this cut. Needs crossfade.', resolved: false },
+      { id: 4, initials: 'MR', author: 'Mike Ross', timecode: 78, text: 'Client wants the lower third moved up 20px.', resolved: false }
+    ];
 
-    function formatTime(s) {
-      var m = Math.floor(s / 60);
-      var sec = Math.floor(s % 60);
-      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    var commentPanel = document.getElementById('comment-panel');
+    var commentList = document.getElementById('comment-list');
+    var commentInput = document.getElementById('comment-input');
+    var commentInputLabel = document.getElementById('comment-input-label');
+    var commentSubmit = document.getElementById('comment-submit');
+    var panelClose = document.getElementById('panel-close');
+    var panelCount = document.getElementById('panel-count');
+    var scrubMarkers = document.getElementById('scrub-markers');
+    var chatToggle = document.getElementById('chat-toggle');
+
+    function formatTC(seconds) {
+      var m = Math.floor(seconds / 60);
+      var s = Math.floor(seconds % 60);
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
 
-    // Play/Pause
-    var pauseIcon = '<rect x="3" y="2" width="4" height="14" rx="1"/><rect x="11" y="2" width="4" height="14" rx="1"/>';
-    var playIcon = '<polygon points="4,2 16,9 4,16"/>';
-
-    playPauseBtn.addEventListener('click', function() {
-      if (videoEl.paused) {
-        videoEl.play().catch(function() {});
-      } else {
-        videoEl.pause();
-      }
+    chatToggle.addEventListener('click', function() {
+      commentPanel.classList.toggle('open');
     });
 
-    videoEl.addEventListener('play', function() {
-      playPauseBtn.querySelector('svg').innerHTML = pauseIcon;
+    panelClose.addEventListener('click', function() {
+      commentPanel.classList.remove('open');
     });
 
-    videoEl.addEventListener('pause', function() {
-      playPauseBtn.querySelector('svg').innerHTML = playIcon;
-    });
-
-    // Volume
-    var speakerIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/><path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>';
-    var mutedIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><line x1="14" y1="6" x2="14" y2="12" stroke-width="1.5"/>';
-
-    var volumeGroup = document.getElementById('volume-group');
-
-    volumeToggleBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      volumeGroup.classList.toggle('open');
-    });
-
-    // Close volume popup when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!volumeGroup.contains(e.target)) {
-        volumeGroup.classList.remove('open');
-      }
-    });
-
-    volumeSlider.addEventListener('input', function() {
-      videoEl.volume = parseFloat(this.value);
-      if (videoEl.muted && videoEl.volume > 0) {
-        videoEl.muted = false;
-      }
-    });
-
-    videoEl.addEventListener('volumechange', function() {
-      var svg = volumeToggleBtn.querySelector('svg');
-      if (videoEl.muted || videoEl.volume === 0) {
-        svg.innerHTML = mutedIcon;
-        volumeSlider.value = 0;
-      } else {
-        svg.innerHTML = speakerIcon;
-        volumeSlider.value = videoEl.volume;
-      }
-    });
-
-    // Playhead
-    videoEl.addEventListener('loadedmetadata', function() {
-      playheadSlider.max = videoEl.duration;
-      timeDuration.textContent = formatTime(videoEl.duration);
-    });
-
-    videoEl.addEventListener('timeupdate', function() {
-      if (!isScrubbing) {
-        playheadSlider.value = videoEl.currentTime;
-        timeCurrent.textContent = formatTime(videoEl.currentTime);
-        updateLiveState();
-      }
-    });
-
-    playheadSlider.addEventListener('input', function() {
-      isScrubbing = true;
-      videoEl.currentTime = parseFloat(this.value);
-      timeCurrent.textContent = formatTime(videoEl.currentTime);
-      updateLiveState();
-    });
-
-    playheadSlider.addEventListener('change', function() {
-      isScrubbing = false;
-    });
-
-    // Live indicator
-    function updateLiveState() {
-      var atLiveEdge = videoEl.duration && (videoEl.duration - videoEl.currentTime) < 1;
-      if (atLiveEdge) {
-        liveToggle.classList.add('live');
-      } else {
-        liveToggle.classList.remove('live');
-      }
+    function updateCount() {
+      var open = comments.filter(function(c) { return !c.resolved; }).length;
+      var resolved = comments.filter(function(c) { return c.resolved; }).length;
+      panelCount.textContent = open + ' open / ' + resolved + ' resolved';
     }
 
-    liveToggle.addEventListener('click', function() {
-      if (videoEl.duration) {
-        videoEl.currentTime = videoEl.duration;
-        if (videoEl.paused) {
-          videoEl.play().catch(function() {});
+    function renderMarkers(duration) {
+      scrubMarkers.innerHTML = '';
+      if (!duration) return;
+      comments.forEach(function(c) {
+        var pct = (c.timecode / duration) * 100;
+        var marker = document.createElement('div');
+        marker.className = 'scrub-marker' + (c.resolved ? ' resolved' : '');
+        marker.style.left = pct + '%';
+        marker.title = formatTC(c.timecode) + ' - ' + c.text.substring(0, 40);
+        marker.addEventListener('click', function() {
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+        scrubMarkers.appendChild(marker);
+      });
+    }
+
+    function renderComments() {
+      commentList.innerHTML = '';
+      var sorted = comments.slice().sort(function(a, b) { return a.timecode - b.timecode; });
+      sorted.forEach(function(c) {
+        var item = document.createElement('div');
+        item.className = 'comment-item' + (c.resolved ? ' resolved' : '');
+        item.innerHTML =
+          '<div class="comment-header">' +
+            '<div class="comment-avatar">' + c.initials + '</div>' +
+            '<div class="comment-meta">' +
+              '<span class="comment-timecode" data-tc="' + c.timecode + '">' + formatTC(c.timecode) + '</span>' +
+              '<span class="comment-author">' + c.author + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="comment-text">' + c.text + '</div>' +
+          '<div class="comment-actions">' +
+            '<button class="resolve-btn' + (c.resolved ? ' is-resolved' : '') + '" data-id="' + c.id + '">' +
+              (c.resolved ? 'Unresolve' : 'Resolve') +
+            '</button>' +
+          '</div>';
+
+        item.addEventListener('click', function() {
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+
+        item.querySelector('.comment-timecode').addEventListener('click', function(e) {
+          e.stopPropagation();
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+
+        item.querySelector('.resolve-btn').addEventListener('click', function(e) {
+          e.stopPropagation();
+          c.resolved = !c.resolved;
+          renderComments();
+          var media = getMedia();
+          renderMarkers(media ? media.duration : 0);
+          updateCount();
+        });
+
+        commentList.appendChild(item);
+      });
+    }
+
+    commentSubmit.addEventListener('click', function() {
+      var text = commentInput.value.trim();
+      if (!text) return;
+      var media = getMedia();
+      var newId = comments.length ? Math.max.apply(null, comments.map(function(c) { return c.id; })) + 1 : 1;
+      comments.push({
+        id: newId,
+        initials: 'JD',
+        author: 'Jordan Davis',
+        timecode: media ? Math.floor(media.currentTime) : 0,
+        text: text,
+        resolved: false
+      });
+      commentInput.value = '';
+      renderComments();
+      renderMarkers(media ? media.duration : 0);
+      updateCount();
+      commentList.scrollTop = commentList.scrollHeight;
+    });
+
+    // Update comment input label with current timecode
+    muxPlayer.addEventListener('timeupdate', function() {
+      var media = getMedia();
+      if (media) {
+        commentInputLabel.textContent = 'Add note at ' + formatTC(media.currentTime);
+      }
+    });
+
+    // Init comments after metadata loads
+    muxPlayer.addEventListener('loadedmetadata', function() {
+      var media = getMedia();
+      if (media && media.duration) {
+        renderMarkers(media.duration);
+      }
+    });
+
+    renderComments();
+    updateCount();
+
+    // ── Keyboard: Space to play/pause ──
+
+    document.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        var media = getMedia();
+        if (!media) return;
+        if (media.paused) {
+          media.play().catch(function() {});
+        } else {
+          media.pause();
         }
-        updateLiveState();
       }
-    });
-
-    // Mic mute (UI mock only)
-    var micOnIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/>';
-    var micOffIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/><line x1="2" y1="2" x2="16" y2="16" stroke-width="2"/>';
-
-    micToggle.addEventListener('click', function() {
-      micMuted = !micMuted;
-      var svg = micToggle.querySelector('svg');
-      svg.innerHTML = micMuted ? micOffIcon : micOnIcon;
     });
 
     // ── Annotation System ──
@@ -1251,23 +1331,21 @@
     var annoRedoStack = [];
     var annoWasPlaying = false;
 
-    // Resize canvas to match display size
     function resizeAnnoCanvas() {
       annoCanvas.width = annoCanvas.offsetWidth;
       annoCanvas.height = annoCanvas.offsetHeight;
       redrawAnnotations();
     }
 
-    // Enter annotation mode
     annotateToggle.addEventListener('click', function() {
-      var entering = !sessionVideo.classList.contains('annotating');
+      var entering = !reviewPlayer.classList.contains('annotating');
       if (entering) {
-        annoWasPlaying = !videoEl.paused;
-        videoEl.pause();
-        sessionVideo.classList.add('annotating');
+        var media = getMedia();
+        annoWasPlaying = media && !media.paused;
+        if (media) media.pause();
+        reviewPlayer.classList.add('annotating');
         resizeAnnoCanvas();
-        // Keep controls visible while annotating
-        sessionVideo.classList.add('mouse-active');
+        reviewPlayer.classList.add('mouse-active');
         clearTimeout(mouseTimer);
       } else {
         exitAnnotationMode();
@@ -1275,30 +1353,27 @@
     });
 
     function exitAnnotationMode() {
-      sessionVideo.classList.remove('annotating');
+      reviewPlayer.classList.remove('annotating');
       annoHistory = [];
       annoRedoStack = [];
       annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
       if (annoWasPlaying) {
-        videoEl.play().catch(function() {});
+        var media = getMedia();
+        if (media) media.play().catch(function() {});
       }
     }
 
-    // Done button
     document.getElementById('anno-done').addEventListener('click', exitAnnotationMode);
 
-    // ESC to exit
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && sessionVideo.classList.contains('annotating')) {
+      if (e.key === 'Escape' && reviewPlayer.classList.contains('annotating')) {
         exitAnnotationMode();
       }
     });
 
-    // Keep mouse-active while annotating
-    var origMouseMove = sessionVideo.onmousemove;
-    sessionVideo.addEventListener('mousemove', function() {
-      if (sessionVideo.classList.contains('annotating')) {
-        sessionVideo.classList.add('mouse-active');
+    reviewPlayer.addEventListener('mousemove', function() {
+      if (reviewPlayer.classList.contains('annotating')) {
+        reviewPlayer.classList.add('mouse-active');
         clearTimeout(mouseTimer);
       }
     });
@@ -1320,7 +1395,6 @@
       }
     });
 
-    // Undo
     document.getElementById('anno-undo').addEventListener('click', function() {
       if (annoHistory.length > 0) {
         annoRedoStack.push(annoHistory.pop());
@@ -1328,7 +1402,6 @@
       }
     });
 
-    // Redo
     document.getElementById('anno-redo').addEventListener('click', function() {
       if (annoRedoStack.length > 0) {
         annoHistory.push(annoRedoStack.pop());
@@ -1336,21 +1409,15 @@
       }
     });
 
-    // Drawing handlers
+    // Drawing
     annoCanvas.addEventListener('mousedown', function(e) {
-      if (!sessionVideo.classList.contains('annotating')) return;
+      if (!reviewPlayer.classList.contains('annotating')) return;
       annoDrawing = true;
       var rect = annoCanvas.getBoundingClientRect();
       annoStartX = e.clientX - rect.left;
       annoStartY = e.clientY - rect.top;
-
       if (annoTool === 'freehand') {
-        annoHistory.push({
-          tool: 'freehand',
-          color: annoColor,
-          width: annoLineWidth,
-          points: [{ x: annoStartX, y: annoStartY }]
-        });
+        annoHistory.push({ tool: 'freehand', color: annoColor, width: annoLineWidth, points: [{ x: annoStartX, y: annoStartY }] });
         annoRedoStack = [];
       }
     });
@@ -1360,13 +1427,10 @@
       var rect = annoCanvas.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
-
       if (annoTool === 'freehand') {
-        var stroke = annoHistory[annoHistory.length - 1];
-        stroke.points.push({ x: x, y: y });
+        annoHistory[annoHistory.length - 1].points.push({ x: x, y: y });
         redrawAnnotations();
       } else {
-        // Preview shape
         redrawAnnotations();
         drawShape(annoCtx, annoTool, annoStartX, annoStartY, x, y, annoColor, annoLineWidth);
       }
@@ -1378,28 +1442,17 @@
       var rect = annoCanvas.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
-
       if (annoTool !== 'freehand') {
-        annoHistory.push({
-          tool: annoTool,
-          color: annoColor,
-          width: annoLineWidth,
-          x1: annoStartX,
-          y1: annoStartY,
-          x2: x,
-          y2: y
-        });
+        annoHistory.push({ tool: annoTool, color: annoColor, width: annoLineWidth, x1: annoStartX, y1: annoStartY, x2: x, y2: y });
         annoRedoStack = [];
         redrawAnnotations();
       }
     });
 
     annoCanvas.addEventListener('mouseleave', function() {
-      if (annoDrawing && annoTool !== 'freehand') {
+      if (annoDrawing) {
         annoDrawing = false;
-        redrawAnnotations();
-      } else if (annoDrawing && annoTool === 'freehand') {
-        annoDrawing = false;
+        if (annoTool !== 'freehand') redrawAnnotations();
       }
     });
 
@@ -1434,7 +1487,6 @@
       ctx.lineWidth = width;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-
       if (tool === 'rectangle') {
         ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
       } else if (tool === 'line') {
@@ -1442,11 +1494,9 @@
         ctx.lineTo(x2, y2);
         ctx.stroke();
       } else if (tool === 'arrow') {
-        // Line
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
-        // Arrowhead
         var angle = Math.atan2(y2 - y1, x2 - x1);
         var headLen = 12;
         ctx.beginPath();
@@ -1458,9 +1508,8 @@
       }
     }
 
-    // Resize canvas on window resize while annotating
     window.addEventListener('resize', function() {
-      if (sessionVideo.classList.contains('annotating')) {
+      if (reviewPlayer.classList.contains('annotating')) {
         resizeAnnoCanvas();
       }
     });

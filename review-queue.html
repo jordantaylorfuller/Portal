@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>NIPC | Review Queue -- Davis</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      background-color: rgb(243, 240, 237);
+      color: rgb(40, 36, 36);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Back Link ── */
+    .back-link {
+      position: fixed;
+      top: 28px;
+      left: 28px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgb(40, 36, 36);
+      text-decoration: none;
+      opacity: 0.5;
+      transition: opacity 200ms ease;
+      z-index: 100;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    /* ── Container ── */
+    .queue-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 80px 20px 60px;
+    }
+
+    /* ── Header ── */
+    .queue-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .queue-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgb(40, 36, 36);
+      margin-bottom: 12px;
+    }
+
+    .queue-summary {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: rgb(40, 36, 36);
+      opacity: 0.6;
+    }
+
+    .queue-summary .sep {
+      margin: 0 6px;
+      opacity: 0.4;
+    }
+
+    /* ── Section Headers ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 36px;
+      padding-bottom: 10px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: rgb(209, 204, 199);
+    }
+
+    .section-count {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+
+    /* ── Asset Row ── */
+    .asset-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgb(209, 204, 199);
+    }
+
+    .asset-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      flex: 1;
+      min-width: 0;
+      transition: opacity 150ms ease;
+    }
+
+    .asset-link:hover {
+      opacity: 0.7;
+    }
+
+    /* ── Thumbnail ── */
+    .asset-thumb {
+      width: 120px;
+      height: 68px;
+      background: rgb(30, 28, 28);
+      border: 1px solid rgb(209, 204, 199);
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .asset-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Asset Info ── */
+    .asset-info {
+      min-width: 0;
+    }
+
+    .asset-title {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .asset-meta {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.03em;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .asset-meta .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgb(40, 36, 36);
+      opacity: 0.4;
+      margin: 0 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── Status Button ── */
+    .status-btn-wrap {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+
+    .status-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid rgb(209, 204, 199);
+      padding: 6px 12px 6px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgb(40, 36, 36);
+      white-space: nowrap;
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+
+    .status-btn:hover {
+      border-color: rgb(40, 36, 36);
+      background: rgba(40, 36, 36, 0.04);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.needs_review { background: rgb(220, 40, 40); }
+    .status-dot.in_review { background: rgb(220, 170, 40); }
+    .status-dot.approved { background: rgb(60, 160, 80); }
+
+    /* ── Status Dropdown ── */
+    .status-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: rgb(243, 240, 237);
+      border: 1px solid rgb(209, 204, 199);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      z-index: 50;
+      display: none;
+      min-width: 160px;
+    }
+
+    .status-dropdown.open {
+      display: block;
+    }
+
+    .status-option {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgb(40, 36, 36);
+      transition: background 150ms ease;
+      white-space: nowrap;
+    }
+
+    .status-option:hover {
+      background: rgba(40, 36, 36, 0.06);
+    }
+
+    .status-option.current {
+      font-weight: 500;
+      background: rgba(40, 36, 36, 0.04);
+    }
+
+    /* ── Section colors ── */
+    .section-label.needs_review { color: rgb(220, 40, 40); }
+    .section-label.in_review { color: rgb(220, 170, 40); }
+    .section-label.approved { color: rgb(60, 160, 80); }
+
+    /* ── Section wrapper ── */
+    .section-group {
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="back-link">&larr; Back</a>
+
+  <div class="queue-container">
+    <div class="queue-header">
+      <div class="queue-title">Davis -- Review Queue</div>
+      <div class="queue-summary" id="summary"></div>
+    </div>
+
+    <div id="sections"></div>
+  </div>
+
+  <script>
+    // ── Mock Data ──
+    const assets = [
+      {
+        id: 'rough-cut-v3',
+        title: 'Davis -- Rough Cut V3',
+        date: 'Mar 3, 2026',
+        version: 'V3',
+        notes: 4,
+        status: 'needs_review',
+        url: 'review-mux.html',
+        thumbTime: 12
+      },
+      {
+        id: 'color-pass-v1',
+        title: 'Davis -- Color Pass',
+        date: 'Mar 4, 2026',
+        version: 'V1',
+        notes: 2,
+        status: 'needs_review',
+        url: 'review-mux.html',
+        thumbTime: 35
+      },
+      {
+        id: 'sound-mix-v2',
+        title: 'Davis -- Sound Mix',
+        date: 'Mar 2, 2026',
+        version: 'V2',
+        notes: 7,
+        status: 'in_review',
+        url: 'review-mux.html',
+        thumbTime: 60
+      },
+      {
+        id: 'title-sequence-v4',
+        title: 'Davis -- Title Sequence',
+        date: 'Feb 28, 2026',
+        version: 'V4',
+        notes: 0,
+        status: 'approved',
+        url: 'review-mux.html',
+        thumbTime: 3
+      },
+      {
+        id: 'vfx-comp-v1',
+        title: 'Davis -- VFX Comp',
+        date: 'Mar 1, 2026',
+        version: 'V1',
+        notes: 3,
+        status: 'approved',
+        url: 'review-mux.html',
+        thumbTime: 8
+      }
+    ];
+
+    const statusLabels = {
+      needs_review: 'Needs Review',
+      in_review: 'In Review',
+      approved: 'Approved'
+    };
+
+    const sectionOrder = ['needs_review', 'in_review', 'approved'];
+
+    let openDropdown = null;
+
+    function getStatusCounts() {
+      const counts = { needs_review: 0, in_review: 0, approved: 0 };
+      assets.forEach(a => counts[a.status]++);
+      return counts;
+    }
+
+    function updateSummary() {
+      const c = getStatusCounts();
+      document.getElementById('summary').innerHTML =
+        c.needs_review + ' needs review' +
+        '<span class="sep">/</span>' +
+        c.in_review + ' in review' +
+        '<span class="sep">/</span>' +
+        c.approved + ' approved';
+    }
+
+    function buildRow(asset) {
+      const row = document.createElement('div');
+      row.className = 'asset-row';
+      row.dataset.id = asset.id;
+
+      const noteLabel = asset.notes === 1 ? '1 note' : asset.notes + ' notes';
+
+      row.innerHTML =
+        '<a href="' + asset.url + '" class="asset-link">' +
+          '<div class="asset-thumb">' +
+            '<video src="video.mp4#t=' + asset.thumbTime + '" muted preload="metadata"></video>' +
+          '</div>' +
+          '<div class="asset-info">' +
+            '<div class="asset-title">' + asset.title + '</div>' +
+            '<div class="asset-meta">' +
+              '<span>' + asset.date + '</span>' +
+              '<span class="dot"></span>' +
+              '<span>' + asset.version + '</span>' +
+              '<span class="dot"></span>' +
+              '<span>' + noteLabel + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</a>' +
+        '<div class="status-btn-wrap">' +
+          '<button class="status-btn" data-id="' + asset.id + '">' +
+            '<span class="status-dot ' + asset.status + '"></span>' +
+            '<span>' + statusLabels[asset.status] + '</span>' +
+          '</button>' +
+          '<div class="status-dropdown" data-id="' + asset.id + '">' +
+            sectionOrder.map(function(s) {
+              return '<div class="status-option' + (s === asset.status ? ' current' : '') + '" data-status="' + s + '" data-id="' + asset.id + '">' +
+                '<span class="status-dot ' + s + '"></span>' +
+                '<span>' + statusLabels[s] + '</span>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+
+      return row;
+    }
+
+    function renderSections() {
+      const container = document.getElementById('sections');
+      container.innerHTML = '';
+
+      sectionOrder.forEach(function(status) {
+        const sectionAssets = assets.filter(function(a) { return a.status === status; });
+        if (sectionAssets.length === 0) return;
+
+        const group = document.createElement('div');
+        group.className = 'section-group';
+        group.dataset.section = status;
+
+        const header = document.createElement('div');
+        header.className = 'section-header';
+        header.innerHTML =
+          '<span class="section-label ' + status + '">' + statusLabels[status] + '</span>' +
+          '<span class="section-line"></span>' +
+          '<span class="section-count">' + sectionAssets.length + '</span>';
+
+        group.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'section-list';
+        list.dataset.section = status;
+
+        sectionAssets.forEach(function(asset) {
+          list.appendChild(buildRow(asset));
+        });
+
+        group.appendChild(list);
+        container.appendChild(group);
+      });
+
+      updateSummary();
+    }
+
+    function closeAllDropdowns() {
+      if (openDropdown) {
+        openDropdown.classList.remove('open');
+        openDropdown = null;
+      }
+    }
+
+    var animating = false;
+    var ease = 'cubic-bezier(0.4,0,0.2,1)';
+
+    // ── Slide an element's height to 0, then remove it ──
+    function slideUp(el, duration, callback) {
+      var h = el.offsetHeight;
+      el.style.overflow = 'hidden';
+      el.style.height = h + 'px';
+      el.offsetHeight;
+      el.style.transition = ['height','padding-top','padding-bottom','border-bottom-width']
+        .map(function(p) { return p + ' ' + duration + 'ms ' + ease; }).join(', ');
+      el.style.height = '0';
+      el.style.paddingTop = '0';
+      el.style.paddingBottom = '0';
+      el.style.borderBottomWidth = '0';
+      setTimeout(function() { el.remove(); if (callback) callback(); }, duration);
+    }
+
+    // ── Expand an element from height 0 to natural ──
+    function slideDown(el, duration, callback) {
+      el.style.overflow = 'hidden';
+      var h = el.offsetHeight;
+      var cs = getComputedStyle(el);
+      var pt = cs.paddingTop, pb = cs.paddingBottom, bbw = cs.borderBottomWidth;
+      el.style.height = '0';
+      el.style.paddingTop = '0';
+      el.style.paddingBottom = '0';
+      el.style.borderBottomWidth = '0';
+      el.style.opacity = '0';
+      el.offsetHeight;
+      el.style.transition = ['height','padding-top','padding-bottom','border-bottom-width']
+        .map(function(p) { return p + ' ' + duration + 'ms ' + ease; }).join(', ')
+        + ', opacity ' + Math.round(duration * 0.6) + 'ms ease ' + Math.round(duration * 0.3) + 'ms';
+      el.style.height = h + 'px';
+      el.style.paddingTop = pt;
+      el.style.paddingBottom = pb;
+      el.style.borderBottomWidth = bbw;
+      el.style.opacity = '1';
+      setTimeout(function() { el.removeAttribute('style'); if (callback) callback(); }, duration + 20);
+    }
+
+    // ── Create a section-group DOM element ──
+    function createSectionDOM(status) {
+      var group = document.createElement('div');
+      group.className = 'section-group';
+      group.dataset.section = status;
+      var header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML =
+        '<span class="section-label ' + status + '">' + statusLabels[status] + '</span>' +
+        '<span class="section-line"></span>' +
+        '<span class="section-count">0</span>';
+      group.appendChild(header);
+      var list = document.createElement('div');
+      list.className = 'section-list';
+      list.dataset.section = status;
+      group.appendChild(list);
+      return group;
+    }
+
+    // ── Insert a section-group in the correct order ──
+    function insertSectionInOrder(group) {
+      var container = document.getElementById('sections');
+      var newIdx = sectionOrder.indexOf(group.dataset.section);
+      var existing = container.querySelectorAll('.section-group');
+      var before = null;
+      for (var i = 0; i < existing.length; i++) {
+        if (sectionOrder.indexOf(existing[i].dataset.section) > newIdx) {
+          before = existing[i];
+          break;
+        }
+      }
+      if (before) container.insertBefore(group, before);
+      else container.appendChild(group);
+    }
+
+    function changeStatus(assetId, newStatus) {
+      if (animating) return;
+      var asset = assets.find(function(a) { return a.id === assetId; });
+      if (!asset || asset.status === newStatus) return;
+      animating = true;
+
+      var oldStatus = asset.status;
+      var row = document.querySelector('.asset-row[data-id="' + assetId + '"]');
+      if (!row) { animating = false; return; }
+
+      var oldGroup = row.closest('.section-group');
+      var willOldBeEmpty = assets.filter(function(a) { return a.status === oldStatus; }).length === 1;
+
+      // Phase 1: Fade out row content
+      row.style.transition = 'opacity 200ms ease, transform 200ms ease';
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(-6px)';
+
+      setTimeout(function() {
+        // Phase 2: Collapse row height
+        slideUp(row, 250, function() {
+          asset.status = newStatus;
+          updateSummary();
+
+          if (willOldBeEmpty && oldGroup) {
+            // Phase 3a: Collapse empty section
+            slideUp(oldGroup, 260, function() {
+              enterTarget(asset, newStatus, oldStatus);
+            });
+          } else {
+            // Phase 3b: Update old section count
+            if (oldGroup) {
+              oldGroup.querySelector('.section-count').textContent =
+                assets.filter(function(a) { return a.status === oldStatus; }).length;
+            }
+            enterTarget(asset, newStatus, oldStatus);
+          }
+        });
+      }, 210);
+
+      function enterTarget(asset, newStatus) {
+        var targetGroup = document.querySelector('.section-group[data-section="' + newStatus + '"]');
+        var isNew = !targetGroup;
+        if (!targetGroup) {
+          targetGroup = createSectionDOM(newStatus);
+        }
+        var newRow = buildRow(asset);
+        targetGroup.querySelector('.section-list').appendChild(newRow);
+        targetGroup.querySelector('.section-count').textContent =
+          assets.filter(function(a) { return a.status === newStatus; }).length;
+
+        if (isNew) {
+          insertSectionInOrder(targetGroup);
+          slideDown(targetGroup, 320, function() { animating = false; });
+        } else {
+          slideDown(newRow, 280, function() { animating = false; });
+        }
+      }
+    }
+
+    // ── Event Delegation ──
+    document.addEventListener('click', function(e) {
+      // Status button toggle
+      const btn = e.target.closest('.status-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropdown = btn.nextElementSibling;
+        if (openDropdown && openDropdown !== dropdown) {
+          closeAllDropdowns();
+        }
+        if (dropdown.classList.contains('open')) {
+          closeAllDropdowns();
+        } else {
+          dropdown.classList.add('open');
+          openDropdown = dropdown;
+        }
+        return;
+      }
+
+      // Status option select
+      const option = e.target.closest('.status-option');
+      if (option) {
+        e.preventDefault();
+        e.stopPropagation();
+        const assetId = option.dataset.id;
+        const newStatus = option.dataset.status;
+        closeAllDropdowns();
+        changeStatus(assetId, newStatus);
+        return;
+      }
+
+      // Close dropdown on outside click
+      closeAllDropdowns();
+    });
+
+    // ── Init ──
+    renderSections();
+  </script>
+</body>
+</html>
