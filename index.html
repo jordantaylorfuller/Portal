@@ -89,6 +89,10 @@
       background-color: rgb(243, 240, 237);
     }
 
+    .login-screen.delivery-entering {
+      background-color: rgb(30, 28, 28);
+    }
+
     .back-link {
       position: fixed;
       top: 20px;
@@ -158,10 +162,153 @@
       text-transform: uppercase;
       color: #fff;
       transition: opacity 500ms ease;
+      text-align: center;
+      padding: 0 32px;
+      line-height: 1.4;
+    }
+
+    .room-welcome-sub {
+      font-size: 13px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 8px;
+      letter-spacing: 0.05em;
     }
 
     .room-welcome.faded {
       opacity: 0;
+    }
+
+    /* ── Project Switcher ── */
+    .project-switcher {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 500ms ease 300ms;
+    }
+
+    .room-selection.visible ~ .project-switcher,
+    .project-switcher.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .room-selection.buttons-faded ~ .project-switcher {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .project-switcher-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.45);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+
+    .project-switcher-btn:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .project-switcher-arrow {
+      font-size: 8px;
+      transition: transform 200ms ease;
+    }
+
+    .project-switcher.open .project-switcher-arrow {
+      transform: rotate(180deg);
+    }
+
+    .project-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      min-width: 220px;
+      background: rgb(44, 42, 42);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .project-switcher.open .project-dropdown {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .project-dropdown-section {
+      padding: 10px 0 4px;
+    }
+
+    .project-dropdown-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.25);
+      padding: 0 16px 6px;
+    }
+
+    .project-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+
+    .project-dropdown-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .project-dropdown-item.active {
+      color: #fff;
+    }
+
+    .project-dropdown-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .project-dropdown-dot.active {
+      background: rgb(46, 204, 113);
+    }
+
+    .project-dropdown-dot.archived {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .project-dropdown-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 0;
     }
 
     .room-selection.visible {
@@ -829,6 +976,192 @@
       color: #fff;
     }
 
+    /* ── Delivery Room ── */
+    .delivery-room {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      background: rgb(30, 28, 28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 800ms ease;
+      overflow-y: auto;
+    }
+
+    .delivery-room.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .delivery-back {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.6);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: color 200ms ease;
+      z-index: 2;
+    }
+
+    .delivery-back:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .delivery-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 32px 64px;
+    }
+
+    .delivery-project {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #fff;
+      margin-bottom: 48px;
+    }
+
+    .delivery-group {
+      margin-bottom: 40px;
+    }
+
+    .delivery-group-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.35);
+      margin-bottom: 16px;
+    }
+
+    .delivery-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .delivery-item:first-child {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .delivery-status {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgb(46, 204, 113);
+      flex-shrink: 0;
+      margin-right: 14px;
+    }
+
+    .delivery-status.processing {
+      background: rgb(243, 156, 18);
+    }
+
+    .delivery-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .delivery-filename {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.02em;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .delivery-specs {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .delivery-size {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      margin: 0 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .delivery-download {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0;
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+    }
+
+    .delivery-download:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .delivery-download:active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .delivery-upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 48px;
+      padding: 14px 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.35);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: border-color 0.25s ease, color 0.25s ease;
+    }
+
+    .delivery-upload:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .delivery-upload-arrow {
+      font-size: 14px;
+      line-height: 1;
+    }
+
     .login-heading {
       font-family: 'DM Mono', monospace;
       font-size: 14px;
@@ -1006,10 +1339,44 @@
       <button type="submit" class="login-btn">Login</button>
     </form>
     <div class="room-selection">
-      <div class="room-welcome">Welcome Back, Jordan.</div>
+      <div class="room-welcome">
+        Welcome Back, Jordan.
+        <div class="room-welcome-sub">Let's keep working on <span id="welcome-project">La Colombe</span>.</div>
+      </div>
       <button class="room-btn">Review Room</button>
       <button class="room-btn">Session Room</button>
       <button class="room-btn">Delivery Room</button>
+    </div>
+    <div class="project-switcher" id="project-switcher">
+      <button class="project-switcher-btn" id="project-switcher-btn">
+        <span id="project-switcher-name">La Colombe</span>
+        <span class="project-switcher-arrow">&#9660;</span>
+      </button>
+      <div class="project-dropdown" id="project-dropdown">
+        <div class="project-dropdown-section">
+          <div class="project-dropdown-label">Active</div>
+          <button class="project-dropdown-item" data-project="Buffalo" data-status="active">
+            <span class="project-dropdown-dot active"></span>
+            Buffalo
+          </button>
+          <button class="project-dropdown-item active" data-project="La Colombe" data-status="active">
+            <span class="project-dropdown-dot active"></span>
+            La Colombe
+          </button>
+        </div>
+        <div class="project-dropdown-divider"></div>
+        <div class="project-dropdown-section">
+          <div class="project-dropdown-label">Archive</div>
+          <button class="project-dropdown-item" data-project="Sweetgreen" data-status="archived">
+            <span class="project-dropdown-dot archived"></span>
+            Sweetgreen
+          </button>
+          <button class="project-dropdown-item" data-project="Glossier" data-status="archived">
+            <span class="project-dropdown-dot archived"></span>
+            Glossier
+          </button>
+        </div>
+      </div>
     </div>
     <div class="session-waiting">
       <div class="session-message">Your session will start shortly.</div>
@@ -1164,6 +1531,85 @@
     <div class="session-video-transition"></div>
   </div>
 
+  <!-- Delivery room -->
+  <div class="delivery-room">
+    <button class="delivery-back" aria-label="Exit delivery room">&#8592; Back</button>
+    <div class="delivery-content">
+      <div class="delivery-project">La Colombe</div>
+
+      <div class="delivery-group">
+        <div class="delivery-group-title">Finals</div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_FINAL_V3.mov</div>
+            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
+          </div>
+          <div class="delivery-size">2.4 GB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_FINAL_V3.mp4</div>
+            <div class="delivery-specs">H.264 &middot; 1920x1080 &middot; 23.976fps</div>
+          </div>
+          <div class="delivery-size">340 MB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+      </div>
+
+      <div class="delivery-group">
+        <div class="delivery-group-title">Alternate Cuts</div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_15s_CUTDOWN.mov</div>
+            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
+          </div>
+          <div class="delivery-size">680 MB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_30s_CUTDOWN.mov</div>
+            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
+          </div>
+          <div class="delivery-size">1.1 GB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+      </div>
+
+      <div class="delivery-group">
+        <div class="delivery-group-title">Audio</div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_STEMS.wav</div>
+            <div class="delivery-specs">48kHz / 24bit &middot; Stereo</div>
+          </div>
+          <div class="delivery-size">180 MB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+        <div class="delivery-item">
+          <div class="delivery-status"></div>
+          <div class="delivery-info">
+            <div class="delivery-filename">BUFFALO_MIX_FINAL.wav</div>
+            <div class="delivery-specs">48kHz / 24bit &middot; Stereo</div>
+          </div>
+          <div class="delivery-size">62 MB</div>
+          <button class="delivery-download">Download</button>
+        </div>
+      </div>
+
+      <button class="delivery-upload" id="delivery-upload">
+        Need to send us a file? <span class="delivery-upload-arrow">&rarr;</span>
+      </button>
+      <input type="file" id="delivery-upload-input" style="display:none;" multiple/>
+    </div>
+  </div>
+
   <!-- Landing page overlay (slides left to reveal login) -->
   <div class="landing-page">
     <a href="#" class="portal-link">Clients</a>
@@ -1219,6 +1665,89 @@
       e.preventDefault();
       loginForm.classList.add('faded');
       roomSelection.classList.add('visible');
+    });
+
+    // Project Switcher
+    var projectSwitcher = document.getElementById('project-switcher');
+    var projectSwitcherBtn = document.getElementById('project-switcher-btn');
+    var projectSwitcherName = document.getElementById('project-switcher-name');
+    var projectDropdown = document.getElementById('project-dropdown');
+    var welcomeProject = document.getElementById('welcome-project');
+    var deliveryProjectTitle = document.querySelector('.delivery-project');
+
+    projectSwitcherBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      projectSwitcher.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!projectSwitcher.contains(e.target)) {
+        projectSwitcher.classList.remove('open');
+      }
+    });
+
+    projectDropdown.addEventListener('click', function(e) {
+      var item = e.target.closest('.project-dropdown-item');
+      if (!item) return;
+      var name = item.dataset.project;
+      // Update active state
+      projectDropdown.querySelectorAll('.project-dropdown-item').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      item.classList.add('active');
+      // Update all project name references
+      projectSwitcherName.textContent = name;
+      welcomeProject.textContent = name;
+      deliveryProjectTitle.textContent = name;
+      // Close dropdown
+      projectSwitcher.classList.remove('open');
+    });
+
+    // Delivery Room
+    var deliveryBtn = document.querySelectorAll('.room-btn')[2];
+    var deliveryRoom = document.querySelector('.delivery-room');
+    var deliveryBackBtn = document.querySelector('.delivery-back');
+
+    deliveryBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      roomWelcome.classList.add('faded');
+      roomSelection.classList.add('buttons-faded');
+      loginScreen.classList.add('delivery-entering');
+
+      setTimeout(function() {
+        deliveryRoom.classList.add('visible');
+      }, 700);
+    });
+
+    deliveryBackBtn.addEventListener('click', function() {
+      deliveryRoom.classList.remove('visible');
+      roomSelection.classList.remove('buttons-faded');
+      roomWelcome.classList.remove('faded');
+      loginScreen.classList.remove('delivery-entering');
+    });
+
+    // Native browser download
+    deliveryRoom.addEventListener('click', function(e) {
+      var btn = e.target.closest('.delivery-download');
+      if (!btn) return;
+      var item = btn.closest('.delivery-item');
+      var filename = item.querySelector('.delivery-filename').textContent;
+      var blob = new Blob([''], { type: 'application/octet-stream' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Native browser file upload
+    var uploadBtn = document.getElementById('delivery-upload');
+    var uploadInput = document.getElementById('delivery-upload-input');
+    uploadBtn.addEventListener('click', function() {
+      uploadInput.click();
     });
 
     var countdownInterval = null;
