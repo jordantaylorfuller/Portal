@@ -29,12 +29,12 @@
     /* ── Back Link ── */
     .back-link {
       position: fixed;
-      top: 28px;
-      left: 28px;
+      top: 20px;
+      left: 24px;
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       color: rgb(40, 36, 36);
       text-decoration: none;
@@ -122,6 +122,27 @@
       border-bottom: 1px solid rgb(209, 204, 199);
     }
 
+    /* ── Staggered entrance ── */
+    .asset-row.stagger-hidden {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .asset-row.stagger-in {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 350ms ease, transform 350ms cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .section-header.stagger-hidden {
+      opacity: 0;
+    }
+
+    .section-header.stagger-in {
+      opacity: 1;
+      transition: opacity 300ms ease;
+    }
+
     .asset-link {
       display: flex;
       align-items: center;
@@ -196,7 +217,7 @@
     .status-btn-wrap {
       position: relative;
       flex-shrink: 0;
-      margin-left: 16px;
+      margin-left: 8px;
     }
 
     .status-btn {
@@ -232,6 +253,88 @@
     .status-dot.needs_review { background: rgb(220, 40, 40); }
     .status-dot.in_review { background: rgb(220, 170, 40); }
     .status-dot.approved { background: rgb(60, 160, 80); }
+    .status-dot.archived { background: rgb(160, 155, 150); }
+
+    /* ── Download Button ── */
+    .download-btn {
+      flex-shrink: 0;
+      margin-left: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.25;
+      transition: opacity 200ms ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .download-btn:hover {
+      opacity: 0.7;
+    }
+
+    .download-btn svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* ── Archive Toggle ── */
+    .archive-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 32px;
+      padding-bottom: 8px;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .archive-toggle:hover .archive-label {
+      opacity: 0.7;
+    }
+
+    .archive-label {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgb(40, 36, 36);
+      opacity: 0.4;
+      transition: opacity 200ms ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .archive-chevron {
+      display: inline-block;
+      transition: transform 300ms cubic-bezier(0.4,0,0.2,1);
+      font-size: 8px;
+      line-height: 1;
+    }
+
+    .archive-chevron.open {
+      transform: rotate(90deg);
+    }
+
+    .archive-line {
+      flex: 1;
+      height: 1px;
+      background: rgb(209, 204, 199);
+      opacity: 0.5;
+    }
+
+    .archive-list {
+      overflow: hidden;
+      height: 0;
+      transition: height 320ms cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .archive-list.open {
+      height: auto;
+    }
 
     /* ── Status Dropdown ── */
     .status-dropdown {
@@ -279,15 +382,27 @@
     .section-label.needs_review { color: rgb(220, 40, 40); }
     .section-label.in_review { color: rgb(220, 170, 40); }
     .section-label.approved { color: rgb(60, 160, 80); }
+    .section-label.archived { color: rgb(160, 155, 150); }
 
     /* ── Section wrapper ── */
     .section-group {
+    }
+
+    /* ── Page transition ── */
+    .page-content {
+      opacity: 0;
+      transition: opacity 500ms ease;
+    }
+
+    .page-content.visible {
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
-  <a href="index.html" class="back-link">&larr; Back</a>
+  <div class="page-content" id="page-content">
+  <a href="#" class="back-link" id="back-link">&larr; Back</a>
 
   <div class="queue-container">
     <div class="queue-header">
@@ -356,27 +471,32 @@
     const statusLabels = {
       needs_review: 'Needs Review',
       in_review: 'In Review',
-      approved: 'Approved'
+      approved: 'Approved',
+      archived: 'Archived'
     };
 
     const sectionOrder = ['needs_review', 'in_review', 'approved'];
+    const allStatuses = ['needs_review', 'in_review', 'approved', 'archived'];
 
     let openDropdown = null;
 
     function getStatusCounts() {
-      const counts = { needs_review: 0, in_review: 0, approved: 0 };
+      const counts = { needs_review: 0, in_review: 0, approved: 0, archived: 0 };
       assets.forEach(a => counts[a.status]++);
       return counts;
     }
 
     function updateSummary() {
       const c = getStatusCounts();
-      document.getElementById('summary').innerHTML =
-        c.needs_review + ' needs review' +
+      var parts = c.needs_review + ' needs review' +
         '<span class="sep">/</span>' +
         c.in_review + ' in review' +
         '<span class="sep">/</span>' +
         c.approved + ' approved';
+      if (c.archived > 0) {
+        parts += '<span class="sep">/</span>' + c.archived + ' archived';
+      }
+      document.getElementById('summary').innerHTML = parts;
     }
 
     function buildRow(asset) {
@@ -385,6 +505,8 @@
       row.dataset.id = asset.id;
 
       const noteLabel = asset.notes === 1 ? '1 note' : asset.notes + ' notes';
+
+      var dlSvg = '<svg viewBox="0 0 12 12" fill="none" stroke="rgb(40,36,36)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.5v7"/><path d="M3 6.5l3 3 3-3"/><path d="M2 10.5h8"/></svg>';
 
       row.innerHTML =
         '<a href="' + asset.url + '" class="asset-link">' +
@@ -402,13 +524,14 @@
             '</div>' +
           '</div>' +
         '</a>' +
+        '<button class="download-btn" data-id="' + asset.id + '" title="Download">' + dlSvg + '</button>' +
         '<div class="status-btn-wrap">' +
           '<button class="status-btn" data-id="' + asset.id + '">' +
             '<span class="status-dot ' + asset.status + '"></span>' +
             '<span>' + statusLabels[asset.status] + '</span>' +
           '</button>' +
           '<div class="status-dropdown" data-id="' + asset.id + '">' +
-            sectionOrder.map(function(s) {
+            allStatuses.map(function(s) {
               return '<div class="status-option' + (s === asset.status ? ' current' : '') + '" data-status="' + s + '" data-id="' + asset.id + '">' +
                 '<span class="status-dot ' + s + '"></span>' +
                 '<span>' + statusLabels[s] + '</span>' +
@@ -419,6 +542,8 @@
 
       return row;
     }
+
+    var archiveOpen = false;
 
     function renderSections() {
       const container = document.getElementById('sections');
@@ -453,7 +578,87 @@
         container.appendChild(group);
       });
 
+      renderArchive(container);
       updateSummary();
+    }
+
+    function hideAllRows() {
+      var items = document.querySelectorAll('#sections .section-header, #sections .section-list > .asset-row');
+      items.forEach(function(el) {
+        el.classList.add('stagger-hidden');
+      });
+    }
+
+    function staggerEntrance() {
+      var items = document.querySelectorAll('#sections .stagger-hidden');
+      var delay = 80;
+      items.forEach(function(el, i) {
+        setTimeout(function() {
+          el.classList.remove('stagger-hidden');
+          el.classList.add('stagger-in');
+        }, i * delay);
+      });
+    }
+
+    function renderArchive(container) {
+      var archivedAssets = assets.filter(function(a) { return a.status === 'archived'; });
+
+      // Remove old archive DOM
+      var oldToggle = container.querySelector('.archive-toggle');
+      var oldGroup = container.querySelector('.section-group[data-section="archived"]');
+      if (oldToggle) oldToggle.remove();
+      if (oldGroup) oldGroup.remove();
+
+      if (archivedAssets.length === 0) return;
+
+      var toggle = document.createElement('div');
+      toggle.className = 'archive-toggle';
+      toggle.innerHTML =
+        '<span class="archive-label">' +
+          '<span class="archive-chevron' + (archiveOpen ? ' open' : '') + '">&#9654;</span>' +
+          'Archive (' + archivedAssets.length + ')' +
+        '</span>' +
+        '<span class="archive-line"></span>';
+      container.appendChild(toggle);
+
+      var group = document.createElement('div');
+      group.className = 'section-group';
+      group.dataset.section = 'archived';
+
+      var list = document.createElement('div');
+      list.className = 'archive-list' + (archiveOpen ? ' open' : '');
+      list.dataset.section = 'archived';
+
+      archivedAssets.forEach(function(asset) {
+        list.appendChild(buildRow(asset));
+      });
+
+      group.appendChild(list);
+      container.appendChild(group);
+
+      // Set initial height if open
+      if (archiveOpen) {
+        list.style.height = 'auto';
+      }
+
+      toggle.addEventListener('click', function() {
+        archiveOpen = !archiveOpen;
+        var chevron = toggle.querySelector('.archive-chevron');
+        chevron.classList.toggle('open', archiveOpen);
+        if (archiveOpen) {
+          list.classList.add('open');
+          list.style.height = '0';
+          list.offsetHeight;
+          var h = list.scrollHeight;
+          list.style.height = h + 'px';
+          setTimeout(function() { list.style.height = 'auto'; }, 320);
+        } else {
+          list.style.height = list.scrollHeight + 'px';
+          list.offsetHeight;
+          list.style.height = '0';
+          setTimeout(function() { list.classList.remove('open'); }, 320);
+        }
+      });
     }
 
     function closeAllDropdowns() {
@@ -550,6 +755,7 @@
       if (!row) { animating = false; return; }
 
       var oldGroup = row.closest('.section-group');
+      var isFromArchive = oldStatus === 'archived';
       var willOldBeEmpty = assets.filter(function(a) { return a.status === oldStatus; }).length === 1;
 
       // Phase 1: Fade out row content
@@ -563,7 +769,11 @@
           asset.status = newStatus;
           updateSummary();
 
-          if (willOldBeEmpty && oldGroup) {
+          if (isFromArchive) {
+            // Re-render archive to remove the item
+            renderArchive(document.getElementById('sections'));
+            enterTarget(asset, newStatus, oldStatus);
+          } else if (willOldBeEmpty && oldGroup) {
             // Phase 3a: Collapse empty section
             slideUp(oldGroup, 260, function() {
               enterTarget(asset, newStatus, oldStatus);
@@ -580,6 +790,18 @@
       }, 210);
 
       function enterTarget(asset, newStatus) {
+        if (newStatus === 'archived') {
+          // Re-render archive section and finish
+          renderArchive(document.getElementById('sections'));
+          if (!archiveOpen) {
+            // Auto-open archive to show the newly archived item
+            var toggle = document.querySelector('.archive-toggle');
+            if (toggle) toggle.click();
+          }
+          animating = false;
+          return;
+        }
+
         var targetGroup = document.querySelector('.section-group[data-section="' + newStatus + '"]');
         var isNew = !targetGroup;
         if (!targetGroup) {
@@ -589,6 +811,9 @@
         targetGroup.querySelector('.section-list').appendChild(newRow);
         targetGroup.querySelector('.section-count').textContent =
           assets.filter(function(a) { return a.status === newStatus; }).length;
+
+        // Re-render archive in case count changed
+        renderArchive(document.getElementById('sections'));
 
         if (isNew) {
           insertSectionInOrder(targetGroup);
@@ -601,6 +826,24 @@
 
     // ── Event Delegation ──
     document.addEventListener('click', function(e) {
+      // Download button
+      var dlBtn = e.target.closest('.download-btn');
+      if (dlBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var dlId = dlBtn.dataset.id;
+        var dlAsset = assets.find(function(a) { return a.id === dlId; });
+        if (dlAsset) {
+          var a = document.createElement('a');
+          a.href = 'video.mp4';
+          a.download = dlAsset.title.replace(/\s+/g, '_') + '.mp4';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        return;
+      }
+
       // Status button toggle
       const btn = e.target.closest('.status-btn');
       if (btn) {
@@ -637,6 +880,39 @@
 
     // ── Init ──
     renderSections();
+
+    // Fade in page content, then stagger rows
+    var pageContent = document.getElementById('page-content');
+    hideAllRows();
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        pageContent.classList.add('visible');
+        // Start stagger after page opacity begins
+        setTimeout(staggerEntrance, 200);
+      });
+    });
+
+    // Back button: fade out, then navigate to room selection
+    document.getElementById('back-link').addEventListener('click', function(e) {
+      e.preventDefault();
+      pageContent.classList.remove('visible');
+      setTimeout(function() {
+        window.location.href = 'index.html#rooms';
+      }, 500);
+    });
+
+    // Asset links: fade out, then navigate to review player
+    document.addEventListener('click', function(e) {
+      var link = e.target.closest('.asset-link');
+      if (!link) return;
+      e.preventDefault();
+      var href = link.getAttribute('href');
+      pageContent.classList.remove('visible');
+      setTimeout(function() {
+        window.location.href = href;
+      }, 500);
+    }, true);
   </script>
+  </div>
 </body>
 </html>

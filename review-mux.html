@@ -86,6 +86,16 @@
       line-height: 1.6;
     }
 
+    /* ── Page transition ── */
+    .review-player {
+      opacity: 0;
+      transition: opacity 500ms ease;
+    }
+
+    .review-player.visible {
+      opacity: 1;
+    }
+
     /* ── Back Button ── */
     .review-back {
       position: absolute;
@@ -773,7 +783,7 @@
 <body>
 
   <div class="review-player" id="review-player">
-    <a href="review-queue.html" class="review-back">&larr; Back</a>
+    <a href="#" class="review-back" id="review-back">&larr; Back</a>
     <div class="project-label">Davis &mdash; Rough Cut V3</div>
 
     <!-- Mux Player -->
@@ -1512,6 +1522,22 @@
       if (reviewPlayer.classList.contains('annotating')) {
         resizeAnnoCanvas();
       }
+    });
+
+    // Fade in on load
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        reviewPlayer.classList.add('visible');
+      });
+    });
+
+    // Back button: fade out, then navigate to review queue
+    document.getElementById('review-back').addEventListener('click', function(e) {
+      e.preventDefault();
+      reviewPlayer.classList.remove('visible');
+      setTimeout(function() {
+        window.location.href = 'review-queue.html';
+      }, 500);
     });
   </script>
 

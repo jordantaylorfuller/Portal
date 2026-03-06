@@ -18,12 +18,25 @@ HASH=$(echo -n "$WT_PATH" | shasum | cut -c1-8)
 HASH_DEC=$((16#$HASH))
 PORT=$((PORT_MIN + (HASH_DEC % PORT_RANGE)))
 
-# Check if that port is already in use by THIS worktree's server
+# Check if that port is already in use
 EXISTING_PID=$(lsof -ti:$PORT 2>/dev/null || true)
 if [ -n "$EXISTING_PID" ]; then
-  echo "Port $PORT already in use (PID $EXISTING_PID). Killing it..."
-  kill -9 $EXISTING_PID 2>/dev/null || true
-  sleep 0.5
+  # Check if it's a live-server for this worktree
+  EXISTING_CMD=$(ps -p $EXISTING_PID -o args= 2>/dev/null || true)
+  if echo "$EXISTING_CMD" | grep -q "live-server.*--port=$PORT"; then
+    echo "──────────────────────────────────"
+    echo "  Already running (PID $EXISTING_PID)"
+    echo "  Branch:  $BRANCH"
+    echo "  Port:    $PORT"
+    echo "  URL:     http://localhost:$PORT"
+    echo "──────────────────────────────────"
+    exit 0
+  else
+    echo "Port $PORT in use by another process (PID $EXISTING_PID)."
+    echo "  $EXISTING_CMD"
+    echo "Kill it manually if you want to reclaim the port."
+    exit 1
+  fi
 fi
 
 # Inject branch name into page title via live-server middleware
