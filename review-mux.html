@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>NIPC | Review Room -- Davis</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    input, textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Review Player (full viewport) ── */
+    .review-player {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    mux-player {
+      width: 100%;
+      height: 100%;
+      --controls: none;
+      --media-object-fit: cover;
+    }
+
+    .review-player.fit-aspect mux-player {
+      --media-object-fit: contain;
+    }
+
+    .mux-fallback {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .mux-fallback-badge {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 12px;
+    }
+
+    .mux-fallback-text {
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.25);
+      max-width: 320px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Back Button ── */
+    .review-back {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.6);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity 300ms ease, color 200ms ease;
+      z-index: 2;
+    }
+
+    .review-player.mouse-active .review-back {
+      opacity: 1;
+    }
+
+    .review-back:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ── Project Label ── */
+    .project-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.35);
+      z-index: 2;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .review-player.mouse-active .project-label {
+      opacity: 1;
+    }
+
+    /* ── Transport Bar ── */
+    .transport-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 300ms ease;
+      z-index: 2;
+    }
+
+    .review-player.mouse-active .transport-bar {
+      opacity: 1;
+    }
+
+    .transport-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: color 200ms ease;
+      flex-shrink: 0;
+    }
+
+    .transport-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Volume ── */
+    .volume-group {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .volume-popup {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .volume-group.open .volume-popup {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .volume-slider-wrap {
+      width: 36px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      transform: rotate(-90deg);
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-track {
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+
+    /* ── Playhead ── */
+    .playhead-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 25%;
+      min-width: 120px;
+    }
+
+    .transport-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+    }
+
+    .playhead-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .playhead-slider::-moz-range-track {
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+    }
+
+    /* ── Live Button ── */
+    .live-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.4);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      transition: color 200ms ease;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-btn::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: background 200ms ease;
+    }
+
+    .live-btn.live {
+      color: rgba(255,255,255,0.9);
+    }
+
+    .live-btn.live::before {
+      background: rgb(220, 40, 40);
+    }
+
+    .live-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Video Controls Stack ── */
+    .video-controls {
+      position: absolute;
+      bottom: 56px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 300ms ease;
+      z-index: 2;
+    }
+
+    .review-player.mouse-active .video-controls {
+      opacity: 1;
+    }
+
+    .video-control-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: color 200ms ease;
+    }
+
+    .video-control-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Annotation Overlay ── */
+    .annotation-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      cursor: crosshair;
+      display: none;
+    }
+
+    .review-player.annotating .annotation-canvas {
+      display: block;
+    }
+
+    .annotation-toolbar {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 8px;
+      padding: 8px;
+      z-index: 6;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .review-player.annotating .annotation-toolbar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .anno-tool-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: color 150ms ease, background 150ms ease;
+    }
+
+    .anno-tool-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .anno-tool-btn.active {
+      color: #fff;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .anno-divider {
+      width: 20px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      margin: 4px 0;
+    }
+
+    .anno-color-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 150ms ease, transform 150ms ease;
+      margin: 2px 0;
+    }
+
+    .anno-color-btn:hover {
+      transform: scale(1.15);
+    }
+
+    .anno-color-btn.active {
+      border-color: #fff;
+    }
+
+    .anno-done-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .anno-done-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* ── Comment Panel ── */
+    .comment-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 320px;
+      height: 100vh;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      transform: translateX(100%);
+      transition: transform 300ms ease;
+    }
+
+    .comment-panel.open {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .panel-count {
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .panel-close {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      transition: color 200ms ease;
+    }
+
+    .panel-close:hover {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .comment-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .comment-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .comment-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .comment-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+
+    .comment-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+
+    .comment-item:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .comment-item.resolved {
+      opacity: 0.45;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .comment-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgb(220, 40, 40);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 500;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .comment-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .comment-timecode {
+      font-size: 10px;
+      font-weight: 500;
+      color: rgb(220, 40, 40);
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: color 150ms ease;
+    }
+
+    .comment-timecode:hover {
+      color: rgb(255, 80, 80);
+    }
+
+    .comment-item.resolved .comment-timecode {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .comment-author {
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .comment-text {
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .resolve-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.3);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: color 200ms ease, border-color 200ms ease;
+    }
+
+    .resolve-btn:hover {
+      color: rgba(255,255,255,0.7);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .resolve-btn.is-resolved {
+      color: rgba(255,255,255,0.5);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .comment-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .comment-input-label {
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 8px;
+    }
+
+    .comment-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 300;
+      color: #fff;
+      outline: none;
+      resize: none;
+      min-height: 60px;
+      transition: border-color 200ms ease;
+    }
+
+    .comment-input::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+
+    .comment-input:focus {
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    .comment-submit-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .comment-submit {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgb(220, 40, 40);
+      background: transparent;
+      border: 1px solid rgba(220, 40, 40, 0.4);
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: border-color 200ms ease, background 200ms ease;
+    }
+
+    .comment-submit:hover {
+      border-color: rgb(220, 40, 40);
+      background: rgba(220, 40, 40, 0.08);
+    }
+
+    /* ── Scrub Markers ── */
+    .playhead-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .scrub-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .scrub-marker {
+      position: absolute;
+      width: 3px;
+      height: 10px;
+      background: rgb(220, 40, 40);
+      border-radius: 1px;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 150ms ease;
+    }
+
+    .scrub-marker:hover {
+      transform: scaleY(1.5);
+    }
+
+    .scrub-marker.resolved {
+      background: rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="review-player" id="review-player">
+    <a href="review-queue.html" class="review-back">&larr; Back</a>
+    <div class="project-label">Davis &mdash; Rough Cut V3</div>
+
+    <!-- Mux Player -->
+    <mux-player
+      id="mux-player"
+      playback-id="vYQ3CRWQFmsVzL02InTa7JVlgbqMhilWzRBBA02LQOnXU"
+      stream-type="on-demand"
+      style="width:100%;height:100%;"
+    ></mux-player>
+
+    <!-- Fallback if Mux doesn't load -->
+    <div class="mux-fallback" id="mux-fallback" style="display:none;">
+      <div class="mux-fallback-badge">Mux Player</div>
+      <div class="mux-fallback-text">
+        Mux web component would render here with adaptive bitrate streaming.
+      </div>
+    </div>
+
+    <!-- Annotation Canvas -->
+    <canvas id="annotation-canvas" class="annotation-canvas"></canvas>
+
+    <!-- Annotation Toolbar -->
+    <div class="annotation-toolbar" id="annotation-toolbar">
+      <button class="anno-tool-btn active" data-tool="freehand" aria-label="Freehand draw">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.5 1.5l4 4-9 9H1.5v-4z"/>
+          <line x1="8.5" y1="3.5" x2="12.5" y2="7.5"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="rectangle" aria-label="Rectangle">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="12" height="10" rx="1"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="arrow" aria-label="Arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="1" y1="15" x2="12" y2="4"/>
+          <polyline points="12 9 12 4 7 4"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" data-tool="line" aria-label="Line">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <line x1="2" y1="14" x2="14" y2="2"/>
+        </svg>
+      </button>
+      <div class="anno-divider"></div>
+      <button class="anno-color-btn active" data-color="#E74C3C" style="background:#E74C3C;" aria-label="Red"></button>
+      <button class="anno-color-btn" data-color="#F39C12" style="background:#F39C12;" aria-label="Orange"></button>
+      <button class="anno-color-btn" data-color="#1ABC9C" style="background:#1ABC9C;" aria-label="Teal"></button>
+      <button class="anno-color-btn" data-color="#2ECC71" style="background:#2ECC71;" aria-label="Green"></button>
+      <button class="anno-color-btn" data-color="#3498DB" style="background:#3498DB;" aria-label="Blue"></button>
+      <div class="anno-divider"></div>
+      <button class="anno-tool-btn" id="anno-undo" aria-label="Undo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 7 1 4 4 1"/>
+          <path d="M1 4h9a5 5 0 0 1 0 10H7"/>
+        </svg>
+      </button>
+      <button class="anno-tool-btn" id="anno-redo" aria-label="Redo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="12 7 15 4 12 1"/>
+          <path d="M15 4H6a5 5 0 0 0 0 10h3"/>
+        </svg>
+      </button>
+      <div class="anno-divider"></div>
+      <button class="anno-done-btn" id="anno-done" aria-label="Done annotating">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2 7 5.5 10.5 12 3.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Video Controls Stack -->
+    <div class="video-controls">
+      <button id="annotate-toggle" class="video-control-btn" aria-label="Annotate">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 16l1.5-4.5L13 2l3 3L6.5 14.5z"/>
+          <line x1="10.5" y1="4.5" x2="13.5" y2="7.5"/>
+        </svg>
+      </button>
+      <button id="chat-toggle" class="video-control-btn" aria-label="Chat">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h14v10H6l-4 3V3z"/>
+        </svg>
+      </button>
+      <button id="mic-toggle" class="video-control-btn" aria-label="Toggle microphone">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="1" width="6" height="10" rx="3"/>
+          <path d="M3 8a6 6 0 0 0 12 0"/>
+          <line x1="9" y1="14" x2="9" y2="17"/>
+          <line x1="6" y1="17" x2="12" y2="17"/>
+        </svg>
+      </button>
+      <button id="aspect-toggle" class="video-control-btn" aria-label="Toggle aspect ratio">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="16" height="10" rx="1"/>
+          <line x1="5" y1="1" x2="13" y2="1"/>
+          <line x1="5" y1="17" x2="13" y2="17"/>
+        </svg>
+      </button>
+      <button id="fullscreen-toggle" class="video-control-btn" aria-label="Toggle fullscreen">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 1 1 1 1 6"/>
+          <polyline points="12 1 17 1 17 6"/>
+          <polyline points="6 17 1 17 1 12"/>
+          <polyline points="12 17 17 17 17 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Transport Bar -->
+    <div class="transport-bar">
+      <button id="play-pause" class="transport-btn" aria-label="Play/Pause">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" stroke="none">
+          <polygon points="4,2 16,9 4,16"/>
+        </svg>
+      </button>
+      <div class="volume-group" id="volume-group">
+        <div class="volume-popup">
+          <div class="volume-slider-wrap">
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1"/>
+          </div>
+        </div>
+        <button id="volume-toggle" class="transport-btn" aria-label="Mute/Unmute">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/>
+            <path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/>
+            <path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="playhead-group">
+        <span id="time-current" class="transport-time">00:00</span>
+        <div class="playhead-wrap">
+          <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="0"/>
+          <div class="scrub-markers" id="scrub-markers"></div>
+        </div>
+        <span id="time-duration" class="transport-time">00:00</span>
+      </div>
+      <button id="live-toggle" class="live-btn live" aria-label="Jump to live">LIVE</button>
+    </div>
+
+    <!-- Comment Panel -->
+    <div class="comment-panel" id="comment-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-title">Notes</span>
+          <span class="panel-count" id="panel-count"></span>
+        </div>
+        <button class="panel-close" id="panel-close" aria-label="Close panel">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="1" y1="1" x2="13" y2="13"/>
+            <line x1="13" y1="1" x2="1" y2="13"/>
+          </svg>
+        </button>
+      </div>
+      <div class="comment-list" id="comment-list"></div>
+      <div class="comment-input-area">
+        <div class="comment-input-label" id="comment-input-label">Add note at 00:00</div>
+        <textarea class="comment-input" id="comment-input" placeholder="Type a note..."></textarea>
+        <div class="comment-submit-row">
+          <button class="comment-submit" id="comment-submit">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var reviewPlayer = document.getElementById('review-player');
+    var muxPlayer = document.getElementById('mux-player');
+    var muxFallback = document.getElementById('mux-fallback');
+    var playPauseBtn = document.getElementById('play-pause');
+    var volumeToggleBtn = document.getElementById('volume-toggle');
+    var volumeSlider = document.getElementById('volume-slider');
+    var volumeGroup = document.getElementById('volume-group');
+    var playheadSlider = document.getElementById('playhead');
+    var timeCurrent = document.getElementById('time-current');
+    var timeDuration = document.getElementById('time-duration');
+    var aspectToggle = document.getElementById('aspect-toggle');
+    var fullscreenToggle = document.getElementById('fullscreen-toggle');
+
+    var liveToggle = document.getElementById('live-toggle');
+    var micToggle = document.getElementById('mic-toggle');
+
+    var isScrubbing = false;
+    var videoReady = false;
+    var mouseTimer = null;
+    var micMuted = false;
+
+    // ── Media access ──
+
+    function getMedia() {
+      if (muxPlayer && muxPlayer.media) return muxPlayer.media;
+      if (muxPlayer) return muxPlayer;
+      return null;
+    }
+
+    // Show fallback if Mux fails to load
+    setTimeout(function() {
+      var media = getMedia();
+      if (!media || (media.readyState === 0 && !videoReady)) {
+        muxPlayer.style.display = 'none';
+        muxFallback.style.display = 'flex';
+      }
+    }, 5000);
+
+    // ── Time formatting ──
+
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      var sec = Math.floor(s % 60);
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ── Mouse-hide controls ──
+
+    reviewPlayer.addEventListener('mousemove', function() {
+      reviewPlayer.classList.add('mouse-active');
+      clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(function() {
+        if (!reviewPlayer.classList.contains('annotating')) {
+          reviewPlayer.classList.remove('mouse-active');
+        }
+      }, 2000);
+    });
+
+    // ── Play / Pause ──
+
+    var pauseIcon = '<rect x="3" y="2" width="4" height="14" rx="1"/><rect x="11" y="2" width="4" height="14" rx="1"/>';
+    var playIcon = '<polygon points="4,2 16,9 4,16"/>';
+
+    playPauseBtn.addEventListener('click', function() {
+      var media = getMedia();
+      if (!media) return;
+      if (media.paused) {
+        media.play().catch(function() {});
+      } else {
+        media.pause();
+      }
+    });
+
+    muxPlayer.addEventListener('play', function() {
+      playPauseBtn.querySelector('svg').innerHTML = pauseIcon;
+    });
+
+    muxPlayer.addEventListener('pause', function() {
+      playPauseBtn.querySelector('svg').innerHTML = playIcon;
+    });
+
+    // ── Volume ──
+
+    var speakerIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/><path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>';
+    var mutedIcon = '<polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/><line x1="14" y1="6" x2="14" y2="12" stroke-width="1.5"/>';
+
+    volumeToggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      volumeGroup.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!volumeGroup.contains(e.target)) {
+        volumeGroup.classList.remove('open');
+      }
+    });
+
+    volumeSlider.addEventListener('input', function() {
+      var media = getMedia();
+      if (!media) return;
+      media.volume = parseFloat(this.value);
+      if (media.muted && media.volume > 0) {
+        media.muted = false;
+      }
+    });
+
+    muxPlayer.addEventListener('volumechange', function() {
+      var media = getMedia();
+      if (!media) return;
+      var svg = volumeToggleBtn.querySelector('svg');
+      if (media.muted || media.volume === 0) {
+        svg.innerHTML = mutedIcon;
+        volumeSlider.value = 0;
+      } else {
+        svg.innerHTML = speakerIcon;
+        volumeSlider.value = media.volume;
+      }
+    });
+
+    // ── Playhead ──
+
+    muxPlayer.addEventListener('loadedmetadata', function() {
+      videoReady = true;
+      var media = getMedia();
+      if (media && media.duration) {
+        playheadSlider.max = media.duration;
+        timeDuration.textContent = formatTime(media.duration);
+      }
+    });
+
+    muxPlayer.addEventListener('timeupdate', function() {
+      if (isScrubbing) return;
+      var media = getMedia();
+      if (!media) return;
+      playheadSlider.value = media.currentTime;
+      timeCurrent.textContent = formatTime(media.currentTime);
+      updateLiveState();
+    });
+
+    playheadSlider.addEventListener('input', function() {
+      isScrubbing = true;
+      var media = getMedia();
+      if (media) media.currentTime = parseFloat(this.value);
+      timeCurrent.textContent = formatTime(parseFloat(this.value));
+      updateLiveState();
+    });
+
+    playheadSlider.addEventListener('change', function() {
+      isScrubbing = false;
+    });
+
+    // ── Live Indicator ──
+
+    function updateLiveState() {
+      var media = getMedia();
+      if (!media) return;
+      var atLiveEdge = media.duration && (media.duration - media.currentTime) < 1;
+      if (atLiveEdge) {
+        liveToggle.classList.add('live');
+      } else {
+        liveToggle.classList.remove('live');
+      }
+    }
+
+    liveToggle.addEventListener('click', function() {
+      var media = getMedia();
+      if (!media) return;
+      if (media.duration) {
+        media.currentTime = media.duration;
+        if (media.paused) {
+          media.play().catch(function() {});
+        }
+        updateLiveState();
+      }
+    });
+
+    // ── Mic Toggle (UI mock) ──
+
+    var micOnIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/>';
+    var micOffIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/><line x1="2" y1="2" x2="16" y2="16" stroke-width="2"/>';
+
+    micToggle.addEventListener('click', function() {
+      micMuted = !micMuted;
+      var svg = micToggle.querySelector('svg');
+      svg.innerHTML = micMuted ? micOffIcon : micOnIcon;
+    });
+
+    // ── Aspect Ratio Toggle ──
+
+    aspectToggle.addEventListener('click', function() {
+      var isFit = reviewPlayer.classList.toggle('fit-aspect');
+      var svg = aspectToggle.querySelector('svg');
+      if (isFit) {
+        svg.innerHTML = '<rect x="3" y="1" width="12" height="16" rx="1"/><line x1="1" y1="5" x2="1" y2="13"/><line x1="17" y1="5" x2="17" y2="13"/>';
+      } else {
+        svg.innerHTML = '<rect x="1" y="4" width="16" height="10" rx="1"/><line x1="5" y1="1" x2="13" y2="1"/><line x1="5" y1="17" x2="13" y2="17"/>';
+      }
+    });
+
+    // ── Fullscreen Toggle ──
+
+    fullscreenToggle.addEventListener('click', function() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function() {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', function() {
+      var svg = fullscreenToggle.querySelector('svg');
+      if (document.fullscreenElement) {
+        svg.innerHTML = '<polyline points="7 1 7 7 1 7"/><polyline points="11 1 11 7 17 7"/><polyline points="7 17 7 11 1 11"/><polyline points="11 17 11 11 17 11"/>';
+      } else {
+        svg.innerHTML = '<polyline points="6 1 1 1 1 6"/><polyline points="12 1 17 1 17 6"/><polyline points="6 17 1 17 1 12"/><polyline points="12 17 17 17 17 12"/>';
+      }
+    });
+
+    // ── Comment Panel ──
+
+    var comments = [
+      { id: 1, initials: 'CL', author: 'Carla Luffe', timecode: 12, text: 'Color feels warm here. Can we push the highlights cooler?', resolved: false },
+      { id: 2, initials: 'JD', author: 'Jordan Davis', timecode: 34, text: 'Love this transition. Keep as-is.', resolved: true },
+      { id: 3, initials: 'CL', author: 'Carla Luffe', timecode: 62, text: 'Audio dip at this cut. Needs crossfade.', resolved: false },
+      { id: 4, initials: 'MR', author: 'Mike Ross', timecode: 78, text: 'Client wants the lower third moved up 20px.', resolved: false }
+    ];
+
+    var commentPanel = document.getElementById('comment-panel');
+    var commentList = document.getElementById('comment-list');
+    var commentInput = document.getElementById('comment-input');
+    var commentInputLabel = document.getElementById('comment-input-label');
+    var commentSubmit = document.getElementById('comment-submit');
+    var panelClose = document.getElementById('panel-close');
+    var panelCount = document.getElementById('panel-count');
+    var scrubMarkers = document.getElementById('scrub-markers');
+    var chatToggle = document.getElementById('chat-toggle');
+
+    function formatTC(seconds) {
+      var m = Math.floor(seconds / 60);
+      var s = Math.floor(seconds % 60);
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    chatToggle.addEventListener('click', function() {
+      commentPanel.classList.toggle('open');
+    });
+
+    panelClose.addEventListener('click', function() {
+      commentPanel.classList.remove('open');
+    });
+
+    function updateCount() {
+      var open = comments.filter(function(c) { return !c.resolved; }).length;
+      var resolved = comments.filter(function(c) { return c.resolved; }).length;
+      panelCount.textContent = open + ' open / ' + resolved + ' resolved';
+    }
+
+    function renderMarkers(duration) {
+      scrubMarkers.innerHTML = '';
+      if (!duration) return;
+      comments.forEach(function(c) {
+        var pct = (c.timecode / duration) * 100;
+        var marker = document.createElement('div');
+        marker.className = 'scrub-marker' + (c.resolved ? ' resolved' : '');
+        marker.style.left = pct + '%';
+        marker.title = formatTC(c.timecode) + ' - ' + c.text.substring(0, 40);
+        marker.addEventListener('click', function() {
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+        scrubMarkers.appendChild(marker);
+      });
+    }
+
+    function renderComments() {
+      commentList.innerHTML = '';
+      var sorted = comments.slice().sort(function(a, b) { return a.timecode - b.timecode; });
+      sorted.forEach(function(c) {
+        var item = document.createElement('div');
+        item.className = 'comment-item' + (c.resolved ? ' resolved' : '');
+        item.innerHTML =
+          '<div class="comment-header">' +
+            '<div class="comment-avatar">' + c.initials + '</div>' +
+            '<div class="comment-meta">' +
+              '<span class="comment-timecode" data-tc="' + c.timecode + '">' + formatTC(c.timecode) + '</span>' +
+              '<span class="comment-author">' + c.author + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="comment-text">' + c.text + '</div>' +
+          '<div class="comment-actions">' +
+            '<button class="resolve-btn' + (c.resolved ? ' is-resolved' : '') + '" data-id="' + c.id + '">' +
+              (c.resolved ? 'Unresolve' : 'Resolve') +
+            '</button>' +
+          '</div>';
+
+        item.addEventListener('click', function() {
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+
+        item.querySelector('.comment-timecode').addEventListener('click', function(e) {
+          e.stopPropagation();
+          var media = getMedia();
+          if (media) media.currentTime = c.timecode;
+        });
+
+        item.querySelector('.resolve-btn').addEventListener('click', function(e) {
+          e.stopPropagation();
+          c.resolved = !c.resolved;
+          renderComments();
+          var media = getMedia();
+          renderMarkers(media ? media.duration : 0);
+          updateCount();
+        });
+
+        commentList.appendChild(item);
+      });
+    }
+
+    commentSubmit.addEventListener('click', function() {
+      var text = commentInput.value.trim();
+      if (!text) return;
+      var media = getMedia();
+      var newId = comments.length ? Math.max.apply(null, comments.map(function(c) { return c.id; })) + 1 : 1;
+      comments.push({
+        id: newId,
+        initials: 'JD',
+        author: 'Jordan Davis',
+        timecode: media ? Math.floor(media.currentTime) : 0,
+        text: text,
+        resolved: false
+      });
+      commentInput.value = '';
+      renderComments();
+      renderMarkers(media ? media.duration : 0);
+      updateCount();
+      commentList.scrollTop = commentList.scrollHeight;
+    });
+
+    // Update comment input label with current timecode
+    muxPlayer.addEventListener('timeupdate', function() {
+      var media = getMedia();
+      if (media) {
+        commentInputLabel.textContent = 'Add note at ' + formatTC(media.currentTime);
+      }
+    });
+
+    // Init comments after metadata loads
+    muxPlayer.addEventListener('loadedmetadata', function() {
+      var media = getMedia();
+      if (media && media.duration) {
+        renderMarkers(media.duration);
+      }
+    });
+
+    renderComments();
+    updateCount();
+
+    // ── Keyboard: Space to play/pause ──
+
+    document.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        var media = getMedia();
+        if (!media) return;
+        if (media.paused) {
+          media.play().catch(function() {});
+        } else {
+          media.pause();
+        }
+      }
+    });
+
+    // ── Annotation System ──
+
+    var annotateToggle = document.getElementById('annotate-toggle');
+    var annoCanvas = document.getElementById('annotation-canvas');
+    var annoToolbar = document.getElementById('annotation-toolbar');
+    var annoCtx = annoCanvas.getContext('2d');
+    var annoTool = 'freehand';
+    var annoColor = '#E74C3C';
+    var annoLineWidth = 4;
+    var annoDrawing = false;
+    var annoStartX = 0;
+    var annoStartY = 0;
+    var annoHistory = [];
+    var annoRedoStack = [];
+    var annoWasPlaying = false;
+
+    function resizeAnnoCanvas() {
+      annoCanvas.width = annoCanvas.offsetWidth;
+      annoCanvas.height = annoCanvas.offsetHeight;
+      redrawAnnotations();
+    }
+
+    annotateToggle.addEventListener('click', function() {
+      var entering = !reviewPlayer.classList.contains('annotating');
+      if (entering) {
+        var media = getMedia();
+        annoWasPlaying = media && !media.paused;
+        if (media) media.pause();
+        reviewPlayer.classList.add('annotating');
+        resizeAnnoCanvas();
+        reviewPlayer.classList.add('mouse-active');
+        clearTimeout(mouseTimer);
+      } else {
+        exitAnnotationMode();
+      }
+    });
+
+    function exitAnnotationMode() {
+      reviewPlayer.classList.remove('annotating');
+      annoHistory = [];
+      annoRedoStack = [];
+      annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
+      if (annoWasPlaying) {
+        var media = getMedia();
+        if (media) media.play().catch(function() {});
+      }
+    }
+
+    document.getElementById('anno-done').addEventListener('click', exitAnnotationMode);
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && reviewPlayer.classList.contains('annotating')) {
+        exitAnnotationMode();
+      }
+    });
+
+    reviewPlayer.addEventListener('mousemove', function() {
+      if (reviewPlayer.classList.contains('annotating')) {
+        reviewPlayer.classList.add('mouse-active');
+        clearTimeout(mouseTimer);
+      }
+    });
+
+    // Tool selection
+    annoToolbar.addEventListener('click', function(e) {
+      var toolBtn = e.target.closest('[data-tool]');
+      if (toolBtn) {
+        annoToolbar.querySelectorAll('[data-tool]').forEach(function(b) { b.classList.remove('active'); });
+        toolBtn.classList.add('active');
+        annoTool = toolBtn.dataset.tool;
+        return;
+      }
+      var colorBtn = e.target.closest('[data-color]');
+      if (colorBtn) {
+        annoToolbar.querySelectorAll('[data-color]').forEach(function(b) { b.classList.remove('active'); });
+        colorBtn.classList.add('active');
+        annoColor = colorBtn.dataset.color;
+      }
+    });
+
+    document.getElementById('anno-undo').addEventListener('click', function() {
+      if (annoHistory.length > 0) {
+        annoRedoStack.push(annoHistory.pop());
+        redrawAnnotations();
+      }
+    });
+
+    document.getElementById('anno-redo').addEventListener('click', function() {
+      if (annoRedoStack.length > 0) {
+        annoHistory.push(annoRedoStack.pop());
+        redrawAnnotations();
+      }
+    });
+
+    // Drawing
+    annoCanvas.addEventListener('mousedown', function(e) {
+      if (!reviewPlayer.classList.contains('annotating')) return;
+      annoDrawing = true;
+      var rect = annoCanvas.getBoundingClientRect();
+      annoStartX = e.clientX - rect.left;
+      annoStartY = e.clientY - rect.top;
+      if (annoTool === 'freehand') {
+        annoHistory.push({ tool: 'freehand', color: annoColor, width: annoLineWidth, points: [{ x: annoStartX, y: annoStartY }] });
+        annoRedoStack = [];
+      }
+    });
+
+    annoCanvas.addEventListener('mousemove', function(e) {
+      if (!annoDrawing) return;
+      var rect = annoCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      if (annoTool === 'freehand') {
+        annoHistory[annoHistory.length - 1].points.push({ x: x, y: y });
+        redrawAnnotations();
+      } else {
+        redrawAnnotations();
+        drawShape(annoCtx, annoTool, annoStartX, annoStartY, x, y, annoColor, annoLineWidth);
+      }
+    });
+
+    annoCanvas.addEventListener('mouseup', function(e) {
+      if (!annoDrawing) return;
+      annoDrawing = false;
+      var rect = annoCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      if (annoTool !== 'freehand') {
+        annoHistory.push({ tool: annoTool, color: annoColor, width: annoLineWidth, x1: annoStartX, y1: annoStartY, x2: x, y2: y });
+        annoRedoStack = [];
+        redrawAnnotations();
+      }
+    });
+
+    annoCanvas.addEventListener('mouseleave', function() {
+      if (annoDrawing) {
+        annoDrawing = false;
+        if (annoTool !== 'freehand') redrawAnnotations();
+      }
+    });
+
+    function redrawAnnotations() {
+      annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
+      annoHistory.forEach(function(item) {
+        if (item.tool === 'freehand') {
+          drawFreehand(annoCtx, item);
+        } else {
+          drawShape(annoCtx, item.tool, item.x1, item.y1, item.x2, item.y2, item.color, item.width);
+        }
+      });
+    }
+
+    function drawFreehand(ctx, stroke) {
+      if (stroke.points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (var i = 1; i < stroke.points.length; i++) {
+        ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      }
+      ctx.stroke();
+    }
+
+    function drawShape(ctx, tool, x1, y1, x2, y2, color, width) {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (tool === 'rectangle') {
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      } else if (tool === 'line') {
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      } else if (tool === 'arrow') {
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        var angle = Math.atan2(y2 - y1, x2 - x1);
+        var headLen = 12;
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+      }
+    }
+
+    window.addEventListener('resize', function() {
+      if (reviewPlayer.classList.contains('annotating')) {
+        resizeAnnoCanvas();
+      }
+    });
+  </script>
+
+</body>
+</html>
