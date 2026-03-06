@@ -2209,12 +2209,12 @@
     });
 
     // Drawing handlers
-    annoCanvas.addEventListener('mousedown', function(e) {
+    function annoPointerDown(clientX, clientY) {
       if (!sessionVideo.classList.contains('annotating')) return;
       annoDrawing = true;
       var rect = annoCanvas.getBoundingClientRect();
-      annoStartX = e.clientX - rect.left;
-      annoStartY = e.clientY - rect.top;
+      annoStartX = clientX - rect.left;
+      annoStartY = clientY - rect.top;
 
       if (annoTool === 'freehand') {
         annoHistory.push({
@@ -2225,31 +2225,30 @@
         });
         annoRedoStack = [];
       }
-    });
+    }
 
-    annoCanvas.addEventListener('mousemove', function(e) {
+    function annoPointerMove(clientX, clientY) {
       if (!annoDrawing) return;
       var rect = annoCanvas.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
+      var x = clientX - rect.left;
+      var y = clientY - rect.top;
 
       if (annoTool === 'freehand') {
         var stroke = annoHistory[annoHistory.length - 1];
         stroke.points.push({ x: x, y: y });
         redrawAnnotations();
       } else {
-        // Preview shape
         redrawAnnotations();
         drawShape(annoCtx, annoTool, annoStartX, annoStartY, x, y, annoColor, annoLineWidth);
       }
-    });
+    }
 
-    annoCanvas.addEventListener('mouseup', function(e) {
+    function annoPointerUp(clientX, clientY) {
       if (!annoDrawing) return;
       annoDrawing = false;
       var rect = annoCanvas.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
+      var x = clientX - rect.left;
+      var y = clientY - rect.top;
 
       if (annoTool !== 'freehand') {
         annoHistory.push({
@@ -2264,8 +2263,18 @@
         annoRedoStack = [];
         redrawAnnotations();
       }
-    });
+    }
 
+    // Mouse events
+    annoCanvas.addEventListener('mousedown', function(e) {
+      annoPointerDown(e.clientX, e.clientY);
+    });
+    annoCanvas.addEventListener('mousemove', function(e) {
+      annoPointerMove(e.clientX, e.clientY);
+    });
+    annoCanvas.addEventListener('mouseup', function(e) {
+      annoPointerUp(e.clientX, e.clientY);
+    });
     annoCanvas.addEventListener('mouseleave', function() {
       if (annoDrawing && annoTool !== 'freehand') {
         annoDrawing = false;
@@ -2274,6 +2283,23 @@
         annoDrawing = false;
       }
     });
+
+    // Touch events
+    annoCanvas.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      var t = e.touches[0];
+      annoPointerDown(t.clientX, t.clientY);
+    }, { passive: false });
+    annoCanvas.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+      var t = e.touches[0];
+      annoPointerMove(t.clientX, t.clientY);
+    }, { passive: false });
+    annoCanvas.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      var t = e.changedTouches[0];
+      annoPointerUp(t.clientX, t.clientY);
+    }, { passive: false });
 
     function redrawAnnotations() {
       annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
