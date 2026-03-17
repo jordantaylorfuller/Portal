@@ -24,6 +24,7 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      transition: background-color 500ms ease;
     }
 
     /* ── Back Link ── */
@@ -220,6 +221,15 @@
       margin-left: 8px;
     }
 
+    .asset-row {
+      position: relative;
+      z-index: 0;
+    }
+
+    .asset-row.dropdown-open {
+      z-index: 100;
+    }
+
     .status-btn {
       font-family: 'DM Mono', monospace;
       font-size: 9px;
@@ -228,13 +238,15 @@
       text-transform: uppercase;
       background: none;
       border: 1px solid rgb(209, 204, 199);
-      padding: 6px 12px 6px 10px;
+      padding: 6px 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       color: rgb(40, 36, 36);
       white-space: nowrap;
+      min-width: 103px;
       transition: border-color 200ms ease, background 200ms ease;
     }
 
@@ -258,7 +270,7 @@
     /* ── Download Button ── */
     .download-btn {
       flex-shrink: 0;
-      margin-left: 12px;
+      margin-left: 8px;
       background: none;
       border: none;
       cursor: pointer;
@@ -341,12 +353,13 @@
       position: absolute;
       top: calc(100% + 4px);
       right: 0;
+      left: 0;
       background: rgb(243, 240, 237);
       border: 1px solid rgb(209, 204, 199);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       z-index: 50;
       display: none;
-      min-width: 160px;
+      overflow: hidden;
     }
 
     .status-dropdown.open {
@@ -524,7 +537,6 @@
             '</div>' +
           '</div>' +
         '</a>' +
-        '<button class="download-btn" data-id="' + asset.id + '" title="Download">' + dlSvg + '</button>' +
         '<div class="status-btn-wrap">' +
           '<button class="status-btn" data-id="' + asset.id + '">' +
             '<span class="status-dot ' + asset.status + '"></span>' +
@@ -538,7 +550,8 @@
               '</div>';
             }).join('') +
           '</div>' +
-        '</div>';
+        '</div>' +
+        '<button class="download-btn" data-id="' + asset.id + '" title="Download">' + dlSvg + '</button>';
 
       return row;
     }
@@ -664,6 +677,8 @@
     function closeAllDropdowns() {
       if (openDropdown) {
         openDropdown.classList.remove('open');
+        var row = openDropdown.closest('.asset-row');
+        if (row) row.classList.remove('dropdown-open');
         openDropdown = null;
       }
     }
@@ -857,6 +872,8 @@
           closeAllDropdowns();
         } else {
           dropdown.classList.add('open');
+          var parentRow = dropdown.closest('.asset-row');
+          if (parentRow) parentRow.classList.add('dropdown-open');
           openDropdown = dropdown;
         }
         return;
@@ -892,12 +909,15 @@
       });
     });
 
-    // Back button: fade out, then navigate to room selection
+    // Back button: fade out content, transition bg, then navigate
     document.getElementById('back-link').addEventListener('click', function(e) {
       e.preventDefault();
       pageContent.classList.remove('visible');
       setTimeout(function() {
-        window.location.href = 'index.html#rooms';
+        document.body.style.backgroundColor = 'rgb(220, 40, 40)';
+        setTimeout(function() {
+          window.location.href = 'index.html#rooms';
+        }, 500);
       }, 500);
     });
 
@@ -912,6 +932,20 @@
         window.location.href = href;
       }, 500);
     }, true);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Auth guard: redirect to login if not authenticated
+    (async function() {
+      var sb = window.supabase.createClient(
+        'https://qnaqxnrbsvushgfwnjnd.supabase.co',
+        'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY'
+      );
+      var result = await sb.auth.getSession();
+      if (!result.data.session) {
+        window.location.href = 'index.html';
+      }
+    })();
   </script>
   </div>
 </body>

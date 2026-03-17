@@ -1,0 +1,4 @@
+backend/.env
+backend/node_modules/
+test-results/
+supabase/.temp/
