@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>DEV — Delivery Room</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="../images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: rgb(30, 28, 28);
+      font-family: 'DM Mono', monospace;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* ── Delivery Room (copied from index.html, adapted for standalone) ── */
+    .delivery-room {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgb(30, 28, 28);
+      overflow: hidden;
+    }
+
+    .delivery-back {
+      position: fixed;
+      top: 20px; left: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.6);
+      background: transparent; border: none;
+      cursor: pointer;
+      transition: color 200ms ease;
+      z-index: 2;
+    }
+    .delivery-back:hover { color: rgba(255, 255, 255, 0.9); }
+
+    .delivery-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .delivery-project {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px; font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #fff;
+      margin-bottom: 32px;
+      flex-shrink: 0;
+    }
+
+    #delivery-groups {
+      flex: 1;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      min-height: 0;
+      padding-right: 8px;
+    }
+    #delivery-groups.has-overflow { overflow-y: auto; }
+    #delivery-groups::-webkit-scrollbar { width: 3px; }
+    #delivery-groups::-webkit-scrollbar-track { background: transparent; }
+    #delivery-groups::-webkit-scrollbar-thumb { background: transparent; border-radius: 2px; }
+    #delivery-groups.has-overflow:hover::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); }
+    #delivery-groups.has-overflow:hover::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+    .delivery-group { margin-bottom: 40px; }
+    .delivery-group-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.35);
+      margin-bottom: 16px;
+    }
+
+    .delivery-item {
+      display: flex; align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .delivery-item:first-child { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+    .delivery-status {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgb(46, 204, 113);
+      flex-shrink: 0; margin-right: 14px;
+    }
+    .delivery-status.processing { background: rgb(243, 156, 18); }
+
+    .delivery-info { flex: 1; min-width: 0; }
+    .delivery-filename {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px; font-weight: 400;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.02em; margin-bottom: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .delivery-specs {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.3);
+    }
+    .delivery-size {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      flex-shrink: 0; margin: 0 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .delivery-download {
+      flex-shrink: 0; padding: 6px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0; background: transparent; cursor: pointer;
+      transition: border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease;
+    }
+    .delivery-download:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    .delivery-download:active { background-color: rgba(255, 255, 255, 0.1); }
+
+    /* Info button */
+    .delivery-info-btn {
+      position: relative; flex-shrink: 0;
+      width: 18px; height: 18px; margin-left: 10px;
+      border: none; border-radius: 50%;
+      background: transparent; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 400;
+      color: rgba(255, 255, 255, 0.2);
+      transition: color 0.2s ease;
+    }
+    .delivery-info-btn:hover { color: rgba(255, 255, 255, 0.6); }
+    .delivery-info-btn .info-icon {
+      width: 14px; height: 14px;
+      border: 1px solid currentColor; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-style: italic; line-height: 1;
+    }
+
+    /* Tooltip */
+    .delivery-tooltip-popup {
+      position: absolute;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.15s ease;
+      font-family: 'DM Mono', monospace;
+      z-index: 100; white-space: nowrap;
+      background: rgb(18, 17, 17);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 9px; font-weight: 300;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.03em; line-height: 1.7;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .delivery-tooltip-popup.visible { opacity: 1; }
+    .delivery-tooltip-popup .tooltip-label {
+      color: rgba(255, 255, 255, 0.3);
+      text-transform: uppercase; letter-spacing: 0.08em; font-size: 8px;
+    }
+    .delivery-tooltip-popup .tooltip-value { color: rgba(255, 255, 255, 0.85); }
+
+    .delivery-upload {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 24px; padding: 14px 0; flex-shrink: 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; font-weight: 400; letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.35);
+      background: transparent; border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer; transition: border-color 0.25s ease, color 0.25s ease;
+    }
+    .delivery-upload:hover { border-color: rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.6); }
+    .delivery-upload-arrow { font-size: 14px; line-height: 1; }
+
+    .delivery-empty, .delivery-loading {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 0.05em; text-align: center; padding: 64px 0;
+    }
+
+    @keyframes deliveryItemIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .delivery-group[data-animate] { opacity: 0; }
+    .delivery-group.animate-in {
+      animation: deliveryItemIn 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* Dev banner */
+    .dev-banner {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 28px; background: rgba(204, 51, 51, 0.9);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace; font-size: 9px;
+      color: #fff; letter-spacing: 0.1em;
+      text-transform: uppercase; z-index: 200;
+    }
+    .dev-banner a { color: rgba(255,255,255,0.7); margin-left: 12px; text-decoration: none; }
+    .dev-banner a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="dev-banner">
+    DEV: Delivery Room
+    <a href="../index.html">Back to app</a>
+  </div>
+
+  <div class="delivery-room" style="padding-top: 28px;">
+    <div class="delivery-content" style="padding-top: 60px;">
+      <div class="delivery-project" id="project-name">Portal</div>
+      <div id="delivery-groups"></div>
+      <button class="delivery-upload" id="delivery-upload">
+        Need to send us a file? <span class="delivery-upload-arrow">&rarr;</span>
+      </button>
+      <input type="file" id="delivery-upload-input" style="display:none;" multiple/>
+    </div>
+    <div id="delivery-tooltip" class="delivery-tooltip-popup"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ── Config ──
+    var API_BASE = 'http://localhost:8080';
+    var SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
+    var SUPABASE_ANON_KEY = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
+    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── Mock data (used when no auth session) ──
+    var MOCK_DATA = {
+      groups: {
+        'Finals': [
+          { title: 'BUFFALO_FINAL_V3.mov', url: '#', specs: 'ProRes 422 HQ / 1920x1080 / 23.976fps', file_size: '2.4 GB', status: 'ready', created_at: '2026-03-17T16:37:00Z' },
+          { title: 'BUFFALO_FINAL_V3.mp4', url: '#', specs: 'H.264 / 1920x1080 / 23.976fps', file_size: '340 MB', status: 'ready', created_at: '2026-03-17T16:37:00Z' }
+        ],
+        'Alternate Cuts': [
+          { title: 'BUFFALO_15s_CUTDOWN.mov', url: '#', specs: 'ProRes 422 HQ / 1920x1080 / 23.976fps', file_size: '680 MB', status: 'ready', created_at: '2026-03-17T16:37:00Z' },
+          { title: 'BUFFALO_30s_CUTDOWN.mov', url: '#', specs: 'ProRes 422 HQ / 1920x1080 / 23.976fps', file_size: '1.1 GB', status: 'processing', created_at: '2026-03-17T16:37:00Z' }
+        ],
+        'Audio': [
+          { title: 'BUFFALO_STEMS.wav', url: '#', specs: '48kHz / 24bit / Stereo', file_size: '180 MB', status: 'ready', created_at: '2026-03-17T16:37:00Z' },
+          { title: 'BUFFALO_MIX_FINAL.wav', url: '#', specs: '48kHz / 24bit / Stereo', file_size: '62 MB', status: 'ready', created_at: '2026-03-17T16:37:00Z' }
+        ]
+      },
+      total: 6
+    };
+
+    var deliveryRoom = document.querySelector('.delivery-room');
+    var deliveryGroupsContainer = document.getElementById('delivery-groups');
+    var deliveryTooltip = document.getElementById('delivery-tooltip');
+    var projectName = document.getElementById('project-name');
+
+    // ── API call (with auth if available, otherwise null) ──
+    async function apiCall(path) {
+      var session = (await supabaseClient.auth.getSession()).data.session;
+      var headers = { 'Content-Type': 'application/json' };
+      if (session) headers['Authorization'] = 'Bearer ' + session.access_token;
+      var res = await fetch(API_BASE + path, { headers: headers });
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderDeliveries(data) {
+      var groupNames = Object.keys(data.groups);
+      if (groupNames.length === 0) {
+        deliveryGroupsContainer.innerHTML = '<div class="delivery-empty">No deliverables yet</div>';
+        return;
+      }
+
+      var html = '';
+      for (var g = 0; g < groupNames.length; g++) {
+        var groupName = groupNames[g];
+        var assets = data.groups[groupName];
+        html += '<div class="delivery-group" data-animate style="animation-delay:' + (g * 80) + 'ms">';
+        html += '<div class="delivery-group-title">' + escapeHtml(groupName) + '</div>';
+        for (var i = 0; i < assets.length; i++) {
+          var a = assets[i];
+          var statusClass = a.status === 'processing' ? ' processing' : '';
+          var uploadDate = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+          var uploadTime = a.created_at ? new Date(a.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+          html += '<div class="delivery-item" data-url="' + escapeHtml(a.url) + '" data-title="' + escapeHtml(a.title) + '">';
+          html += '<div class="delivery-status' + statusClass + '"></div>';
+          html += '<div class="delivery-info">';
+          html += '<div class="delivery-filename">' + escapeHtml(a.title) + '</div>';
+          if (a.specs) html += '<div class="delivery-specs">' + escapeHtml(a.specs) + '</div>';
+          html += '</div>';
+          if (a.file_size) html += '<div class="delivery-size">' + escapeHtml(a.file_size) + '</div>';
+          html += '<button class="delivery-download">Download</button>';
+          html += '<button class="delivery-info-btn" aria-label="File info"';
+          html += ' data-uploaded="' + (uploadDate ? uploadDate + ' at ' + uploadTime : '') + '"';
+          html += ' data-uploader="Carla Luffe">';
+          html += '<span class="info-icon">i</span>';
+          html += '</button>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      deliveryGroupsContainer.innerHTML = html;
+
+      // Overflow detection
+      requestAnimationFrame(function() {
+        if (deliveryGroupsContainer.scrollHeight > deliveryGroupsContainer.clientHeight) {
+          deliveryGroupsContainer.classList.add('has-overflow');
+        } else {
+          deliveryGroupsContainer.classList.remove('has-overflow');
+        }
+      });
+
+      // Stagger entrance
+      var groups = deliveryGroupsContainer.querySelectorAll('.delivery-group[data-animate]');
+      groups.forEach(function(group, idx) {
+        setTimeout(function() { group.classList.add('animate-in'); }, 100 + idx * 80);
+      });
+    }
+
+    // ── Load deliveries: try API first, fall back to mock ──
+    async function loadDeliveries() {
+      deliveryGroupsContainer.innerHTML = '<div class="delivery-loading">Loading...</div>';
+
+      // Try to get projects from API
+      var session = (await supabaseClient.auth.getSession()).data.session;
+      if (session) {
+        try {
+          var me = await apiCall('/api/auth/me');
+          if (me && me.projects && me.projects.length > 0) {
+            var project = me.projects.find(function(p) { return p.status === 'active'; }) || me.projects[0];
+            projectName.textContent = project.name;
+            var resp = await apiCall('/api/projects/' + project.id + '/deliveries');
+            if (resp && resp.groups && Object.keys(resp.groups).length > 0) {
+              renderDeliveries(resp);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('API error:', err);
+        }
+      }
+
+      // Fall back to mock data
+      console.log('Using mock data (no auth session or no deliveries)');
+      projectName.textContent = 'Portal';
+      renderDeliveries(MOCK_DATA);
+    }
+
+    // ── Tooltip ──
+    deliveryRoom.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest('.delivery-info-btn');
+      if (!btn) return;
+      var uploaded = btn.getAttribute('data-uploaded');
+      var uploader = btn.getAttribute('data-uploader');
+      var html = '';
+      if (uploaded) {
+        html += '<span class="tooltip-label">Uploaded</span><br>';
+        html += '<span class="tooltip-value">' + uploaded + '</span><br>';
+      }
+      if (uploader) {
+        html += '<span class="tooltip-label">By</span><br>';
+        html += '<span class="tooltip-value">' + uploader + '</span>';
+      }
+      deliveryTooltip.innerHTML = html;
+      var btnRect = btn.getBoundingClientRect();
+      var roomRect = deliveryRoom.getBoundingClientRect();
+      deliveryTooltip.style.visibility = 'hidden';
+      deliveryTooltip.classList.add('visible');
+      var tipHeight = deliveryTooltip.offsetHeight;
+      var tipWidth = deliveryTooltip.offsetWidth;
+      deliveryTooltip.style.top = (btnRect.top - roomRect.top - tipHeight - 8) + 'px';
+      deliveryTooltip.style.left = (btnRect.right - roomRect.left - tipWidth) + 'px';
+      deliveryTooltip.style.visibility = '';
+    });
+
+    deliveryRoom.addEventListener('mouseout', function(e) {
+      var btn = e.target.closest('.delivery-info-btn');
+      if (!btn) return;
+      if (!btn.contains(e.relatedTarget)) {
+        deliveryTooltip.classList.remove('visible');
+      }
+    });
+
+    // ── Download ──
+    deliveryRoom.addEventListener('click', function(e) {
+      var btn = e.target.closest('.delivery-download');
+      if (!btn) return;
+      var item = btn.closest('.delivery-item');
+      var url = item.getAttribute('data-url');
+      var title = item.getAttribute('data-title');
+      if (url && url !== '#' && !url.includes('example.com')) {
+        window.open(url, '_blank');
+      } else {
+        var blob = new Blob([''], { type: 'application/octet-stream' });
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl; a.download = title || 'download';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(blobUrl);
+      }
+    });
+
+    // ── Upload ──
+    document.getElementById('delivery-upload').addEventListener('click', function() {
+      document.getElementById('delivery-upload-input').click();
+    });
+
+    // ── Init ──
+    loadDeliveries();
+  </script>
+</body>
+</html>

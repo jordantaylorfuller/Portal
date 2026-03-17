@@ -18,12 +18,46 @@ HASH=$(echo -n "$WT_PATH" | shasum | cut -c1-8)
 HASH_DEC=$((16#$HASH))
 PORT=$((PORT_MIN + (HASH_DEC % PORT_RANGE)))
 
-# Check if that port is already in use by THIS worktree's server
-EXISTING_PID=$(lsof -ti:$PORT 2>/dev/null || true)
-if [ -n "$EXISTING_PID" ]; then
-  echo "Port $PORT already in use (PID $EXISTING_PID). Killing it..."
-  kill -9 $EXISTING_PID 2>/dev/null || true
-  sleep 0.5
+# Find an available port, starting with the deterministic one
+find_port() {
+  local port=$1
+  local attempts=0
+  while [ $attempts -lt $PORT_RANGE ]; do
+    local pid=$(lsof -ti:$port 2>/dev/null || true)
+    if [ -z "$pid" ]; then
+      echo $port
+      return 0
+    fi
+    # If our own live-server is already on this port, reuse it
+    local cmd=$(ps -p $pid -o args= 2>/dev/null || true)
+    if echo "$cmd" | grep -q "live-server.*--port=$port"; then
+      echo "already:$port:$pid"
+      return 0
+    fi
+    port=$(( PORT_MIN + ((port - PORT_MIN + 1) % PORT_RANGE) ))
+    attempts=$((attempts + 1))
+  done
+  echo ""
+  return 1
+}
+
+RESULT=$(find_port $PORT)
+if [ -z "$RESULT" ]; then
+  echo "No available port in range $PORT_MIN-$PORT_MAX"
+  exit 1
+elif [[ "$RESULT" == already:* ]]; then
+  PORT=${RESULT#already:}
+  PORT=${PORT%%:*}
+  EXISTING_PID=${RESULT##*:}
+  echo "──────────────────────────────────"
+  echo "  Already running (PID $EXISTING_PID)"
+  echo "  Branch:  $BRANCH"
+  echo "  Port:    $PORT"
+  echo "  URL:     http://localhost:$PORT"
+  echo "──────────────────────────────────"
+  exit 0
+else
+  PORT=$RESULT
 fi
 
 # Inject branch name into page title via live-server middleware

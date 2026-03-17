@@ -93,6 +93,10 @@
       background-color: rgb(30, 28, 28);
     }
 
+    .login-screen.review-entering {
+      background-color: rgb(243, 240, 237);
+    }
+
     .back-link {
       position: fixed;
       top: 20px;
@@ -133,6 +137,100 @@
     .login-form.faded {
       opacity: 0;
       pointer-events: none;
+      position: absolute;
+    }
+
+	    .check-email-state {
+	      display: flex;
+	      flex-direction: column;
+	      align-items: center;
+	      width: 100%;
+	      max-width: 320px;
+	      padding: 0 32px;
+	      box-sizing: border-box;
+	      text-align: center;
+	      position: absolute;
+	      top: 50%;
+	      left: 50%;
+	      opacity: 0;
+	      visibility: hidden;
+	      pointer-events: none;
+	      transform: translate(-50%, -50%) translateY(10px);
+	      transition: opacity 320ms ease, transform 320ms ease, visibility 0s linear 320ms;
+	    }
+	    .check-email-state.visible {
+	      opacity: 1;
+	      visibility: visible;
+	      pointer-events: auto;
+	      transform: translate(-50%, -50%) translateY(0);
+	      transition-delay: 0ms;
+	    }
+    .check-email-text {
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      font-size: 13px;
+      color: #ffffff;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+	    .name-prompt {
+	      display: flex;
+	      flex-direction: column;
+	      align-items: center;
+	      width: 100%;
+	      max-width: 320px;
+	      padding: 0 32px;
+	      box-sizing: border-box;
+	      text-align: center;
+	      position: absolute;
+	      top: 50%;
+	      left: 50%;
+	      opacity: 0;
+	      visibility: hidden;
+	      pointer-events: none;
+	      transform: translate(-50%, -50%) translateY(10px);
+	      transition: opacity 320ms ease, transform 320ms ease, visibility 0s linear 320ms;
+	    }
+	    .name-prompt.visible {
+	      opacity: 1;
+	      visibility: visible;
+	      pointer-events: auto;
+	      transform: translate(-50%, -50%) translateY(0);
+	      transition-delay: 0ms;
+	    }
+    .name-prompt-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-top: 24px;
+      gap: 12px;
+    }
+    .name-prompt-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+    .name-input {
+      flex: 1;
+      min-width: 0;
+    }
+    .name-prompt-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      padding: 8px 32px;
+      cursor: pointer;
+      transition: color 0.3s ease, border-color 0.3s ease;
+      margin-top: 4px;
+    }
+    .name-prompt-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     /* ── Room Selection ── */
@@ -161,10 +259,18 @@
       font-weight: 400;
       text-transform: uppercase;
       color: #fff;
-      transition: opacity 500ms ease;
       text-align: center;
       padding: 0 32px;
       line-height: 1.4;
+    }
+
+    .room-welcome-title {
+      opacity: 0;
+      transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .room-welcome-title.visible {
+      opacity: 1;
     }
 
     .room-welcome-sub {
@@ -173,10 +279,12 @@
       color: rgba(255, 255, 255, 0.4);
       margin-top: 8px;
       letter-spacing: 0.05em;
+      opacity: 0;
+      transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .room-welcome.faded {
-      opacity: 0;
+    .room-welcome-sub.visible {
+      opacity: 1;
     }
 
     /* ── Project Switcher ── */
@@ -233,25 +341,26 @@
 
     .project-dropdown {
       position: absolute;
-      top: calc(100% + 10px);
+      top: calc(100% + 6px);
       right: 0;
-      min-width: 220px;
-      background: rgb(44, 42, 42);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      min-width: 160px;
+      background: transparent;
+      border: none;
+      max-height: 0;
+      overflow: hidden;
       opacity: 0;
-      pointer-events: none;
-      transform: translateY(-4px);
-      transition: opacity 150ms ease, transform 150ms ease;
+      transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 200ms ease;
     }
 
     .project-switcher.open .project-dropdown {
+      max-height: 300px;
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(0);
     }
 
     .project-dropdown-section {
-      padding: 10px 0 4px;
+      padding: 4px 0 0;
     }
 
     .project-dropdown-label {
@@ -261,38 +370,40 @@
       text-transform: uppercase;
       letter-spacing: 0.15em;
       color: rgba(255, 255, 255, 0.25);
-      padding: 0 16px 6px;
+      padding: 0 0 4px;
+      text-align: right;
     }
 
     .project-dropdown-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: flex-end;
+      gap: 8px;
       width: 100%;
-      padding: 8px 16px;
+      padding: 5px 0;
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 400;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.4);
       background: transparent;
       border: none;
       cursor: pointer;
-      text-align: left;
-      transition: background-color 150ms ease, color 150ms ease;
+      text-align: right;
+      flex-direction: row-reverse;
+      transition: color 150ms ease;
     }
 
     .project-dropdown-item:hover {
-      background: rgba(255, 255, 255, 0.06);
       color: rgba(255, 255, 255, 0.9);
     }
 
     .project-dropdown-item.active {
-      color: #fff;
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .project-dropdown-dot {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -308,7 +419,7 @@
     .project-dropdown-divider {
       height: 1px;
       background: rgba(255, 255, 255, 0.08);
-      margin: 4px 0;
+      margin: 6px 0;
     }
 
     .room-selection.visible {
@@ -318,6 +429,7 @@
 
     .room-btn {
       display: inline-block;
+      position: relative;
       width: 200px;
       padding: 12px 32px;
       font-family: 'DM Mono', monospace;
@@ -330,7 +442,338 @@
       background: transparent;
       cursor: pointer;
       text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease, opacity 500ms ease;
+      opacity: 0;
+      transition: border-color 0.25s ease, background-color 0.25s ease, opacity 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Notification badges ── */
+    .room-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 14px;
+      height: 14px;
+      background: rgb(220, 40, 40);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      font-weight: 500;
+      color: #fff;
+      line-height: 1;
+      cursor: default;
+    }
+    .room-badge[data-count="0"] {
+      display: none;
+    }
+    .room-badge-tooltip {
+      position: absolute;
+      top: -1px;
+      left: calc(100% + 8px);
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      font-weight: 400;
+      color: #fff;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .room-badge:hover .room-badge-tooltip {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ── Dashboard bottom bar ── */
+    .dashboard-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 14px;
+      font-family: 'DM Mono', monospace;
+      opacity: 0;
+      transition: opacity 350ms ease;
+    }
+    .dashboard-bar.visible {
+      opacity: 1;
+    }
+    .dashboard-bar-help {
+      justify-self: start;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dashboard-bar-help-icon {
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.45);
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .dashboard-bar-help:hover .dashboard-bar-help-icon {
+      border-color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .dashboard-bar-help-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .dashboard-bar-help:hover .dashboard-bar-help-text {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .dashboard-bar-countdown {
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      justify-self: center;
+    }
+    .dashboard-bar-schedule {
+      justify-self: end;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.45);
+      transition: color 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+    .dashboard-bar-schedule:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .dashboard-bar-schedule.active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* ── Calendar Scheduler ── */
+    .scheduler-overlay {
+      position: absolute;
+      bottom: 48px;
+      right: 14px;
+      width: 320px;
+      font-family: 'DM Mono', monospace;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 50;
+    }
+    .scheduler-overlay.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+	    .scheduler-header {
+	      display: flex;
+	      align-items: center;
+	      justify-content: space-between;
+	      margin-bottom: 10px;
+	    }
+	    .scheduler-month {
+	      font-size: 11px;
+	      font-weight: 400;
+	      color: #fff;
+	      letter-spacing: 0.05em;
+	      text-transform: uppercase;
+	    }
+	    .scheduler-project-context {
+	      margin-bottom: 12px;
+	      display: flex;
+	      align-items: baseline;
+	      gap: 8px;
+	    }
+	    .scheduler-project-label {
+	      font-size: 8px;
+	      font-weight: 400;
+	      color: rgba(255, 255, 255, 0.3);
+	      text-transform: uppercase;
+	      letter-spacing: 0.06em;
+	    }
+	    .scheduler-project-name {
+	      font-size: 10px;
+	      font-weight: 400;
+	      color: rgba(255, 255, 255, 0.78);
+	      letter-spacing: 0.02em;
+	    }
+	    .scheduler-project-message {
+	      margin-bottom: 12px;
+	      font-size: 9px;
+	      font-weight: 400;
+	      color: rgba(255, 255, 255, 0.42);
+	      letter-spacing: 0.03em;
+	      min-height: 12px;
+	    }
+	    .scheduler-project-message.warning {
+	      color: rgba(255, 255, 255, 0.7);
+	    }
+	    .scheduler-nav {
+	      display: flex;
+	      gap: 12px;
+	    }
+    .scheduler-nav-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+    .scheduler-nav-btn:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .scheduler-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 4px;
+    }
+    .scheduler-weekday {
+      font-size: 8px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.3);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 0;
+    }
+    .scheduler-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .scheduler-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.25);
+      border: 1px solid transparent;
+      border-radius: 2px;
+      cursor: default;
+    }
+    .scheduler-day.available {
+      color: rgba(255, 255, 255, 0.6);
+      border-color: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .scheduler-day.available:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #fff;
+    }
+    .scheduler-day.selected {
+      border-color: rgba(255, 255, 255, 0.7);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .scheduler-day.past {
+      color: rgba(255, 255, 255, 0.1);
+    }
+    .scheduler-day.today {
+      color: #fff;
+      font-weight: 500;
+    }
+    .scheduler-times {
+      margin-top: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .scheduler-times.visible {
+      display: flex;
+    }
+    .scheduler-times-label {
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .scheduler-time {
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      padding: 8px 12px;
+      cursor: pointer;
+      background: none;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .scheduler-time:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #fff;
+    }
+    .scheduler-time.selected {
+      border-color: rgba(255, 255, 255, 0.7);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .scheduler-confirm {
+      margin-top: 12px;
+      display: none;
+    }
+    .scheduler-confirm.visible {
+      display: block;
+    }
+    .scheduler-confirm-btn {
+      width: 100%;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 2px;
+      background: none;
+      padding: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .scheduler-confirm-btn:hover {
+      border-color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .scheduler-confirm-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .room-btn.visible {
+      opacity: 1;
     }
 
     .room-selection.buttons-faded .room-btn {
@@ -350,6 +793,10 @@
     /* ── Session Waiting Screen ── */
     .session-waiting {
       position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -357,7 +804,7 @@
       gap: 32px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 600ms ease;
+      transition: opacity 800ms ease;
     }
 
     .session-waiting.visible {
@@ -748,10 +1195,13 @@
 
     /* ── Revisit Previous Sessions ── */
     .revisit-group {
+      position: absolute;
+      top: 75%;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 48px;
     }
 
     .revisit-btn {
@@ -988,7 +1438,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 800ms ease;
-      overflow-y: auto;
+      overflow: hidden;
     }
 
     .delivery-room.visible {
@@ -1020,7 +1470,11 @@
     .delivery-content {
       max-width: 680px;
       margin: 0 auto;
-      padding: 80px 32px 64px;
+      padding: 80px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
     }
 
     .delivery-project {
@@ -1030,7 +1484,41 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: #fff;
-      margin-bottom: 48px;
+      margin-bottom: 32px;
+      flex-shrink: 0;
+    }
+
+    #delivery-groups {
+      flex: 1;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      min-height: 0;
+      padding-right: 8px;
+    }
+
+    #delivery-groups.has-overflow {
+      overflow-y: auto;
+    }
+
+    #delivery-groups::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    #delivery-groups::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #delivery-groups::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 2px;
+    }
+
+    #delivery-groups.has-overflow:hover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    #delivery-groups.has-overflow:hover::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
 
     .delivery-group {
@@ -1133,14 +1621,89 @@
       background-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* Info button */
+    .delivery-info-btn {
+      position: relative;
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.2);
+      transition: color 0.2s ease;
+    }
+
+    .delivery-info-btn:hover {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .delivery-info-btn .info-icon {
+      width: 14px;
+      height: 14px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-style: italic;
+      line-height: 1;
+    }
+
+    /* Tooltip -- absolutely positioned on the delivery-room, not inside scroll container */
+    .delivery-tooltip-popup {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      font-family: 'DM Mono', monospace;
+      z-index: 100;
+      white-space: nowrap;
+      background: rgb(18, 17, 17);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 9px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.03em;
+      line-height: 1.7;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .delivery-tooltip-popup.visible {
+      opacity: 1;
+    }
+
+    .delivery-tooltip-popup .tooltip-label {
+      color: rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 8px;
+    }
+
+    .delivery-tooltip-popup .tooltip-value {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
     .delivery-upload {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      margin-top: 48px;
+      margin-top: 24px;
       padding: 14px 0;
+      flex-shrink: 0;
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       font-weight: 400;
@@ -1162,66 +1725,122 @@
       line-height: 1;
     }
 
+    .delivery-empty {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 64px 0;
+    }
+
+    .delivery-loading {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 64px 0;
+    }
+
+    @keyframes deliveryItemIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .delivery-group[data-animate] {
+      opacity: 0;
+    }
+
+    .delivery-group.animate-in {
+      animation: deliveryItemIn 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
     .login-heading {
       font-family: 'DM Mono', monospace;
-      font-size: 14px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #fff;
-      margin-bottom: 48px;
+      font-size: 13px;
+      font-weight: 300;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      margin-bottom: 32px;
     }
 
     .login-input {
       width: 100%;
       background: transparent;
       border: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 0;
       font-family: 'DM Mono', monospace;
-      font-size: 14px;
+      font-size: 13px;
+      font-weight: 300;
       color: #fff;
       outline: none;
       margin-bottom: 24px;
-      transition: border-color 0.2s ease;
+      transition: border-color 0.3s ease;
     }
 
     .login-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.25);
+      text-transform: none;
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
     }
 
     .login-input:focus {
-      border-bottom-color: rgba(255, 255, 255, 0.8);
+      border-bottom-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .login-input:-webkit-autofill,
+    .login-input:-webkit-autofill:hover,
+    .login-input:-webkit-autofill:focus,
+    .login-input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px rgb(220, 40, 40) inset !important;
+      -webkit-text-fill-color: #fff !important;
+      caret-color: #fff !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .login-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 0;
+    }
+
+    .login-row .login-input {
+      flex: 1;
+      margin-bottom: 0;
     }
 
     .login-btn {
-      margin-top: 16px;
-      display: inline-block;
-      width: 200px;
-      padding: 12px 32px;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: 'DM Mono', monospace;
-      font-size: 16px;
-      font-weight: 400;
-      text-transform: uppercase;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 0;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.4);
+      border: none;
       background: transparent;
       cursor: pointer;
-      text-align: center;
-      transition: border-color 0.25s ease, background-color 0.25s ease;
+      padding: 0;
+      margin-left: -4px;
+      transition: color 0.2s ease;
     }
 
     .login-btn:hover {
-      border-color: rgba(255, 255, 255, 0.9);
-      background-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.9);
     }
 
     .login-btn:active {
-      background-color: rgba(255, 255, 255, 0.14);
+      color: #fff;
     }
 
     /* ── Landing Page Overlay ── */
@@ -1333,19 +1952,70 @@
   <div class="login-screen">
     <a href="#" class="back-link">&#8592; Back</a>
     <form class="login-form" onsubmit="return false;">
-      <h2 class="login-heading">Client Portal</h2>
-      <input type="email" class="login-input" placeholder="Email" autocomplete="email"/>
-      <input type="password" class="login-input" placeholder="Password" autocomplete="current-password"/>
-      <button type="submit" class="login-btn">Login</button>
+      <h2 class="login-heading">Welcome back.</h2>
+      <div class="login-row">
+        <input type="email" class="login-input" placeholder="Email" autocomplete="email"/>
+        <button type="submit" class="login-btn">&rarr;</button>
+      </div>
     </form>
+    <div class="check-email-state">
+      <h2 class="login-heading">Check your inbox.</h2>
+      <p class="check-email-text">A login link is on its way.</p>
+    </div>
+    <div class="name-prompt">
+      <h2 class="login-heading">One more thing.</h2>
+      <p class="check-email-text">What should we call you?</p>
+      <form class="name-prompt-form" onsubmit="return false;">
+        <div class="name-prompt-row">
+          <input type="text" class="login-input name-input" placeholder="First name" autocomplete="given-name" required/>
+          <input type="text" class="login-input name-input" placeholder="Last name" autocomplete="family-name"/>
+        </div>
+        <button type="submit" class="name-prompt-btn">&rarr;</button>
+      </form>
+    </div>
     <div class="room-selection">
       <div class="room-welcome">
-        Welcome Back, Jordan.
+        <div class="room-welcome-title">Welcome Back, Jordan.</div>
         <div class="room-welcome-sub">Let's keep working on <span id="welcome-project">La Colombe</span>.</div>
       </div>
-      <button class="room-btn">Review Room</button>
-      <button class="room-btn">Session Room</button>
-      <button class="room-btn">Delivery Room</button>
+      <button class="room-btn">Review Room<span class="room-badge" data-room="review" data-count="0"><span class="room-badge-tooltip"></span></span></button>
+      <button class="room-btn">Session Room<span class="room-badge" data-room="session" data-count="0"><span class="room-badge-tooltip"></span></span></button>
+      <button class="room-btn">Delivery Room<span class="room-badge" data-room="delivery" data-count="0"><span class="room-badge-tooltip"></span></span></button>
+      <div class="dashboard-bar" id="dashboard-bar">
+        <span class="dashboard-bar-help"><span class="dashboard-bar-help-icon">?</span><span class="dashboard-bar-help-text">Help</span></span>
+        <span class="dashboard-bar-countdown" id="dashboard-countdown">Next session starting in 00d 00h 00m 00s</span>
+        <span class="dashboard-bar-schedule" id="schedule-toggle" title="Schedule Session"><svg class="schedule-icon-cal" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1.5"/><line x1="2" y1="6.5" x2="14" y2="6.5"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg><svg class="schedule-icon-x" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" style="display:none;"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg></span>
+      </div>
+      <div class="scheduler-overlay" id="scheduler-overlay">
+	      <div class="scheduler-header">
+	        <span class="scheduler-month" id="scheduler-month"></span>
+	        <div class="scheduler-nav">
+	          <button class="scheduler-nav-btn" id="scheduler-prev">&larr;</button>
+	          <button class="scheduler-nav-btn" id="scheduler-next">&rarr;</button>
+	        </div>
+	      </div>
+	      <div class="scheduler-project-context">
+	        <span class="scheduler-project-label">Project</span>
+	        <span class="scheduler-project-name" id="scheduler-project-name">No project selected</span>
+	      </div>
+	      <div class="scheduler-project-message" id="scheduler-project-message"></div>
+	      <div class="scheduler-weekdays">
+	        <span class="scheduler-weekday">Su</span>
+	        <span class="scheduler-weekday">Mo</span>
+          <span class="scheduler-weekday">Tu</span>
+          <span class="scheduler-weekday">We</span>
+          <span class="scheduler-weekday">Th</span>
+          <span class="scheduler-weekday">Fr</span>
+          <span class="scheduler-weekday">Sa</span>
+        </div>
+        <div class="scheduler-days" id="scheduler-days"></div>
+        <div class="scheduler-times" id="scheduler-times">
+          <div class="scheduler-times-label" id="scheduler-times-label">Available times</div>
+        </div>
+        <div class="scheduler-confirm" id="scheduler-confirm">
+          <button class="scheduler-confirm-btn" id="scheduler-confirm-btn" disabled>Confirm Session</button>
+        </div>
+      </div>
     </div>
     <div class="project-switcher" id="project-switcher">
       <button class="project-switcher-btn" id="project-switcher-btn">
@@ -1382,7 +2052,7 @@
       <div class="session-message">Your session will start shortly.</div>
       <div class="session-timer">00:10</div>
       <div class="revisit-group">
-        <button class="revisit-btn">Revisit Previous Sessions</button>
+        <button class="revisit-btn">View Previous Sessions</button>
         <div class="revisit-list">
           <button class="revisit-item" data-session="0">
             <span class="revisit-item-date">Feb 28 2026</span>
@@ -1536,78 +2206,13 @@
     <button class="delivery-back" aria-label="Exit delivery room">&#8592; Back</button>
     <div class="delivery-content">
       <div class="delivery-project">La Colombe</div>
-
-      <div class="delivery-group">
-        <div class="delivery-group-title">Finals</div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_FINAL_V3.mov</div>
-            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
-          </div>
-          <div class="delivery-size">2.4 GB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_FINAL_V3.mp4</div>
-            <div class="delivery-specs">H.264 &middot; 1920x1080 &middot; 23.976fps</div>
-          </div>
-          <div class="delivery-size">340 MB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-      </div>
-
-      <div class="delivery-group">
-        <div class="delivery-group-title">Alternate Cuts</div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_15s_CUTDOWN.mov</div>
-            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
-          </div>
-          <div class="delivery-size">680 MB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_30s_CUTDOWN.mov</div>
-            <div class="delivery-specs">ProRes 422 HQ &middot; 1920x1080 &middot; 23.976fps</div>
-          </div>
-          <div class="delivery-size">1.1 GB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-      </div>
-
-      <div class="delivery-group">
-        <div class="delivery-group-title">Audio</div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_STEMS.wav</div>
-            <div class="delivery-specs">48kHz / 24bit &middot; Stereo</div>
-          </div>
-          <div class="delivery-size">180 MB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-        <div class="delivery-item">
-          <div class="delivery-status"></div>
-          <div class="delivery-info">
-            <div class="delivery-filename">BUFFALO_MIX_FINAL.wav</div>
-            <div class="delivery-specs">48kHz / 24bit &middot; Stereo</div>
-          </div>
-          <div class="delivery-size">62 MB</div>
-          <button class="delivery-download">Download</button>
-        </div>
-      </div>
-
+      <div id="delivery-groups"></div>
       <button class="delivery-upload" id="delivery-upload">
         Need to send us a file? <span class="delivery-upload-arrow">&rarr;</span>
       </button>
       <input type="file" id="delivery-upload-input" style="display:none;" multiple/>
     </div>
+    <div id="delivery-tooltip" class="delivery-tooltip-popup"></div>
   </div>
 
   <!-- Landing page overlay (slides left to reveal login) -->
@@ -1620,7 +2225,23 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // ── Supabase Auth Config ──
+    var API_BASE = 'http://localhost:8080';
+    var SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
+    var SUPABASE_ANON_KEY = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
+    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function apiCall(path, opts) {
+      var session = (await supabaseClient.auth.getSession()).data.session;
+      var headers = { 'Content-Type': 'application/json' };
+      if (session) headers['Authorization'] = 'Bearer ' + session.access_token;
+      var res = await fetch(API_BASE + path, Object.assign({ headers: headers }, opts));
+      if (res.status === 401) { supabaseClient.auth.signOut(); location.reload(); }
+      return res.json();
+    }
+
     const landingPage = document.querySelector('.landing-page');
     const portalLink = document.querySelector('.portal-link');
     const backLink = document.querySelector('.back-link');
@@ -1628,18 +2249,441 @@
     const roomSelection = document.querySelector('.room-selection');
     const loginBtn = document.querySelector('.login-btn');
     const loginScreen = document.querySelector('.login-screen');
+    const checkEmailState = document.querySelector('.check-email-state');
+    const namePrompt = document.querySelector('.name-prompt');
+    const namePromptForm = document.querySelector('.name-prompt-form');
+    const nameInputs = document.querySelectorAll('.name-input');
     const roomWelcome = document.querySelector('.room-welcome');
-    const reviewBtn = document.querySelectorAll('.room-btn')[0];
-    const sessionBtn = document.querySelectorAll('.room-btn')[1];
+    const roomWelcomeTitle = document.querySelector('.room-welcome-title');
+    const roomWelcomeSub = document.querySelector('.room-welcome-sub');
+    const roomBtns = document.querySelectorAll('.room-btn');
+    const reviewBtn = roomBtns[0];
+    const sessionBtn = roomBtns[1];
     const sessionWaiting = document.querySelector('.session-waiting');
     const sessionTimer = document.querySelector('.session-timer');
     const sessionVideo = document.querySelector('.session-video');
-    const videoEl = document.getElementById('session-video');
+	    const videoEl = document.getElementById('session-video');
 
-    // Review Room button -> navigate to review prototype
+	    // Stagger entrance for room selection elements
+	    var dashboardBar = document.getElementById('dashboard-bar');
+	    var dashboardCountdown = document.getElementById('dashboard-countdown');
+	    var countdownInterval = null;
+	    var LOGIN_STATE_FADE_MS = 500;
+	    var loginStateTimeout = null;
+
+	    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+	    function clearLoginStateTimeout() {
+	      if (loginStateTimeout) {
+	        clearTimeout(loginStateTimeout);
+	        loginStateTimeout = null;
+	      }
+	    }
+
+	    function showCheckEmailState() {
+	      clearLoginStateTimeout();
+	      namePrompt.classList.remove('visible');
+	      checkEmailState.classList.remove('visible');
+	      loginForm.classList.add('faded');
+	      loginStateTimeout = setTimeout(function() {
+	        checkEmailState.classList.add('visible');
+	      }, LOGIN_STATE_FADE_MS);
+	    }
+
+	    function showNamePromptState() {
+	      clearLoginStateTimeout();
+	      checkEmailState.classList.remove('visible');
+	      namePrompt.classList.remove('visible');
+	      loginForm.classList.add('faded');
+	      loginStateTimeout = setTimeout(function() {
+	        namePrompt.classList.add('visible');
+	        nameInputs[0].focus();
+	      }, LOGIN_STATE_FADE_MS);
+	    }
+
+	    function resetLoginStates() {
+	      clearLoginStateTimeout();
+	      checkEmailState.classList.remove('visible');
+	      namePrompt.classList.remove('visible');
+	      loginForm.classList.remove('faded');
+	      loginBtn.style.opacity = '';
+	      loginBtn.disabled = false;
+	    }
+
+	    // Parse "2:00 PM" style time string into hours/minutes
+	    function parseSessionTime(timeStr) {
+      var parts = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!parts) return { h: 0, m: 0 };
+      var h = parseInt(parts[1], 10);
+      var m = parseInt(parts[2], 10);
+      var ampm = parts[3].toUpperCase();
+      if (ampm === 'PM' && h !== 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      return { h: h, m: m };
+    }
+
+    var nextSessionTarget = null;
+
+    async function fetchUpcomingSessions() {
+      try {
+        var data = await apiCall('/api/sessions');
+        if (data.sessions && data.sessions.length > 0) {
+          var next = data.sessions[0];
+          var t = parseSessionTime(next.session_time);
+          var dateParts = next.session_date.split('-');
+          nextSessionTarget = new Date(
+            parseInt(dateParts[0], 10),
+            parseInt(dateParts[1], 10) - 1,
+            parseInt(dateParts[2], 10),
+            t.h, t.m, 0
+          ).getTime();
+        } else {
+          nextSessionTarget = null;
+        }
+      } catch (err) {
+        console.error('Failed to fetch sessions:', err);
+        nextSessionTarget = null;
+      }
+    }
+
+    function startDashboardCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      fetchUpcomingSessions().then(function() {
+        function tick() {
+          if (!nextSessionTarget) {
+            dashboardCountdown.textContent = 'No upcoming sessions';
+            return;
+          }
+          var diff = Math.max(0, nextSessionTarget - Date.now());
+          if (diff === 0) {
+            dashboardCountdown.textContent = 'Session starting now';
+            return;
+          }
+          var d = Math.floor(diff / 86400000);
+          var h = Math.floor((diff % 86400000) / 3600000);
+          var m = Math.floor((diff % 3600000) / 60000);
+          var s = Math.floor((diff % 60000) / 1000);
+          dashboardCountdown.textContent = 'Next session starting in ' + pad2(d) + 'd ' + pad2(h) + 'h ' + pad2(m) + 'm ' + pad2(s) + 's';
+        }
+        tick();
+        countdownInterval = setInterval(tick, 1000);
+      });
+    }
+
+    // ── Calendar Scheduler ──
+	    var scheduleToggle = document.getElementById('schedule-toggle');
+	    var schedulerOverlay = document.getElementById('scheduler-overlay');
+	    var schedulerMonth = document.getElementById('scheduler-month');
+	    var schedulerProjectName = document.getElementById('scheduler-project-name');
+	    var schedulerProjectMessage = document.getElementById('scheduler-project-message');
+	    var schedulerDays = document.getElementById('scheduler-days');
+	    var schedulerTimes = document.getElementById('scheduler-times');
+	    var schedulerTimesLabel = document.getElementById('scheduler-times-label');
+	    var schedulerConfirm = document.getElementById('scheduler-confirm');
+	    var schedulerConfirmBtn = document.getElementById('scheduler-confirm-btn');
+    var schedIconCal = scheduleToggle.querySelector('.schedule-icon-cal');
+    var schedIconX = scheduleToggle.querySelector('.schedule-icon-x');
+    var schedulerOpen = false;
+    var schedulerDate = new Date();
+	    var schedulerViewYear = schedulerDate.getFullYear();
+	    var schedulerViewMonth = schedulerDate.getMonth();
+	    var schedulerSelectedDay = null;
+	    var schedulerSelectedTime = null;
+	    var currentProject = null;
+
+    var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    // Mock available slots: weekdays only, 3 time options
+    var AVAILABLE_TIMES = ['10:00 AM', '2:00 PM', '4:00 PM'];
+
+	    function isWeekday(y, m, d) {
+	      var day = new Date(y, m, d).getDay();
+	      return day !== 0 && day !== 6;
+	    }
+
+	    function resetSchedulerSelection() {
+	      schedulerSelectedDay = null;
+	      schedulerSelectedTime = null;
+	      schedulerTimes.classList.remove('visible');
+	      schedulerConfirm.classList.remove('visible');
+	      schedulerConfirmBtn.disabled = true;
+	      schedulerConfirmBtn.textContent = 'Confirm Session';
+	    }
+
+	    function canBookCurrentProject() {
+	      return !!(currentProject && currentProject.id && currentProject.status === 'active');
+	    }
+
+	    function updateSchedulerProjectContext() {
+	      if (!currentProject || !currentProject.id) {
+	        schedulerProjectName.textContent = 'No project selected';
+	        schedulerProjectMessage.textContent = 'Assign or select a project before booking a session.';
+	        schedulerProjectMessage.classList.add('warning');
+	        return;
+	      }
+
+	      schedulerProjectName.textContent = currentProject.name;
+	      if (currentProject.status === 'archived') {
+	        schedulerProjectMessage.textContent = 'Archived projects cannot be booked. Switch to an active project.';
+	        schedulerProjectMessage.classList.add('warning');
+	        return;
+	      }
+
+	      schedulerProjectMessage.textContent = 'Session bookings will be attached to this project.';
+	      schedulerProjectMessage.classList.remove('warning');
+	    }
+
+	    function setCurrentProject(project) {
+	      currentProject = project ? {
+	        id: project.id || '',
+	        name: project.name || '',
+	        status: project.status || 'active'
+	      } : null;
+
+	      var displayName = currentProject && currentProject.name ? currentProject.name : 'No project selected';
+	      projectSwitcherName.textContent = displayName;
+	      welcomeProject.textContent = displayName;
+	      deliveryProjectTitle.textContent = displayName;
+	      if (projectDropdown) {
+	        projectDropdown.querySelectorAll('.project-dropdown-item').forEach(function(el) {
+	          el.classList.toggle('active', !!(currentProject && el.dataset.id === currentProject.id));
+	        });
+	      }
+	      updateSchedulerProjectContext();
+	      resetSchedulerSelection();
+	      if (schedulerOpen) {
+	        renderScheduler();
+	      }
+	    }
+
+	    function renderScheduler() {
+	      schedulerMonth.textContent = MONTH_NAMES[schedulerViewMonth] + ' ' + schedulerViewYear;
+	      updateSchedulerProjectContext();
+	      schedulerDays.innerHTML = '';
+	      var firstDay = new Date(schedulerViewYear, schedulerViewMonth, 1).getDay();
+	      var daysInMonth = new Date(schedulerViewYear, schedulerViewMonth + 1, 0).getDate();
+	      var totalGridCells = 42;
+	      var projectBookable = canBookCurrentProject();
+	      var today = new Date();
+	      today.setHours(0,0,0,0);
+
+	      if (!projectBookable) {
+	        schedulerTimes.classList.remove('visible');
+	        schedulerConfirm.classList.remove('visible');
+	        schedulerConfirmBtn.disabled = true;
+	      }
+
+	      // Empty cells for days before 1st
+	      for (var i = 0; i < firstDay; i++) {
+	        var empty = document.createElement('div');
+	        empty.className = 'scheduler-day';
+	        schedulerDays.appendChild(empty);
+	      }
+
+	      for (var d = 1; d <= daysInMonth; d++) {
+	        var cell = document.createElement('div');
+	        cell.className = 'scheduler-day';
+	        cell.textContent = d;
+	        var cellDate = new Date(schedulerViewYear, schedulerViewMonth, d);
+	        cellDate.setHours(0,0,0,0);
+
+	        if (cellDate < today) {
+	          cell.classList.add('past');
+	        } else if (cellDate.getTime() === today.getTime()) {
+	          cell.classList.add('today');
+	          if (projectBookable && isWeekday(schedulerViewYear, schedulerViewMonth, d)) {
+	            cell.classList.add('available');
+	          }
+	        } else if (projectBookable && isWeekday(schedulerViewYear, schedulerViewMonth, d)) {
+	          cell.classList.add('available');
+	        }
+
+	        if (schedulerSelectedDay && schedulerSelectedDay.y === schedulerViewYear && schedulerSelectedDay.m === schedulerViewMonth && schedulerSelectedDay.d === d) {
+	          cell.classList.add('selected');
+	        }
+
+	        (function(day) {
+	          cell.addEventListener('click', function() {
+	            if (!this.classList.contains('available')) return;
+	            schedulerSelectedDay = { y: schedulerViewYear, m: schedulerViewMonth, d: day };
+	            schedulerSelectedTime = null;
+	            renderScheduler();
+	            showTimeSlots(day);
+	          });
+	        })(d);
+
+	        schedulerDays.appendChild(cell);
+	      }
+
+	      // Keep the calendar at a fixed six-row height so month navigation
+	      // doesn't shift the header when the number of visible weeks changes.
+	      var trailingEmptyCells = totalGridCells - (firstDay + daysInMonth);
+	      for (var j = 0; j < trailingEmptyCells; j++) {
+	        var trailingEmpty = document.createElement('div');
+	        trailingEmpty.className = 'scheduler-day';
+	        schedulerDays.appendChild(trailingEmpty);
+	      }
+	    }
+
+	    function showTimeSlots(day) {
+	      if (!canBookCurrentProject()) return;
+	      schedulerTimes.classList.add('visible');
+	      var dateStr = MONTH_NAMES[schedulerViewMonth] + ' ' + day;
+	      schedulerTimesLabel.textContent = dateStr;
+      // Remove old time buttons
+      var oldBtns = schedulerTimes.querySelectorAll('.scheduler-time');
+      oldBtns.forEach(function(b) { b.remove(); });
+      schedulerConfirm.classList.remove('visible');
+      schedulerConfirmBtn.disabled = true;
+
+      AVAILABLE_TIMES.forEach(function(time) {
+        var btn = document.createElement('button');
+        btn.className = 'scheduler-time';
+        btn.textContent = time;
+        btn.addEventListener('click', function() {
+          schedulerTimes.querySelectorAll('.scheduler-time').forEach(function(b) { b.classList.remove('selected'); });
+          btn.classList.add('selected');
+          schedulerSelectedTime = time;
+          schedulerConfirm.classList.add('visible');
+          schedulerConfirmBtn.disabled = false;
+        });
+        schedulerTimes.appendChild(btn);
+      });
+    }
+
+	    scheduleToggle.addEventListener('click', function() {
+	      schedulerOpen = !schedulerOpen;
+	      if (schedulerOpen) {
+	        schedulerOverlay.classList.add('visible');
+	        scheduleToggle.classList.add('active');
+	        schedIconCal.style.display = 'none';
+	        schedIconX.style.display = '';
+	        updateSchedulerProjectContext();
+	        renderScheduler();
+	      } else {
+	        schedulerOverlay.classList.remove('visible');
+	        scheduleToggle.classList.remove('active');
+	        schedIconCal.style.display = '';
+	        schedIconX.style.display = 'none';
+	        resetSchedulerSelection();
+	      }
+	    });
+
+    document.getElementById('scheduler-prev').addEventListener('click', function() {
+      schedulerViewMonth--;
+      if (schedulerViewMonth < 0) { schedulerViewMonth = 11; schedulerViewYear--; }
+      renderScheduler();
+    });
+
+    document.getElementById('scheduler-next').addEventListener('click', function() {
+      schedulerViewMonth++;
+      if (schedulerViewMonth > 11) { schedulerViewMonth = 0; schedulerViewYear++; }
+      renderScheduler();
+    });
+
+	    schedulerConfirmBtn.addEventListener('click', async function() {
+	      if (!canBookCurrentProject()) {
+	        schedulerConfirmBtn.textContent = 'Select An Active Project';
+	        schedulerConfirmBtn.disabled = true;
+	        return;
+	      }
+	      if (!schedulerSelectedDay || !schedulerSelectedTime) return;
+	      schedulerConfirmBtn.disabled = true;
+	      schedulerConfirmBtn.textContent = 'Booking...';
+
+	      var dateStr = schedulerViewYear + '-' + pad2(schedulerSelectedDay.m + 1) + '-' + pad2(schedulerSelectedDay.d);
+	      try {
+	        var result = await apiCall('/api/sessions/book', {
+	          method: 'POST',
+	          body: JSON.stringify({
+	            date: dateStr,
+	            time: schedulerSelectedTime,
+	            project_id: currentProject.id
+	          })
+	        });
+        if (result.error) {
+          schedulerConfirmBtn.textContent = result.error;
+          schedulerConfirmBtn.disabled = false;
+          setTimeout(function() { schedulerConfirmBtn.textContent = 'Confirm Session'; }, 2500);
+          return;
+        }
+        schedulerConfirmBtn.textContent = 'Confirmed';
+        // Refresh countdown with new booking
+        startDashboardCountdown();
+	        setTimeout(function() {
+	          schedulerOpen = false;
+	          schedulerOverlay.classList.remove('visible');
+	          scheduleToggle.classList.remove('active');
+	          schedIconCal.style.display = '';
+	          schedIconX.style.display = 'none';
+	          resetSchedulerSelection();
+	        }, 1500);
+	      } catch (err) {
+        console.error('Booking error:', err);
+        schedulerConfirmBtn.textContent = 'Error - try again';
+        schedulerConfirmBtn.disabled = false;
+        setTimeout(function() { schedulerConfirmBtn.textContent = 'Confirm Session'; }, 2000);
+      }
+    });
+
+    function updateRoomBadges(unseen) {
+      // unseen: { review: N, session: N, delivery: N }
+      var badges = document.querySelectorAll('.room-badge');
+      badges.forEach(function(badge) {
+        var room = badge.getAttribute('data-room');
+        var count = (unseen && unseen[room]) || 0;
+        badge.setAttribute('data-count', count);
+        badge.textContent = '';
+        if (count > 0) {
+          badge.textContent = count;
+          var tooltip = document.createElement('span');
+          tooltip.className = 'room-badge-tooltip';
+          tooltip.textContent = count + (count === 1 ? ' update' : ' updates') + ' since last login';
+          badge.appendChild(tooltip);
+        }
+      });
+    }
+
+    function staggerRoomEntrance() {
+      var delay = 0;
+      roomWelcomeTitle.classList.add('visible');
+      delay += 120;
+      setTimeout(function() { roomWelcomeSub.classList.add('visible'); }, delay);
+      delay += 150;
+      for (var i = 0; i < roomBtns.length; i++) {
+        (function(btn, d) {
+          setTimeout(function() { btn.classList.add('visible'); }, d);
+        })(roomBtns[i], delay);
+        delay += 100;
+      }
+      // Show bottom bar after buttons
+      setTimeout(function() {
+        dashboardBar.classList.add('visible');
+        startDashboardCountdown();
+      }, delay + 200);
+    }
+
+    // Hide all room elements (for exit transitions)
+    function hideRoomElements() {
+      roomWelcomeTitle.classList.remove('visible');
+      roomWelcomeSub.classList.remove('visible');
+      dashboardBar.classList.remove('visible');
+      if (countdownInterval) clearInterval(countdownInterval);
+      for (var i = 0; i < roomBtns.length; i++) {
+        roomBtns[i].classList.remove('visible');
+      }
+    }
+
+    // Review Room button -> fade out, transition background, then navigate
     reviewBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.href = 'review-queue.html';
+      hideRoomElements();
+      roomSelection.classList.add('buttons-faded');
+      loginScreen.classList.add('review-entering');
+      backLink.classList.add('dark');
+
+      setTimeout(function() {
+        window.location.href = 'review-queue.html';
+      }, 800);
     });
 
     // Revisit previous sessions
@@ -1663,16 +2707,149 @@
     var waitingSecondsRemaining = 0;
     var SESSION_WAIT_SECONDS = 10;
 
+    // If returning from review room, jump straight to room selection
+    if (window.location.hash === '#rooms') {
+      landingPage.classList.add('slid');
+      landingPage.style.transition = 'none';
+      loginForm.classList.add('faded');
+      roomSelection.classList.add('visible');
+      history.replaceState(null, '', window.location.pathname);
+      setTimeout(function() {
+        landingPage.style.transition = '';
+        roomSelection.classList.remove('buttons-faded');
+        staggerRoomEntrance();
+      }, 100);
+    }
+
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
       landingPage.classList.add('slid');
+      // Dashboard is already staged if pre-authed, nothing else needed
     });
 
-    loginBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      loginForm.classList.add('faded');
-      roomSelection.classList.add('visible');
+	    loginBtn.addEventListener('click', async function(e) {
+	      e.preventDefault();
+	      var emailInput = document.querySelector('.login-input[type="email"]');
+      var email = emailInput.value.trim();
+      if (!email) return;
+      loginBtn.style.opacity = '0.15';
+      loginBtn.disabled = true;
+	      try {
+	        await apiCall('/api/auth/magic-link', {
+	          method: 'POST',
+	          body: JSON.stringify({ email: email })
+	        });
+	        showCheckEmailState();
+	      } catch (err) {
+	        loginBtn.style.opacity = '';
+	        loginBtn.disabled = false;
+      }
     });
+
+    // ── Auth State & Session Check ──
+    async function loadAuthenticatedState() {
+      try {
+        var me = await apiCall('/api/auth/me');
+
+	        if (me.needsProfile) {
+	          showNamePromptState();
+	          return;
+	        }
+
+        showDashboard(me);
+      } catch (err) {
+        console.error('Failed to load auth state:', err);
+      }
+    }
+
+	    function showDashboard(me) {
+	      roomWelcomeTitle.textContent = 'Welcome Back, ' + me.displayName + '.';
+	      if (me.projects && me.projects.length > 0) {
+	        var active = me.projects.filter(function(p) { return p.status === 'active'; });
+	        var archived = me.projects.filter(function(p) { return p.status === 'archived'; });
+	        var current = active[0] || me.projects[0];
+	        renderProjectSwitcher(active, archived);
+	        setCurrentProject(current);
+	      } else {
+	        setCurrentProject(null);
+	      }
+	      // Update notification badges
+	      updateRoomBadges(me.unseen || { review: 2, delivery: 1 });
+	      clearLoginStateTimeout();
+	      checkEmailState.classList.remove('visible');
+	      namePrompt.classList.remove('visible');
+	      loginForm.classList.add('faded');
+	      roomSelection.classList.add('visible');
+	      setTimeout(staggerRoomEntrance, 400);
+	    }
+
+    namePromptForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var firstName = nameInputs[0].value.trim();
+      var lastName = nameInputs[1].value.trim();
+      if (!firstName) return;
+
+      var btn = namePromptForm.querySelector('.name-prompt-btn');
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        var result = await apiCall('/api/auth/profile', {
+          method: 'POST',
+          body: JSON.stringify({ firstName: firstName, lastName: lastName })
+        });
+        var me = await apiCall('/api/auth/me');
+        showDashboard(me);
+      } catch (err) {
+        console.error('Failed to save profile:', err);
+        btn.disabled = false;
+        btn.textContent = '\u2192';
+      }
+    });
+
+    function renderProjectSwitcher(active, archived) {
+      var dropdown = document.getElementById('project-dropdown');
+      var html = '';
+      if (active.length) {
+        html += '<div class="project-dropdown-section"><div class="project-dropdown-label">Active</div>';
+        active.forEach(function(p, i) {
+          html += '<button class="project-dropdown-item' + (i === 0 ? ' active' : '') + '" data-project="' + p.name + '" data-status="active" data-id="' + p.id + '">';
+          html += '<span class="project-dropdown-dot active"></span>' + p.name + '</button>';
+        });
+        html += '</div>';
+      }
+      if (archived.length) {
+        html += '<div class="project-dropdown-divider"></div>';
+        html += '<div class="project-dropdown-section"><div class="project-dropdown-label">Archive</div>';
+        archived.forEach(function(p) {
+          html += '<button class="project-dropdown-item" data-project="' + p.name + '" data-status="archived" data-id="' + p.id + '">';
+          html += '<span class="project-dropdown-dot archived"></span>' + p.name + '</button>';
+        });
+        html += '</div>';
+      }
+      dropdown.innerHTML = html;
+    }
+
+    supabaseClient.auth.onAuthStateChange(function(event, session) {
+      if (event === 'SIGNED_IN' && session) {
+        history.replaceState(null, '', location.pathname);
+        landingPage.classList.add('slid');
+        loadAuthenticatedState();
+      }
+    });
+
+    // Check for existing session on page load — pre-stage the dashboard
+    // so clicking "Clients" never flashes the login form
+    var _preAuthed = false;
+    (async function() {
+      var result = await supabaseClient.auth.getSession();
+      if (result.data.session) {
+        _preAuthed = true;
+        // Pre-stage: hide login form, load dashboard behind the landing page
+        loginForm.classList.add('faded');
+        await loadAuthenticatedState();
+      }
+    })();
 
     // Project Switcher
     var projectSwitcher = document.getElementById('project-switcher');
@@ -1693,33 +2870,123 @@
       }
     });
 
-    projectDropdown.addEventListener('click', function(e) {
-      var item = e.target.closest('.project-dropdown-item');
-      if (!item) return;
-      var name = item.dataset.project;
-      // Update active state
-      projectDropdown.querySelectorAll('.project-dropdown-item').forEach(function(el) {
-        el.classList.remove('active');
-      });
-      item.classList.add('active');
-      // Update all project name references
-      projectSwitcherName.textContent = name;
-      welcomeProject.textContent = name;
-      deliveryProjectTitle.textContent = name;
-      // Close dropdown
-      projectSwitcher.classList.remove('open');
-    });
+	    projectDropdown.addEventListener('click', function(e) {
+	      var item = e.target.closest('.project-dropdown-item');
+	      if (!item) return;
+	      var project = {
+	        id: item.dataset.id,
+	        name: item.dataset.project,
+	        status: item.dataset.status
+	      };
+	      // Update active state
+	      projectDropdown.querySelectorAll('.project-dropdown-item').forEach(function(el) {
+	        el.classList.remove('active');
+	      });
+	      item.classList.add('active');
+	      setCurrentProject(project);
+	      // Close dropdown
+	      projectSwitcher.classList.remove('open');
+	    });
 
     // Delivery Room
     var deliveryBtn = document.querySelectorAll('.room-btn')[2];
     var deliveryRoom = document.querySelector('.delivery-room');
     var deliveryBackBtn = document.querySelector('.delivery-back');
+    var deliveryGroupsContainer = document.getElementById('delivery-groups');
+
+    async function loadDeliveries() {
+      if (!currentProject || !currentProject.id) {
+        deliveryGroupsContainer.innerHTML = '<div class="delivery-empty">No project selected</div>';
+        return;
+      }
+
+      deliveryGroupsContainer.innerHTML = '<div class="delivery-loading">Loading...</div>';
+
+      try {
+        var resp = await apiCall('/api/projects/' + currentProject.id + '/deliveries');
+        if (!resp || !resp.groups) {
+          deliveryGroupsContainer.innerHTML = '<div class="delivery-empty">No deliverables yet</div>';
+          return;
+        }
+
+        var groupNames = Object.keys(resp.groups);
+        if (groupNames.length === 0) {
+          deliveryGroupsContainer.innerHTML = '<div class="delivery-empty">No deliverables yet</div>';
+          return;
+        }
+
+        var html = '';
+        for (var g = 0; g < groupNames.length; g++) {
+          var groupName = groupNames[g];
+          var assets = resp.groups[groupName];
+          html += '<div class="delivery-group" data-animate style="animation-delay:' + (g * 80) + 'ms">';
+          html += '<div class="delivery-group-title">' + escapeHtml(groupName) + '</div>';
+          for (var i = 0; i < assets.length; i++) {
+            var a = assets[i];
+            var statusClass = a.status === 'processing' ? ' processing' : '';
+            var uploadDate = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+            var uploadTime = a.created_at ? new Date(a.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+            html += '<div class="delivery-item" data-url="' + escapeHtml(a.url) + '" data-title="' + escapeHtml(a.title) + '">';
+            html += '<div class="delivery-status' + statusClass + '"></div>';
+            html += '<div class="delivery-info">';
+            html += '<div class="delivery-filename">' + escapeHtml(a.title) + '</div>';
+            if (a.specs) html += '<div class="delivery-specs">' + escapeHtml(a.specs) + '</div>';
+            html += '</div>';
+            if (a.file_size) html += '<div class="delivery-size">' + escapeHtml(a.file_size) + '</div>';
+            html += '<button class="delivery-download">Download</button>';
+            html += '<button class="delivery-info-btn" aria-label="File info"';
+            html += ' data-uploaded="' + (uploadDate ? uploadDate + ' at ' + uploadTime : '') + '"';
+            html += ' data-uploader="Carla Luffe">';
+            html += '<span class="info-icon">i</span>';
+            html += '</button>';
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+
+        deliveryGroupsContainer.innerHTML = html;
+
+        // Update badge count
+        var badge = document.querySelector('.room-badge[data-room="delivery"]');
+        if (badge) {
+          badge.setAttribute('data-count', resp.total || 0);
+        }
+
+        // Stagger group entrance animations
+        var groups = deliveryGroupsContainer.querySelectorAll('.delivery-group[data-animate]');
+        groups.forEach(function(group, idx) {
+          setTimeout(function() {
+            group.classList.add('animate-in');
+          }, 100 + idx * 80);
+        });
+
+        // Show scrollbar only when content overflows
+        requestAnimationFrame(function() {
+          if (deliveryGroupsContainer.scrollHeight > deliveryGroupsContainer.clientHeight) {
+            deliveryGroupsContainer.classList.add('has-overflow');
+          } else {
+            deliveryGroupsContainer.classList.remove('has-overflow');
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load deliveries:', err);
+        deliveryGroupsContainer.innerHTML = '<div class="delivery-empty">Failed to load deliverables</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
 
     deliveryBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      roomWelcome.classList.add('faded');
+      hideRoomElements();
       roomSelection.classList.add('buttons-faded');
       loginScreen.classList.add('delivery-entering');
+
+      loadDeliveries();
 
       setTimeout(function() {
         deliveryRoom.classList.add('visible');
@@ -1728,26 +2995,81 @@
 
     deliveryBackBtn.addEventListener('click', function() {
       deliveryRoom.classList.remove('visible');
-      roomSelection.classList.remove('buttons-faded');
-      roomWelcome.classList.remove('faded');
-      loginScreen.classList.remove('delivery-entering');
+
+      // Wait for delivery room fade-out, then transition background and UI
+      setTimeout(function() {
+        loginScreen.classList.remove('delivery-entering');
+
+        setTimeout(function() {
+          roomSelection.classList.remove('buttons-faded');
+          staggerRoomEntrance();
+        }, 200);
+      }, 800);
     });
 
-    // Native browser download
+    // Download: open URL in new tab (external delivery links) or trigger download
     deliveryRoom.addEventListener('click', function(e) {
       var btn = e.target.closest('.delivery-download');
       if (!btn) return;
       var item = btn.closest('.delivery-item');
-      var filename = item.querySelector('.delivery-filename').textContent;
-      var blob = new Blob([''], { type: 'application/octet-stream' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      var url = item.getAttribute('data-url');
+      var title = item.getAttribute('data-title');
+
+      if (url && url !== 'https://example.com/' && !url.includes('example.com')) {
+        // Real URL -- open in new tab (works for Suite.io, Iconik, Frame.io, presigned URLs)
+        window.open(url, '_blank');
+      } else {
+        // Placeholder/demo -- trigger empty download with filename
+        var blob = new Blob([''], { type: 'application/octet-stream' });
+        var blobUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = title || 'download';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+      }
+    });
+
+    // Shared tooltip element -- lives outside the scroll container
+    var deliveryTooltip = document.getElementById('delivery-tooltip');
+
+    deliveryRoom.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest('.delivery-info-btn');
+      if (!btn) return;
+
+      var uploaded = btn.getAttribute('data-uploaded');
+      var uploader = btn.getAttribute('data-uploader');
+      var html = '';
+      if (uploaded) {
+        html += '<span class="tooltip-label">Uploaded</span><br>';
+        html += '<span class="tooltip-value">' + uploaded + '</span><br>';
+      }
+      if (uploader) {
+        html += '<span class="tooltip-label">By</span><br>';
+        html += '<span class="tooltip-value">' + uploader + '</span>';
+      }
+      deliveryTooltip.innerHTML = html;
+
+      // Position above the button, aligned right
+      var btnRect = btn.getBoundingClientRect();
+      var roomRect = deliveryRoom.getBoundingClientRect();
+      deliveryTooltip.style.visibility = 'hidden';
+      deliveryTooltip.classList.add('visible');
+      var tipHeight = deliveryTooltip.offsetHeight;
+      var tipWidth = deliveryTooltip.offsetWidth;
+      deliveryTooltip.style.top = (btnRect.top - roomRect.top - tipHeight - 8) + 'px';
+      deliveryTooltip.style.left = (btnRect.right - roomRect.left - tipWidth) + 'px';
+      deliveryTooltip.style.visibility = '';
+    });
+
+    deliveryRoom.addEventListener('mouseout', function(e) {
+      var btn = e.target.closest('.delivery-info-btn');
+      if (!btn) return;
+      if (!btn.contains(e.relatedTarget)) {
+        deliveryTooltip.classList.remove('visible');
+      }
     });
 
     // Native browser file upload
@@ -1761,7 +3083,7 @@
 
     sessionBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      roomWelcome.classList.add('faded');
+      hideRoomElements();
       roomSelection.classList.add('buttons-faded');
       loginScreen.classList.add('session-entering');
       backLink.classList.add('dark');
@@ -1817,12 +3139,53 @@
 
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
-      if (roomSelection.classList.contains('visible')) {
-        roomSelection.classList.remove('visible');
-        loginForm.classList.remove('faded');
+
+      // If in session waiting (countdown), return to room selection
+      if (loginScreen.classList.contains('session-entering')) {
+        sessionWaiting.classList.remove('visible');
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+        }
+        // Reset revisit state
+        if (typeof isWatchingPrevious !== 'undefined') isWatchingPrevious = false;
+        revisitBtn.disabled = false;
+        revisitBtn.style.opacity = '';
+        revisitList.classList.remove('open');
+
+        // Fade waiting screen (800ms), then transition background, then show buttons
+        setTimeout(function() {
+          loginScreen.classList.remove('session-entering');
+          backLink.classList.remove('dark');
+          setTimeout(function() {
+            roomSelection.classList.remove('buttons-faded');
+            staggerRoomEntrance();
+          }, 300);
+        }, 700);
+        return;
       }
-      landingPage.classList.remove('slid');
-    });
+
+      // If in delivery room, return to room selection
+      if (loginScreen.classList.contains('delivery-entering')) {
+        deliveryRoom.classList.remove('visible');
+        setTimeout(function() {
+          loginScreen.classList.remove('delivery-entering');
+          setTimeout(function() {
+            roomSelection.classList.remove('buttons-faded');
+            staggerRoomEntrance();
+          }, 200);
+        }, 800);
+        return;
+      }
+
+	      // Default: return to landing page
+	      if (roomSelection.classList.contains('visible')) {
+	        hideRoomElements();
+	        roomSelection.classList.remove('visible');
+	        resetLoginStates();
+	      }
+	      landingPage.classList.remove('slid');
+	    });
 
     // Session back button
     var sessionBackBtn = document.querySelector('.session-back');
@@ -1838,24 +3201,33 @@
         sessionWaiting.classList.add('visible');
         updateTimerDisplay(waitingSecondsRemaining);
       } else {
-        // Return to room selection
+        // Return to room selection with sequenced animation
         sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active');
         videoEl.pause();
-        videoEl.currentTime = 0;
         clearTimeout(mouseTimer);
-        roomSelection.classList.remove('buttons-faded');
-        roomWelcome.classList.remove('faded');
-        loginScreen.classList.remove('session-entering');
-        backLink.classList.remove('dark');
         sessionWaiting.classList.remove('visible');
         if (countdownInterval) {
           clearInterval(countdownInterval);
           countdownInterval = null;
         }
-        // Reset revisit button
-        revisitBtn.disabled = false;
-        revisitBtn.style.opacity = '';
-        revisitList.classList.remove('open');
+
+        // Wait for video fade-out (800ms), then transition background and UI
+        setTimeout(function() {
+          videoEl.currentTime = 0;
+          loginScreen.classList.remove('session-entering');
+          backLink.classList.remove('dark');
+
+          // Stagger room selection fade-in slightly after background starts
+          setTimeout(function() {
+            roomSelection.classList.remove('buttons-faded');
+            staggerRoomEntrance();
+          }, 200);
+
+          // Reset revisit button
+          revisitBtn.disabled = false;
+          revisitBtn.style.opacity = '';
+          revisitList.classList.remove('open');
+        }, 800);
       }
     });
 
