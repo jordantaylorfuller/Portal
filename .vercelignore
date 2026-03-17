@@ -1,0 +1,8 @@
+backend/
+.github/
+supabase/
+serve.sh
+setup.sh
+video.mp4
+.context/
+CLAUDE.md
