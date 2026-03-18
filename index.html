@@ -798,10 +798,8 @@
       width: 100%;
       height: 100%;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 32px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 800ms ease;
@@ -814,19 +812,29 @@
 
     .session-message {
       font-family: 'DM Mono', monospace;
-      font-size: 16px;
+      font-size: 13px;
       font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: rgb(40, 36, 36);
     }
 
-    .session-timer {
-      font-family: 'DM Mono', monospace;
-      font-size: 48px;
-      font-weight: 300;
-      color: rgb(40, 36, 36);
-      letter-spacing: 0.05em;
+    .dot-pulse {
+      display: inline-block;
+      width: 2em;
+      text-align: left;
+    }
+
+    .dot-pulse::after {
+      content: '';
+      animation: dotPulse 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dotPulse {
+      0%  { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
     }
 
     /* ── Session Video Player ── */
@@ -848,10 +856,30 @@
       pointer-events: auto;
     }
 
-    .session-video video {
+    .session-bg-video {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      z-index: 0;
+    }
+
+    .session-video video#session-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 500ms ease;
+    }
+
+    .session-video video#session-video.has-feed {
+      opacity: 1;
     }
 
     .session-video.fit-aspect video {
@@ -891,25 +919,13 @@
       left: 0;
       width: 100%;
       background: linear-gradient(transparent, rgba(0,0,0,0.6));
-      padding: 8px 20px 12px;
+      padding: 12px 20px;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      gap: 12px;
       opacity: 0;
       transition: opacity 300ms ease;
       z-index: 2;
-    }
-
-    .transport-playhead-row {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    .transport-controls-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .session-video.mouse-active .transport-bar {
@@ -1004,6 +1020,14 @@
       border-radius: 2px;
     }
 
+    .playhead-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
     .transport-time {
       font-family: 'DM Mono', monospace;
       font-size: 10px;
@@ -1012,14 +1036,10 @@
       letter-spacing: 0.05em;
     }
 
-    .transport-duration {
-      margin-left: auto;
-    }
-
     .playhead-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: 100%;
+      flex: 1;
       height: 3px;
       background: rgba(255,255,255,0.3);
       border-radius: 2px;
@@ -1200,204 +1220,6 @@
       background: rgba(255,255,255,0.25);
     }
 
-    /* ── Revisit Previous Sessions ── */
-    .revisit-group {
-      position: absolute;
-      top: 75%;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .revisit-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(40, 36, 36, 0.45);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      padding: 8px 16px;
-      transition: color 300ms ease;
-    }
-
-    .revisit-btn:hover {
-      color: rgba(40, 36, 36, 0.8);
-    }
-
-    .revisit-list {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      max-height: 0;
-      overflow: hidden;
-      opacity: 0;
-      transition: max-height 400ms cubic-bezier(0.4, 0, 0.2, 1),
-                  opacity 300ms ease 100ms;
-    }
-
-    .revisit-list.open {
-      max-height: 200px;
-      opacity: 1;
-    }
-
-    .revisit-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-      width: 280px;
-      padding: 10px 0;
-      font-family: 'DM Mono', monospace;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid rgba(40, 36, 36, 0.08);
-      cursor: pointer;
-      transition: background-color 200ms ease;
-    }
-
-    .revisit-item:last-child {
-      border-bottom: none;
-    }
-
-    .revisit-item:hover {
-      background-color: rgba(40, 36, 36, 0.04);
-    }
-
-    .revisit-item-date {
-      font-size: 11px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: rgb(40, 36, 36);
-    }
-
-    .revisit-item-tc {
-      font-size: 10px;
-      font-weight: 300;
-      letter-spacing: 0.05em;
-      color: rgba(40, 36, 36, 0.4);
-    }
-
-    /* ── Corner Countdown (hover-only, top-right) ── */
-    .corner-countdown {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-      opacity: 0;
-      transition: opacity 300ms ease;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .session-video.mouse-active .corner-countdown.visible {
-      opacity: 1;
-    }
-
-    .corner-countdown-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgba(255, 255, 255, 0.4);
-    }
-
-    .corner-countdown-time {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 300;
-      letter-spacing: 0.05em;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    /* ── Large Overlay Countdown ── */
-    .live-countdown-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      background: rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 500ms ease;
-    }
-
-    .live-countdown-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .live-countdown-text {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .live-countdown-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      font-weight: 400;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .live-countdown-number {
-      font-family: 'DM Mono', monospace;
-      font-size: 96px;
-      font-weight: 300;
-      color: #fff;
-      letter-spacing: -0.02em;
-      line-height: 1;
-    }
-
-    /* ── LIVE button recording mode ── */
-    .live-btn.recording-mode {
-      color: rgba(255, 255, 255, 0.25);
-      cursor: default;
-    }
-
-    .live-btn.recording-mode::before {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .live-btn.recording-mode:hover {
-      color: rgba(255, 255, 255, 0.25);
-    }
-
-    /* ── Video source transition layer ── */
-    .session-video-transition {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      z-index: 15;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 300ms ease;
-    }
-
-    .session-video-transition.active {
-      opacity: 1;
-    }
 
     .video-controls {
       position: absolute;
@@ -1765,6 +1587,278 @@
       animation: deliveryItemIn 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
+    /* ── Previous Sessions Panel ── */
+    .prev-sessions {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 4;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms ease;
+    }
+
+    .session-video.visible .prev-sessions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .session-video.mouse-active .prev-sessions {
+      opacity: 1;
+    }
+
+    .prev-sessions-toggle {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.35);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 12px;
+      transition: color 200ms ease;
+    }
+
+    .prev-sessions-toggle:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .prev-sessions-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 400ms cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 300ms ease 100ms;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 6px;
+    }
+
+    .prev-sessions-list.open {
+      max-height: 300px;
+      opacity: 1;
+      padding: 4px 0;
+    }
+
+    .prev-session-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 260px;
+      padding: 10px 16px;
+      font-family: 'DM Mono', monospace;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: background-color 200ms ease;
+    }
+
+    .prev-session-item:last-child {
+      border-bottom: none;
+    }
+
+    .prev-session-item:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .prev-session-date {
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .prev-session-duration {
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .prev-sessions-empty {
+      font-size: 9px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      padding: 12px 16px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Program Feed Device Picker ── */
+    .video-control-btn.sharing {
+      color: rgb(220, 40, 40);
+    }
+
+    .device-picker {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      min-width: 240px;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 6px;
+      padding: 6px 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+      z-index: 10;
+    }
+
+    .device-picker.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .device-picker-item {
+      display: block;
+      width: 100%;
+      padding: 8px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.7);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background 150ms ease, color 150ms ease;
+    }
+
+    .device-picker-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .device-picker-label {
+      padding: 6px 14px 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ── Daily Live Session ── */
+    .session-video.daily-live .live-btn {
+      pointer-events: none;
+    }
+
+    /* ── Session elapsed timer ── */
+    .session-elapsed {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.05em;
+      margin-right: auto;
+      padding-left: 8px;
+    }
+
+    /* ── Daily Participant Tiles ── */
+    .participant-tiles {
+      position: absolute;
+      top: 20px;
+      right: 68px;
+      display: flex;
+      gap: 8px;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .session-video.mouse-active .participant-tiles {
+      opacity: 1;
+    }
+
+    .participant-tile {
+      width: 120px;
+      height: 80px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgb(30, 28, 28);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .participant-tile video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .participant-tile-name {
+      position: absolute;
+      bottom: 4px;
+      left: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .participant-tile-muted {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .participant-tile.local {
+      border-color: rgba(220, 40, 40, 0.5);
+    }
+
+    .participant-tile .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+    }
+
+    /* ── Daily Connection Status ── */
+    .session-connection-status {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      z-index: 3;
+    }
+
     .login-heading {
       font-family: 'DM Mono', monospace;
       font-size: 13px;
@@ -1951,6 +2045,28 @@
     .portal-link:hover {
       opacity: 0.8;
     }
+
+    .dev-login {
+      position: fixed;
+      bottom: 14px;
+      right: 14px;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.2);
+      text-decoration: underline;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 5;
+      letter-spacing: 0.02em;
+    }
+
+    .dev-login:hover {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
     /* ── Mobile ── */
     @media (max-width: 600px) {
       .transport-bar {
@@ -2027,6 +2143,7 @@
   <!-- Login screen (behind) -->
   <div class="login-screen">
     <a href="#" class="back-link">&#8592; Back</a>
+    <button class="dev-login" id="dev-login">dev</button>
     <form class="login-form" onsubmit="return false;">
       <h2 class="login-heading">Welcome back.</h2>
       <div class="login-row">
@@ -2125,31 +2242,20 @@
       </div>
     </div>
     <div class="session-waiting">
-      <div class="session-message">Your session will start shortly.</div>
-      <div class="session-timer">00:10</div>
-      <div class="revisit-group">
-        <button class="revisit-btn">View Previous Sessions</button>
-        <div class="revisit-list">
-          <button class="revisit-item" data-session="0">
-            <span class="revisit-item-date">Feb 28 2026</span>
-            <span class="revisit-item-tc">01:42:18</span>
-          </button>
-          <button class="revisit-item" data-session="1">
-            <span class="revisit-item-date">Feb 21 2026</span>
-            <span class="revisit-item-tc">02:08:44</span>
-          </button>
-          <button class="revisit-item" data-session="2">
-            <span class="revisit-item-date">Feb 14 2026</span>
-            <span class="revisit-item-tc">01:55:02</span>
-          </button>
-        </div>
-      </div>
+      <div class="session-message">Connecting to session<span class="dot-pulse"></span></div>
+    </div>
+    <div class="prev-sessions" id="prev-sessions">
+      <button class="prev-sessions-toggle" id="prev-sessions-toggle">Previous Sessions</button>
+      <div class="prev-sessions-list" id="prev-sessions-list"></div>
     </div>
   </div>
 
   <!-- Session video player -->
   <div class="session-video">
-    <video id="session-video" playsinline webkit-playsinline preload="auto" src="video.mp4"></video>
+    <video id="session-bg-video" class="session-bg-video" playsinline src="video.mp4"></video>
+    <video id="session-video" playsinline></video>
+    <div class="session-connection-status" id="session-connection-status"></div>
+    <div class="participant-tiles" id="participant-tiles"></div>
     <button class="session-back" aria-label="Exit session">&#8592; Back</button>
     <canvas id="annotation-canvas" class="annotation-canvas"></canvas>
     <div class="annotation-toolbar" id="annotation-toolbar">
@@ -2206,6 +2312,13 @@
       </button>
     </div>
     <div class="video-controls">
+      <button id="program-feed-toggle" class="video-control-btn" aria-label="Share Program Feed" title="Share Program Feed (NDI)">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="16" height="12" rx="1.5"/>
+          <circle cx="9" cy="9" r="2.5"/>
+          <line x1="9" y1="3" x2="9" y2="6"/>
+        </svg>
+      </button>
       <button id="annotate-toggle" class="video-control-btn" aria-label="Annotate">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2 16l1.5-4.5L13 2l3 3L6.5 14.5z"/>
@@ -2237,46 +2350,33 @@
       </button>
     </div>
     <div class="transport-bar">
-      <div class="transport-playhead-row">
-        <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="100"/>
-      </div>
-      <div class="transport-controls-row">
-        <button id="play-pause" class="transport-btn" aria-label="Play/Pause">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" stroke="none">
-            <rect x="3" y="2" width="4" height="14" rx="1"/>
-            <rect x="11" y="2" width="4" height="14" rx="1"/>
+      <button id="play-pause" class="transport-btn" aria-label="Play/Pause">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" stroke="none">
+          <rect x="3" y="2" width="4" height="14" rx="1"/>
+          <rect x="11" y="2" width="4" height="14" rx="1"/>
+        </svg>
+      </button>
+      <div class="volume-group" id="volume-group">
+        <div class="volume-popup">
+          <div class="volume-slider-wrap">
+            <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1"/>
+          </div>
+        </div>
+        <button id="volume-toggle" class="transport-btn" aria-label="Mute/Unmute">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/>
+            <path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/>
+            <path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>
           </svg>
         </button>
-        <div class="volume-group" id="volume-group">
-          <div class="volume-popup">
-            <div class="volume-slider-wrap">
-              <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="1"/>
-            </div>
-          </div>
-          <button id="volume-toggle" class="transport-btn" aria-label="Mute/Unmute">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="2,7 6,7 10,3 10,15 6,11 2,11" fill="currentColor" stroke="none"/>
-              <path d="M13 6.5c.8.8 1.2 1.9 1.2 3s-.4 2.2-1.2 3"/>
-              <path d="M15 4c1.3 1.3 2 3.1 2 5s-.7 3.7-2 5"/>
-            </svg>
-          </button>
-        </div>
+      </div>
+      <div class="playhead-group">
         <span id="time-current" class="transport-time">00:00</span>
-        <span id="time-duration" class="transport-time transport-duration">00:00</span>
-        <button id="live-toggle" class="live-btn live" aria-label="Jump to live">LIVE</button>
+        <input type="range" id="playhead" class="playhead-slider" min="0" max="100" step="0.1" value="0"/>
+        <span id="time-duration" class="transport-time">00:00</span>
       </div>
+      <button id="live-toggle" class="live-btn live" aria-label="Jump to live">LIVE</button>
     </div>
-    <div class="corner-countdown" id="corner-countdown">
-      <span class="corner-countdown-label">Next Session</span>
-      <span class="corner-countdown-time" id="corner-countdown-time">00:00</span>
-    </div>
-    <div class="live-countdown-overlay" id="live-countdown-overlay">
-      <div class="live-countdown-text">
-        <span class="live-countdown-label">Session will begin in</span>
-        <span class="live-countdown-number" id="live-countdown-number">10</span>
-      </div>
-    </div>
-    <div class="session-video-transition"></div>
   </div>
 
   <!-- Delivery room -->
@@ -2303,10 +2403,11 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/@daily-co/daily-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ── Supabase Auth Config ──
-    var API_BASE = '';
+    var API_BASE = 'http://localhost:8080';
     var SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
     var SUPABASE_ANON_KEY = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
     var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -2337,16 +2438,8 @@
     const roomBtns = document.querySelectorAll('.room-btn');
     const reviewBtn = roomBtns[0];
     const sessionBtn = roomBtns[1];
-
-    // Deep-link: skip to room selection if returning from a sub-page
-    if (new URLSearchParams(window.location.search).get('room') === 'select') {
-      landingPage.classList.add('slid');
-      loginForm.classList.add('faded');
-      roomSelection.classList.add('visible');
-      history.replaceState(null, '', window.location.pathname);
-    }
     const sessionWaiting = document.querySelector('.session-waiting');
-    const sessionTimer = document.querySelector('.session-timer');
+    const sessionMessage = document.querySelector('.session-message');
     const sessionVideo = document.querySelector('.session-video');
 	    const videoEl = document.getElementById('session-video');
 
@@ -2772,26 +2865,6 @@
       }, 800);
     });
 
-    // Revisit previous sessions
-    var revisitBtn = document.querySelector('.revisit-btn');
-    var revisitList = document.querySelector('.revisit-list');
-    var cornerCountdown = document.getElementById('corner-countdown');
-    var cornerCountdownTime = document.getElementById('corner-countdown-time');
-    var liveOverlay = document.getElementById('live-countdown-overlay');
-    var liveCountdownNumber = document.getElementById('live-countdown-number');
-    var videoTransition = document.querySelector('.session-video-transition');
-
-    var previousSessions = [
-      { label: 'FEB 28 2026', duration: '01:42:18', src: 'video.mp4' },
-      { label: 'FEB 21 2026', duration: '02:08:44', src: 'video.mp4' },
-      { label: 'FEB 14 2026', duration: '01:55:02', src: 'video.mp4' }
-    ];
-
-    var isWatchingPrevious = false;
-    var liveCountdownActive = false;
-    var liveCountdownInterval = null;
-    var waitingSecondsRemaining = 0;
-    var SESSION_WAIT_SECONDS = 6;
 
     // If returning from review room, jump straight to room selection
     if (window.location.hash === '#rooms') {
@@ -2810,7 +2883,28 @@
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
       landingPage.classList.add('slid');
-      // Dashboard is already staged if pre-authed, nothing else needed
+    });
+
+    // Dev login -- skip auth, sign in as Jordan
+    var _devLogin = false;
+    document.getElementById('dev-login').addEventListener('click', async function() {
+      this.textContent = '...';
+      this.disabled = true;
+      _devLogin = true;
+      try {
+        var res = await fetch(API_BASE + '/api/auth/dev-login', { method: 'POST' });
+        var data = await res.json();
+        if (data.session) {
+          await supabaseClient.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+          });
+        }
+      } catch (err) {
+        console.error('Dev login failed:', err);
+        this.textContent = 'dev';
+        this.disabled = false;
+      }
     });
 
 	    loginBtn.addEventListener('click', async function(e) {
@@ -2849,11 +2943,16 @@
     }
 
 	    function showDashboard(me) {
+	      document.getElementById('dev-login').style.display = 'none';
 	      roomWelcomeTitle.textContent = 'Welcome Back, ' + me.displayName + '.';
 	      if (me.projects && me.projects.length > 0) {
 	        var active = me.projects.filter(function(p) { return p.status === 'active'; });
 	        var archived = me.projects.filter(function(p) { return p.status === 'archived'; });
 	        var current = active[0] || me.projects[0];
+	        if (_devLogin) {
+	          var portal = active.find(function(p) { return p.name === 'Portal'; });
+	          if (portal) current = portal;
+	        }
 	        renderProjectSwitcher(active, archived);
 	        setCurrentProject(current);
 	      } else {
@@ -3165,7 +3264,11 @@
       uploadInput.click();
     });
 
-    var countdownInterval = null;
+    // ── Daily.co Call Object ──
+    var dailyCallObject = null;
+    var connectionStatusEl = document.getElementById('session-connection-status');
+    var participantTilesEl = document.getElementById('participant-tiles');
+    var dailySessionActive = false;
 
     sessionBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -3174,88 +3277,393 @@
       loginScreen.classList.add('session-entering');
       backLink.classList.add('dark');
 
-      // Prime video on user gesture so iOS allows playback after countdown
-      videoEl.muted = true;
-      videoEl.play().then(function() {
-        videoEl.pause();
-        videoEl.currentTime = 0;
-      }).catch(function() {});
-
       setTimeout(function() {
         sessionWaiting.classList.add('visible');
-        startCountdown(SESSION_WAIT_SECONDS);
+        // Skip countdown -- join Daily room directly
+        joinDailySession();
       }, 700);
     });
 
-    function startCountdown(seconds) {
-      waitingSecondsRemaining = seconds;
-      updateTimerDisplay(waitingSecondsRemaining);
-      countdownInterval = setInterval(function() {
-        waitingSecondsRemaining--;
+    async function joinDailySession() {
+      if (!currentProject || !currentProject.id) {
+        sessionMessage.textContent = 'No project selected';
+        return;
+      }
 
-        if (!isWatchingPrevious) {
-          updateTimerDisplay(waitingSecondsRemaining);
-        } else {
-          updateCornerCountdown();
-          if (waitingSecondsRemaining <= 10 && !liveCountdownActive) {
-            startLiveCountdown();
-          }
+      sessionMessage.innerHTML = 'Connecting to session<span class="dot-pulse"></span>';
+      connectionStatusEl.textContent = '';
+
+      try {
+        // Get room URL + token from backend
+        var result = await apiCall('/api/sessions/join', {
+          method: 'POST',
+          body: JSON.stringify({ project_id: currentProject.id })
+        });
+
+        if (result.error) {
+          sessionMessage.textContent = result.error;
+          return;
         }
 
-        if (waitingSecondsRemaining <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          revisitList.classList.remove('open');
-          if (isWatchingPrevious) {
-            transitionToLiveSession();
-          } else {
-            revisitBtn.disabled = true;
-            revisitBtn.style.opacity = '0.2';
+        // Create Daily call object
+        dailyCallObject = window.DailyIframe.createCallObject({
+          audioSource: true,
+          videoSource: true
+        });
+
+        // Wire up Daily events
+        dailyCallObject
+          .on('joining-meeting', function() {
+            connectionStatusEl.textContent = 'Connecting...';
+          })
+          .on('joined-meeting', function(evt) {
+            dailySessionActive = true;
+            connectionStatusEl.textContent = '';
             showSessionVideo();
-          }
-        }
-      }, 1000);
+            renderParticipantTiles();
+          })
+          .on('left-meeting', function() {
+            dailySessionActive = false;
+            connectionStatusEl.textContent = '';
+            clearParticipantTiles();
+          })
+          .on('participant-joined', function(evt) {
+            renderParticipantTiles();
+            checkAutoRecord();
+          })
+          .on('participant-left', function(evt) {
+            renderParticipantTiles();
+          })
+          .on('recording-started', function() {
+            console.log('Recording started');
+          })
+          .on('recording-stopped', function() {
+            console.log('Recording stopped');
+          })
+          .on('participant-updated', function(evt) {
+            renderParticipantTiles();
+          })
+          .on('track-started', function(evt) {
+            handleTrackStarted(evt);
+          })
+          .on('track-stopped', function(evt) {
+            handleTrackStopped(evt);
+          })
+          .on('error', function(evt) {
+            console.error('Daily error:', evt);
+            connectionStatusEl.textContent = 'Connection error';
+          });
+
+        // Join the call
+        await dailyCallObject.join({
+          url: result.url,
+          token: result.token
+        });
+      } catch (err) {
+        console.error('Failed to join Daily session:', err);
+        sessionMessage.textContent = 'Connection failed';
+      }
     }
 
-    function updateTimerDisplay(seconds) {
-      var m = Math.floor(seconds / 60);
-      var s = seconds % 60;
-      sessionTimer.textContent =
-        String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    function handleTrackStarted(evt) {
+      if (!evt.track || !evt.participant) return;
+      var participantId = evt.participant.session_id;
+      var isLocal = evt.participant.local;
+
+      if (evt.track.kind === 'video') {
+        // Check if this is a screenshare -- use it as hero feed
+        if (evt.type === 'screenVideo') {
+          attachHeroVideo(evt.track, participantId);
+        } else if (!isLocal) {
+          // First remote camera becomes hero if no screenshare
+          var hasScreenshare = Object.values(dailyCallObject.participants()).some(function(p) {
+            return p.tracks && p.tracks.screenVideo && p.tracks.screenVideo.state === 'playable';
+          });
+          if (!hasScreenshare && !videoEl.srcObject) {
+            attachHeroVideo(evt.track, participantId);
+          }
+        }
+        renderParticipantTiles();
+      }
+
+      if (evt.track.kind === 'audio' && !isLocal) {
+        // Create an audio element for remote audio
+        var audioId = 'daily-audio-' + participantId;
+        if (!document.getElementById(audioId)) {
+          var audioEl = document.createElement('audio');
+          audioEl.id = audioId;
+          audioEl.autoplay = true;
+          audioEl.srcObject = new MediaStream([evt.track]);
+          document.body.appendChild(audioEl);
+        }
+      }
     }
+
+    function handleTrackStopped(evt) {
+      if (!evt.participant) return;
+      var participantId = evt.participant.session_id;
+
+      if (evt.track && evt.track.kind === 'audio') {
+        var audioEl = document.getElementById('daily-audio-' + participantId);
+        if (audioEl) {
+          audioEl.srcObject = null;
+          audioEl.remove();
+        }
+      }
+
+      if (evt.track && evt.track.kind === 'video') {
+        // If hero video was this track, clear it
+        if (videoEl.dataset.participantId === participantId && evt.type === (videoEl.dataset.trackType || 'video')) {
+          videoEl.srcObject = null;
+          videoEl.dataset.participantId = '';
+          videoEl.dataset.trackType = '';
+          videoEl.classList.remove('has-feed');
+          // Try to find another remote video for hero
+          promoteNextHero();
+        }
+        renderParticipantTiles();
+      }
+    }
+
+    function attachHeroVideo(track, participantId, trackType) {
+      videoEl.srcObject = new MediaStream([track]);
+      videoEl.dataset.participantId = participantId;
+      videoEl.dataset.trackType = trackType || 'video';
+      videoEl.classList.add('has-feed');
+      videoEl.play().catch(function() {});
+    }
+
+    function promoteNextHero() {
+      if (!dailyCallObject) return;
+      var participants = dailyCallObject.participants();
+
+      // Prefer screenshare
+      for (var id in participants) {
+        var p = participants[id];
+        if (p.tracks && p.tracks.screenVideo && p.tracks.screenVideo.persistentTrack && p.tracks.screenVideo.state === 'playable') {
+          attachHeroVideo(p.tracks.screenVideo.persistentTrack, p.session_id, 'screenVideo');
+          return;
+        }
+      }
+
+      // Fall back to first remote camera
+      for (var id in participants) {
+        var p = participants[id];
+        if (!p.local && p.tracks && p.tracks.video && p.tracks.video.persistentTrack && p.tracks.video.state === 'playable') {
+          attachHeroVideo(p.tracks.video.persistentTrack, p.session_id, 'video');
+          return;
+        }
+      }
+    }
+
+    function renderParticipantTiles() {
+      if (!dailyCallObject) return;
+      var participants = dailyCallObject.participants();
+      participantTilesEl.innerHTML = '';
+
+      for (var id in participants) {
+        var p = participants[id];
+        var tile = document.createElement('div');
+        tile.className = 'participant-tile' + (p.local ? ' local' : '');
+
+        var videoTrack = p.tracks && p.tracks.video && p.tracks.video.persistentTrack && p.tracks.video.state === 'playable'
+          ? p.tracks.video.persistentTrack : null;
+
+        if (videoTrack) {
+          var vid = document.createElement('video');
+          vid.autoplay = true;
+          vid.playsInline = true;
+          vid.muted = true;
+          vid.srcObject = new MediaStream([videoTrack]);
+          tile.appendChild(vid);
+        } else {
+          var avatar = document.createElement('div');
+          avatar.className = 'avatar-placeholder';
+          avatar.textContent = (p.user_name || '?')[0];
+          tile.appendChild(avatar);
+        }
+
+        var nameLabel = document.createElement('div');
+        nameLabel.className = 'participant-tile-name';
+        nameLabel.textContent = p.local ? 'You' : (p.user_name || 'Guest');
+        tile.appendChild(nameLabel);
+
+        // Muted indicator
+        var audioOff = p.tracks && p.tracks.audio && p.tracks.audio.state !== 'playable';
+        if (audioOff) {
+          var mutedIcon = document.createElement('div');
+          mutedIcon.className = 'participant-tile-muted';
+          mutedIcon.innerHTML = '<svg width="10" height="10" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="16" y2="16"/></svg>';
+          tile.appendChild(mutedIcon);
+        }
+
+        participantTilesEl.appendChild(tile);
+      }
+    }
+
+    function clearParticipantTiles() {
+      participantTilesEl.innerHTML = '';
+      document.querySelectorAll('[id^="daily-audio-"]').forEach(function(el) { el.remove(); });
+    }
+
+    var isRecording = false;
+
+    function checkAutoRecord() {
+      if (!dailyCallObject || isRecording) return;
+      var count = Object.keys(dailyCallObject.participants()).length;
+      if (count >= 2) {
+        dailyCallObject.startRecording({ layout: { preset: 'active-participant' } });
+        isRecording = true;
+      }
+    }
+
+
+    async function leaveDailySession() {
+      if (dailyCallObject) {
+        try {
+          await dailyCallObject.leave();
+          await dailyCallObject.destroy();
+        } catch (e) {}
+        dailyCallObject = null;
+      }
+      dailySessionActive = false;
+      videoEl.srcObject = null;
+      videoEl.dataset.participantId = '';
+      videoEl.dataset.trackType = '';
+      videoEl.classList.remove('has-feed');
+      sessionVideo.classList.remove('daily-live');
+      bgVideo.pause();
+      bgVideo.src = 'video.mp4';
+      if (programFeedStream) {
+        programFeedStream.getTracks().forEach(function(t) { t.stop(); });
+        programFeedStream = null;
+        programFeedBtn.classList.remove('sharing');
+      }
+      prevSessionsList.classList.remove('open');
+      prevSessionsList.innerHTML = '';
+      isRecording = false;
+      clearParticipantTiles();
+      connectionStatusEl.textContent = '';
+      // Clean up elapsed timer
+      if (sessionElapsedInterval) {
+        clearInterval(sessionElapsedInterval);
+        sessionElapsedInterval = null;
+      }
+      var elapsedEl = document.getElementById('session-elapsed');
+      if (elapsedEl) elapsedEl.remove();
+    }
+
+    // ── Previous Sessions ──
+    var prevSessionsToggle = document.getElementById('prev-sessions-toggle');
+    var prevSessionsList = document.getElementById('prev-sessions-list');
+
+    prevSessionsToggle.addEventListener('click', function() {
+      prevSessionsList.classList.toggle('open');
+    });
+
+    async function loadPreviousRecordings() {
+      if (!currentProject || !currentProject.id) return;
+      prevSessionsList.innerHTML = '';
+      prevSessionsList.classList.remove('open');
+
+      try {
+        var data = await apiCall('/api/sessions/recordings?project_id=' + currentProject.id);
+        var recordings = (data.recordings || []).filter(function(r) {
+          return r.duration && r.duration > 0;
+        });
+
+        if (recordings.length === 0) {
+          prevSessionsList.innerHTML = '<div class="prev-sessions-empty">No recordings yet</div>';
+          return;
+        }
+
+        recordings.forEach(function(rec) {
+          var btn = document.createElement('button');
+          btn.className = 'prev-session-item';
+
+          var date = new Date(rec.started_at * 1000);
+          var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
+
+          var dur = Math.floor(rec.duration);
+          var h = Math.floor(dur / 3600);
+          var m = Math.floor((dur % 3600) / 60);
+          var s = dur % 60;
+          var durStr = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+          btn.innerHTML = '<span class="prev-session-date">' + dateStr + '</span><span class="prev-session-duration">' + durStr + '</span>';
+          btn.addEventListener('click', function() {
+            playRecording(rec.id);
+            prevSessionsList.classList.remove('open');
+          });
+          prevSessionsList.appendChild(btn);
+        });
+      } catch (err) {
+        console.error('Failed to load recordings:', err);
+      }
+    }
+
+    async function playRecording(recordingId) {
+      try {
+        var data = await apiCall('/api/sessions/recordings/' + recordingId + '/link');
+        if (data.url) {
+          bgVideo.src = data.url;
+          bgVideo.currentTime = 0;
+          bgVideo.play().catch(function() {});
+        }
+      } catch (err) {
+        console.error('Failed to play recording:', err);
+      }
+    }
+
+    var sessionElapsedInterval = null;
+    var sessionStartTime = null;
+
+    var bgVideo = document.getElementById('session-bg-video');
 
     function showSessionVideo() {
       sessionWaiting.classList.remove('visible');
+      videoEl.removeAttribute('src');
       sessionVideo.classList.add('visible');
-      videoEl.muted = false;
-      videoEl.play().catch(function() {
-        // iOS fallback: play muted, unmute on first tap
-        videoEl.muted = true;
-        videoEl.play().catch(function() {});
-        document.addEventListener('touchstart', function unmute() {
-          videoEl.muted = false;
-          document.removeEventListener('touchstart', unmute);
-        }, { once: true });
-      });
+      // Park background video on frame 1
+      bgVideo.currentTime = 0;
+      loadPreviousRecordings();
+      if (dailySessionActive) {
+        sessionVideo.classList.add('daily-live');
+        liveToggle.classList.add('live');
+        sessionStartTime = Date.now();
+        startSessionElapsed();
+        if (!document.getElementById('session-elapsed')) {
+          var elapsed = document.createElement('span');
+          elapsed.id = 'session-elapsed';
+          elapsed.className = 'session-elapsed';
+          elapsed.textContent = '00:00:00';
+          var transportBar = document.querySelector('.transport-bar');
+          transportBar.insertBefore(elapsed, transportBar.firstChild);
+        }
+      }
+    }
+
+    function startSessionElapsed() {
+      if (sessionElapsedInterval) clearInterval(sessionElapsedInterval);
+      sessionElapsedInterval = setInterval(function() {
+        var diff = Math.floor((Date.now() - sessionStartTime) / 1000);
+        var h = Math.floor(diff / 3600);
+        var m = Math.floor((diff % 3600) / 60);
+        var s = diff % 60;
+        var el = document.getElementById('session-elapsed');
+        if (el) el.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }, 1000);
     }
 
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
 
-      // If in session waiting (countdown), return to room selection
+      // If in session (waiting or active), return to room selection
       if (loginScreen.classList.contains('session-entering')) {
         sessionWaiting.classList.remove('visible');
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-        }
-        // Reset revisit state
-        if (typeof isWatchingPrevious !== 'undefined') isWatchingPrevious = false;
-        revisitBtn.disabled = false;
-        revisitBtn.style.opacity = '';
-        revisitList.classList.remove('open');
+        sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active', 'daily-live');
+        leaveDailySession();
 
-        // Fade waiting screen (800ms), then transition background, then show buttons
         setTimeout(function() {
           loginScreen.classList.remove('session-entering');
           backLink.classList.remove('dark');
@@ -3291,46 +3699,22 @@
 
     // Session back button
     var sessionBackBtn = document.querySelector('.session-back');
-    sessionBackBtn.addEventListener('click', function() {
-      if (isWatchingPrevious) {
-        // Return to waiting screen (countdown still running)
-        sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active');
-        videoEl.pause();
-        videoEl.currentTime = 0;
-        clearTimeout(mouseTimer);
-        cleanupRecordingMode();
-        videoEl.src = 'video.mp4';
-        sessionWaiting.classList.add('visible');
-        updateTimerDisplay(waitingSecondsRemaining);
-      } else {
-        // Return to room selection with sequenced animation
-        sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active');
-        videoEl.pause();
-        clearTimeout(mouseTimer);
-        sessionWaiting.classList.remove('visible');
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-        }
+    sessionBackBtn.addEventListener('click', async function() {
+      sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active', 'daily-live');
+      clearTimeout(mouseTimer);
+      sessionWaiting.classList.remove('visible');
 
-        // Wait for video fade-out (800ms), then transition background and UI
+      await leaveDailySession();
+
+      setTimeout(function() {
+        loginScreen.classList.remove('session-entering');
+        backLink.classList.remove('dark');
+
         setTimeout(function() {
-          videoEl.currentTime = 0;
-          loginScreen.classList.remove('session-entering');
-          backLink.classList.remove('dark');
-
-          // Stagger room selection fade-in slightly after background starts
-          setTimeout(function() {
-            roomSelection.classList.remove('buttons-faded');
-            staggerRoomEntrance();
-          }, 200);
-
-          // Reset revisit button
-          revisitBtn.disabled = false;
-          revisitBtn.style.opacity = '';
-          revisitList.classList.remove('open');
-        }, 800);
-      }
+          roomSelection.classList.remove('buttons-faded');
+          staggerRoomEntrance();
+        }, 200);
+      }, 800);
     });
 
     // Aspect ratio toggle
@@ -3390,6 +3774,8 @@
     });
 
     // ── Transport Bar Controls ──
+    // Transport controls target bgVideo (the session recording/placeholder).
+    // The hero videoEl only shows remote Daily feeds on top.
 
     var playPauseBtn = document.getElementById('play-pause');
     var volumeToggleBtn = document.getElementById('volume-toggle');
@@ -3402,7 +3788,7 @@
     var isScrubbing = false;
     var micMuted = false;
 
-    var SESSION_FPS = 24; // assume 24fps; adjust per source
+    var SESSION_FPS = 24;
 
     function formatTimecode(s) {
       var h = Math.floor(s / 3600);
@@ -3420,18 +3806,18 @@
     var playIcon = '<polygon points="4,2 16,9 4,16"/>';
 
     playPauseBtn.addEventListener('click', function() {
-      if (videoEl.paused) {
-        videoEl.play().catch(function() {});
+      if (bgVideo.paused) {
+        bgVideo.play().catch(function() {});
       } else {
-        videoEl.pause();
+        bgVideo.pause();
       }
     });
 
-    videoEl.addEventListener('play', function() {
+    bgVideo.addEventListener('play', function() {
       playPauseBtn.querySelector('svg').innerHTML = pauseIcon;
     });
 
-    videoEl.addEventListener('pause', function() {
+    bgVideo.addEventListener('pause', function() {
       playPauseBtn.querySelector('svg').innerHTML = playIcon;
     });
 
@@ -3446,7 +3832,6 @@
       volumeGroup.classList.toggle('open');
     });
 
-    // Close volume popup when clicking outside
     document.addEventListener('click', function(e) {
       if (!volumeGroup.contains(e.target)) {
         volumeGroup.classList.remove('open');
@@ -3454,71 +3839,52 @@
     });
 
     volumeSlider.addEventListener('input', function() {
-      videoEl.volume = parseFloat(this.value);
-      if (videoEl.muted && videoEl.volume > 0) {
-        videoEl.muted = false;
+      bgVideo.volume = parseFloat(this.value);
+      if (bgVideo.muted && bgVideo.volume > 0) {
+        bgVideo.muted = false;
       }
     });
 
-    videoEl.addEventListener('volumechange', function() {
+    bgVideo.addEventListener('volumechange', function() {
       var svg = volumeToggleBtn.querySelector('svg');
-      if (videoEl.muted || videoEl.volume === 0) {
+      if (bgVideo.muted || bgVideo.volume === 0) {
         svg.innerHTML = mutedIcon;
         volumeSlider.value = 0;
       } else {
         svg.innerHTML = speakerIcon;
-        volumeSlider.value = videoEl.volume;
+        volumeSlider.value = bgVideo.volume;
       }
     });
 
     // Playhead
-    videoEl.addEventListener('loadedmetadata', function() {
-      playheadSlider.max = videoEl.duration;
-      timeDuration.textContent = formatTimecode(videoEl.duration);
+    bgVideo.addEventListener('loadedmetadata', function() {
+      playheadSlider.max = bgVideo.duration;
+      timeDuration.textContent = formatTimecode(bgVideo.duration);
     });
 
-    videoEl.addEventListener('timeupdate', function() {
+    bgVideo.addEventListener('timeupdate', function() {
       if (!isScrubbing) {
-        playheadSlider.value = videoEl.currentTime;
-        timeCurrent.textContent = formatTimecode(videoEl.currentTime);
-        updateLiveState();
+        playheadSlider.value = bgVideo.currentTime;
+        timeCurrent.textContent = formatTimecode(bgVideo.currentTime);
       }
     });
 
     playheadSlider.addEventListener('input', function() {
       isScrubbing = true;
-      videoEl.currentTime = parseFloat(this.value);
-      timeCurrent.textContent = formatTimecode(videoEl.currentTime);
-      updateLiveState();
+      bgVideo.currentTime = parseFloat(this.value);
+      timeCurrent.textContent = formatTimecode(bgVideo.currentTime);
     });
 
     playheadSlider.addEventListener('change', function() {
       isScrubbing = false;
     });
 
-    // Live indicator
-    function updateLiveState() {
-      if (isWatchingPrevious) return;
-      var atLiveEdge = videoEl.duration && (videoEl.duration - videoEl.currentTime) < 1;
-      if (atLiveEdge) {
-        liveToggle.classList.add('live');
-      } else {
-        liveToggle.classList.remove('live');
-      }
-    }
-
+    // Live indicator -- passive during Daily sessions
     liveToggle.addEventListener('click', function() {
-      if (isWatchingPrevious) return;
-      if (videoEl.duration) {
-        videoEl.currentTime = videoEl.duration;
-        if (videoEl.paused) {
-          videoEl.play().catch(function() {});
-        }
-        updateLiveState();
-      }
+      if (dailySessionActive) return;
     });
 
-    // Mic mute (UI mock only)
+    // Mic mute -- wired to Daily
     var micOnIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/>';
     var micOffIcon = '<rect x="6" y="1" width="6" height="10" rx="3"/><path d="M3 8a6 6 0 0 0 12 0"/><line x1="9" y1="14" x2="9" y2="17"/><line x1="6" y1="17" x2="12" y2="17"/><line x1="2" y1="2" x2="16" y2="16" stroke-width="2"/>';
 
@@ -3526,7 +3892,140 @@
       micMuted = !micMuted;
       var svg = micToggle.querySelector('svg');
       svg.innerHTML = micMuted ? micOffIcon : micOnIcon;
+      // Wire to Daily
+      if (dailyCallObject) {
+        dailyCallObject.setLocalAudio(!micMuted);
+      }
     });
+
+    // ── Program Feed (NDI) ──
+    var programFeedBtn = document.getElementById('program-feed-toggle');
+    var programFeedStream = null;
+    var devicePickerEl = null;
+
+    programFeedBtn.addEventListener('click', async function() {
+      if (!dailyCallObject) return;
+
+      // If already sharing, stop
+      if (programFeedStream) {
+        dailyCallObject.stopScreenShare();
+        programFeedStream.getTracks().forEach(function(t) { t.stop(); });
+        programFeedStream = null;
+        programFeedBtn.classList.remove('sharing');
+        return;
+      }
+
+      // Show device picker
+      if (devicePickerEl) {
+        devicePickerEl.classList.toggle('visible');
+        return;
+      }
+
+      // Request permission to enumerate devices
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+      } catch (e) {}
+
+      var devices = await navigator.mediaDevices.enumerateDevices();
+      var videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+
+      // Get current webcam device ID to exclude it
+      var currentCam = dailyCallObject.getInputDevices && dailyCallObject.getInputDevices();
+      var localParticipant = dailyCallObject.participants().local;
+      var currentCamLabel = '';
+      if (localParticipant && localParticipant.tracks && localParticipant.tracks.video && localParticipant.tracks.video.persistentTrack) {
+        currentCamLabel = localParticipant.tracks.video.persistentTrack.label || '';
+      }
+
+      devicePickerEl = document.createElement('div');
+      devicePickerEl.className = 'device-picker visible';
+
+      var label = document.createElement('div');
+      label.className = 'device-picker-label';
+      label.textContent = 'Select program feed source';
+      devicePickerEl.appendChild(label);
+
+      videoDevices.forEach(function(dev) {
+        var btn = document.createElement('button');
+        btn.className = 'device-picker-item';
+        var name = dev.label || ('Camera ' + dev.deviceId.slice(0, 6));
+        // Highlight NDI devices
+        if (name.toLowerCase().indexOf('ndi') !== -1) {
+          name = name + ' *';
+        }
+        btn.textContent = name;
+        btn.addEventListener('click', function() {
+          startProgramFeed(dev.deviceId);
+          devicePickerEl.classList.remove('visible');
+        });
+        devicePickerEl.appendChild(btn);
+      });
+
+      var controls = document.querySelector('.video-controls');
+      controls.appendChild(devicePickerEl);
+
+      // Close on outside click
+      setTimeout(function() {
+        document.addEventListener('click', closePicker);
+      }, 0);
+    });
+
+    function closePicker(e) {
+      if (devicePickerEl && !devicePickerEl.contains(e.target) && e.target !== programFeedBtn) {
+        devicePickerEl.classList.remove('visible');
+        document.removeEventListener('click', closePicker);
+      }
+    }
+
+    async function startProgramFeed(deviceId) {
+      if (!dailyCallObject) return;
+
+      try {
+        // Get video from the selected device
+        var videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: deviceId }, width: 1920, height: 1080 },
+          audio: false
+        });
+
+        // Find matching NDI audio device
+        var devices = await navigator.mediaDevices.enumerateDevices();
+        var selectedVideoLabel = (videoStream.getVideoTracks()[0].label || '').toLowerCase();
+        var ndiAudioDevice = null;
+
+        if (selectedVideoLabel.indexOf('ndi') !== -1) {
+          ndiAudioDevice = devices.find(function(d) {
+            return d.kind === 'audioinput' && d.label.toLowerCase().indexOf('ndi') !== -1;
+          });
+        }
+
+        // Combine video + NDI audio into one stream
+        programFeedStream = new MediaStream(videoStream.getVideoTracks());
+
+        if (ndiAudioDevice) {
+          var audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: { deviceId: { exact: ndiAudioDevice.deviceId } },
+            video: false
+          });
+          audioStream.getAudioTracks().forEach(function(t) {
+            programFeedStream.addTrack(t);
+          });
+          console.log('NDI audio attached:', ndiAudioDevice.label);
+        }
+
+        await dailyCallObject.startScreenShare({
+          mediaStream: programFeedStream
+        });
+
+        programFeedBtn.classList.add('sharing');
+        console.log('Program feed started:', deviceId);
+      } catch (err) {
+        console.error('Failed to start program feed:', err);
+        if (programFeedStream) {
+          programFeedStream.getTracks().forEach(function(t) { t.stop(); });
+          programFeedStream = null;
+        }
+      }
+    }
 
     // ── Annotation System ──
 
@@ -3555,11 +4054,15 @@
     annotateToggle.addEventListener('click', function() {
       var entering = !sessionVideo.classList.contains('annotating');
       if (entering) {
-        annoWasPlaying = !videoEl.paused;
-        videoEl.pause();
+        // During live Daily sessions, annotate without pausing
+        if (!dailySessionActive) {
+          annoWasPlaying = !videoEl.paused;
+          videoEl.pause();
+        } else {
+          annoWasPlaying = false;
+        }
         sessionVideo.classList.add('annotating');
         resizeAnnoCanvas();
-        // Keep controls visible while annotating
         sessionVideo.classList.add('mouse-active');
         clearTimeout(mouseTimer);
       } else {
@@ -3630,12 +4133,12 @@
     });
 
     // Drawing handlers
-    function annoPointerDown(clientX, clientY) {
+    annoCanvas.addEventListener('mousedown', function(e) {
       if (!sessionVideo.classList.contains('annotating')) return;
       annoDrawing = true;
       var rect = annoCanvas.getBoundingClientRect();
-      annoStartX = clientX - rect.left;
-      annoStartY = clientY - rect.top;
+      annoStartX = e.clientX - rect.left;
+      annoStartY = e.clientY - rect.top;
 
       if (annoTool === 'freehand') {
         annoHistory.push({
@@ -3646,30 +4149,31 @@
         });
         annoRedoStack = [];
       }
-    }
+    });
 
-    function annoPointerMove(clientX, clientY) {
+    annoCanvas.addEventListener('mousemove', function(e) {
       if (!annoDrawing) return;
       var rect = annoCanvas.getBoundingClientRect();
-      var x = clientX - rect.left;
-      var y = clientY - rect.top;
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
 
       if (annoTool === 'freehand') {
         var stroke = annoHistory[annoHistory.length - 1];
         stroke.points.push({ x: x, y: y });
         redrawAnnotations();
       } else {
+        // Preview shape
         redrawAnnotations();
         drawShape(annoCtx, annoTool, annoStartX, annoStartY, x, y, annoColor, annoLineWidth);
       }
-    }
+    });
 
-    function annoPointerUp(clientX, clientY) {
+    annoCanvas.addEventListener('mouseup', function(e) {
       if (!annoDrawing) return;
       annoDrawing = false;
       var rect = annoCanvas.getBoundingClientRect();
-      var x = clientX - rect.left;
-      var y = clientY - rect.top;
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
 
       if (annoTool !== 'freehand') {
         annoHistory.push({
@@ -3684,18 +4188,8 @@
         annoRedoStack = [];
         redrawAnnotations();
       }
-    }
+    });
 
-    // Mouse events
-    annoCanvas.addEventListener('mousedown', function(e) {
-      annoPointerDown(e.clientX, e.clientY);
-    });
-    annoCanvas.addEventListener('mousemove', function(e) {
-      annoPointerMove(e.clientX, e.clientY);
-    });
-    annoCanvas.addEventListener('mouseup', function(e) {
-      annoPointerUp(e.clientX, e.clientY);
-    });
     annoCanvas.addEventListener('mouseleave', function() {
       if (annoDrawing && annoTool !== 'freehand') {
         annoDrawing = false;
@@ -3704,23 +4198,6 @@
         annoDrawing = false;
       }
     });
-
-    // Touch events
-    annoCanvas.addEventListener('touchstart', function(e) {
-      e.preventDefault();
-      var t = e.touches[0];
-      annoPointerDown(t.clientX, t.clientY);
-    }, { passive: false });
-    annoCanvas.addEventListener('touchmove', function(e) {
-      e.preventDefault();
-      var t = e.touches[0];
-      annoPointerMove(t.clientX, t.clientY);
-    }, { passive: false });
-    annoCanvas.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      var t = e.changedTouches[0];
-      annoPointerUp(t.clientX, t.clientY);
-    }, { passive: false });
 
     function redrawAnnotations() {
       annoCtx.clearRect(0, 0, annoCanvas.width, annoCanvas.height);
@@ -3802,8 +4279,8 @@
       var frameTime = 1 / SESSION_FPS;
       var stepsPerTick = multiplier;
       reverseInterval = setInterval(function() {
-        videoEl.currentTime = Math.max(0, videoEl.currentTime - frameTime * stepsPerTick);
-        if (videoEl.currentTime <= 0) clearReverse();
+        bgVideo.currentTime = Math.max(0, bgVideo.currentTime - frameTime * stepsPerTick);
+        if (bgVideo.currentTime <= 0) clearReverse();
       }, 1000 / SESSION_FPS);
     }
 
@@ -3818,19 +4295,18 @@
       if (!sessionVideo.classList.contains('visible')) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (sessionVideo.classList.contains('annotating')) return;
-
       var frameTime = 1 / SESSION_FPS;
 
       switch (e.key) {
         case ' ':
           e.preventDefault();
           clearReverse();
-          if (videoEl.paused) {
-            videoEl.playbackRate = 1;
+          if (bgVideo.paused) {
+            bgVideo.playbackRate = 1;
             jklSpeed = 1;
-            videoEl.play().catch(function() {});
+            bgVideo.play().catch(function() {});
           } else {
-            videoEl.pause();
+            bgVideo.pause();
             jklSpeed = 0;
           }
           break;
@@ -3838,16 +4314,16 @@
         case 'ArrowLeft':
           e.preventDefault();
           clearReverse();
-          videoEl.pause();
-          videoEl.currentTime = Math.max(0, videoEl.currentTime - frameTime);
+          bgVideo.pause();
+          bgVideo.currentTime = Math.max(0, bgVideo.currentTime - frameTime);
           jklSpeed = 0;
           break;
 
         case 'ArrowRight':
           e.preventDefault();
           clearReverse();
-          videoEl.pause();
-          videoEl.currentTime = Math.min(videoEl.duration, videoEl.currentTime + frameTime);
+          bgVideo.pause();
+          bgVideo.currentTime = Math.min(bgVideo.duration, bgVideo.currentTime + frameTime);
           jklSpeed = 0;
           break;
 
@@ -3855,14 +4331,12 @@
         case 'J':
           e.preventDefault();
           if (jklSpeed > 0) {
-            // Playing forward: first tap decelerates to pause
             jklSpeed = 0;
-            videoEl.pause();
+            bgVideo.pause();
             clearReverse();
           } else {
-            // Already paused or reversing: go deeper into reverse
             jklSpeed = Math.max(jklSpeed - 1, -5);
-            videoEl.pause();
+            bgVideo.pause();
             startReverse(jklMultiplier(jklSpeed));
           }
           break;
@@ -3870,7 +4344,7 @@
         case 'k':
         case 'K':
           e.preventDefault();
-          videoEl.pause();
+          bgVideo.pause();
           clearReverse();
           jklSpeed = 0;
           break;
@@ -3880,14 +4354,12 @@
           e.preventDefault();
           clearReverse();
           if (jklSpeed < 0) {
-            // Reversing: first tap decelerates to pause
             jklSpeed = 0;
-            videoEl.pause();
+            bgVideo.pause();
           } else {
-            // Already paused or playing forward: speed up
             jklSpeed = Math.min(jklSpeed + 1, 5);
-            videoEl.playbackRate = jklMultiplier(jklSpeed);
-            videoEl.play().catch(function() {});
+            bgVideo.playbackRate = jklMultiplier(jklSpeed);
+            bgVideo.play().catch(function() {});
           }
           break;
 
@@ -3904,108 +4376,11 @@
         case 'm':
         case 'M':
           e.preventDefault();
-          videoEl.muted = !videoEl.muted;
+          bgVideo.muted = !bgVideo.muted;
           break;
       }
     });
 
-    // ── Revisit Previous Sessions ──
-
-    revisitBtn.addEventListener('click', function() {
-      revisitList.classList.toggle('open');
-    });
-
-    document.querySelectorAll('.revisit-item').forEach(function(item) {
-      item.addEventListener('click', function() {
-        var sessionIndex = parseInt(this.dataset.session);
-        var session = previousSessions[sessionIndex];
-
-        revisitList.classList.remove('open');
-        isWatchingPrevious = true;
-
-        sessionWaiting.classList.remove('visible');
-        videoEl.src = session.src;
-        videoEl.load();
-        sessionVideo.classList.add('visible');
-        videoEl.play().catch(function() {
-          videoEl.muted = true;
-          videoEl.play().catch(function() {});
-        });
-
-        // Switch LIVE to recording mode
-        liveToggle.classList.remove('live');
-        liveToggle.classList.add('recording-mode');
-        liveToggle.textContent = 'REC';
-
-        // Show corner countdown
-        cornerCountdown.classList.add('visible');
-        updateCornerCountdown();
-      });
-    });
-
-    function updateCornerCountdown() {
-      var m = Math.floor(waitingSecondsRemaining / 60);
-      var s = waitingSecondsRemaining % 60;
-      cornerCountdownTime.textContent =
-        String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    }
-
-    function startLiveCountdown() {
-      liveCountdownActive = true;
-      liveCountdownNumber.textContent = Math.min(waitingSecondsRemaining, 10);
-      liveOverlay.classList.add('visible');
-
-      if (sessionVideo.classList.contains('annotating')) {
-        exitAnnotationMode();
-      }
-
-      liveCountdownInterval = setInterval(function() {
-        var display = Math.max(waitingSecondsRemaining, 0);
-        if (display > 0) {
-          liveCountdownNumber.textContent = display;
-        } else {
-          clearInterval(liveCountdownInterval);
-          liveCountdownInterval = null;
-        }
-      }, 1000);
-    }
-
-    function transitionToLiveSession() {
-      videoTransition.classList.add('active');
-
-      setTimeout(function() {
-        videoEl.src = 'video.mp4';
-        videoEl.load();
-        cleanupRecordingMode();
-        liveOverlay.classList.remove('visible');
-        cornerCountdown.classList.remove('visible');
-
-        // Restore LIVE button
-        liveToggle.classList.remove('recording-mode');
-        liveToggle.textContent = 'LIVE';
-        liveToggle.classList.add('live');
-
-        videoEl.play().catch(function() {});
-
-        setTimeout(function() {
-          videoTransition.classList.remove('active');
-        }, 100);
-      }, 300);
-    }
-
-    function cleanupRecordingMode() {
-      isWatchingPrevious = false;
-      liveCountdownActive = false;
-      if (liveCountdownInterval) {
-        clearInterval(liveCountdownInterval);
-        liveCountdownInterval = null;
-      }
-      liveOverlay.classList.remove('visible');
-      cornerCountdown.classList.remove('visible');
-      liveToggle.classList.remove('recording-mode');
-      liveToggle.textContent = 'LIVE';
-      liveToggle.classList.add('live');
-    }
   </script>
 
 </body>
