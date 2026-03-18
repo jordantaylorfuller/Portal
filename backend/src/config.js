@@ -34,6 +34,7 @@ module.exports = {
   ASANA_PAT: process.env.ASANA_PAT,
   ASANA_WEBHOOK_SECRET: process.env.ASANA_WEBHOOK_SECRET,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+  DAILY_API_KEY: process.env.DAILY_API_KEY,
   FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || 'http://localhost:5920',
   PORT: parseInt(process.env.PORT, 10) || 8080
 };

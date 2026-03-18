@@ -24,7 +24,7 @@
 - [x] Supabase URL, anon key, service role key (in backend/.env, gitignored)
 - [x] Asana PAT (in backend/.env)
 - [x] GCP Project ID (nipc-portal)
-- [ ] Dolby.io / Millicast -- pending demo approval
+- [x] Daily.co API key (in backend/.env + GitHub secrets)
 - [ ] Backblaze B2 -- not yet provisioned
 - [ ] Iconik -- not yet provisioned
 
@@ -148,14 +148,25 @@ Replace hardcoded review queue with real assets from Iconik (or Frame.io as fall
 ## Phase 4: Session Room Wiring (was Phase 3)
 
 ### Goal
-Automated live edit session creation via Dolby.io/Millicast with hero stream + talkback.
+Live edit session rooms via Daily.co with hero stream + talkback.
 
 ### Tasks
-- [ ] Dolby.io account activation (pending demo)
-- [ ] POST /api/sessions/:id/join --> dual-token endpoint (subscribe token + comms token)
-- [ ] Build viewer UI: hero program feed (iframe or Web SDK) + webcam tiles + talkback
-- [ ] Session lifecycle: auto-create stream when Asana task moves to "In Session"
-- [ ] Webhooks: stream start/stop, viewer connect/disconnect
+- [x] Daily.co API key provisioned + stored in GitHub secrets
+- [x] Backend: `services/daily.js` -- room creation + meeting token generation
+- [x] Backend: `POST /api/sessions/join` -- auth-gated, creates/reuses Daily room per project, returns URL + token
+- [x] Frontend: daily-js SDK loaded, call object integration (no iframe)
+- [x] Hero video: first remote camera or screenshare fills main viewport
+- [x] Participant tiles: webcam thumbnails (top-right), local tile with red border
+- [x] Remote audio: auto-attached via hidden `<audio>` elements
+- [x] Mic toggle wired to Daily `setLocalAudio()`
+- [x] Session elapsed timer in transport bar
+- [x] VOD controls hidden during live sessions (play/pause, playhead, JKL scrub)
+- [x] Annotation system guards for live streams (no pause on annotate)
+- [x] Clean exit: `leaveDailySession()` destroys call object, clears all state
+- [x] Removed dead static video code (revisit sessions, countdown, recording mode)
+- [ ] Session lifecycle: auto-create Daily room when Asana task moves to "In Session"
+- [ ] Session recording: enable Daily cloud recording, archive to B2
+- [ ] Screenshare promotion: editor screenshare auto-promoted to hero feed
 
 ---
 
@@ -194,7 +205,7 @@ Automated live edit session creation via Dolby.io/Millicast with hero stream + t
 | Object Storage | Backblaze B2 (S3-compatible) | Not provisioned |
 | Review Platform | Iconik (BYOS) | Not provisioned |
 | Review Fallback | Frame.io | Planned |
-| Live Sessions | Dolby.io / Millicast | Pending demo |
+| Live Sessions | Daily.co | Wired |
 | Calendar | Google Calendar API | Phase 2 (next) |
 | Email | Resend | Wired |
 | Hosting (backend) | Google Cloud Run | Dockerfile exists |
