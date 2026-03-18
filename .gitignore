@@ -6,3 +6,4 @@ test-results/
 supabase/.temp/
 .vercel/
 .vercel
+.env*.local
