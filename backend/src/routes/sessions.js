@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { adminClient } = require('../services/supabase');
 const { requireAuth } = require('../middleware/auth');
+const { getOrCreateRoom, createMeetingToken, listRecordings, getRecordingLink } = require('../services/daily');
 
 const router = Router();
 
@@ -135,6 +136,105 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 
   res.json({ ok: true });
+});
+
+// POST /api/sessions/join
+// Get or create a Daily room for the project and return a meeting token
+router.post('/join', requireAuth, async (req, res) => {
+  const { project_id } = req.body;
+  if (!project_id) {
+    return res.status(400).json({ error: 'project_id is required' });
+  }
+
+  // Verify user has access to this project
+  const { data: membership, error: membershipError } = await adminClient
+    .from('project_members')
+    .select('project_id, role, projects(id, name, status)')
+    .eq('user_id', req.user.id)
+    .eq('project_id', project_id)
+    .maybeSingle();
+
+  if (membershipError) {
+    console.error('Project membership lookup error:', membershipError.message);
+    return res.status(500).json({ error: 'Failed to validate project access' });
+  }
+
+  if (!membership || !membership.projects) {
+    return res.status(403).json({ error: 'You do not have access to that project' });
+  }
+
+  // Get user display name
+  const { data: profile } = await adminClient
+    .from('user_profiles')
+    .select('display_name')
+    .eq('id', req.user.id)
+    .maybeSingle();
+
+  const displayName = (profile && profile.display_name) || req.user.email;
+  const isOwner = membership.role === 'lead';
+
+  try {
+    const room = await getOrCreateRoom(project_id, membership.projects.name);
+    const token = await createMeetingToken(room.name, {
+      userName: displayName,
+      userId: req.user.id,
+      isOwner
+    });
+
+    console.log(`Session join: ${displayName} -> ${room.url} (owner: ${isOwner})`);
+    res.json({
+      url: room.url,
+      token,
+      roomName: room.name,
+      projectName: membership.projects.name
+    });
+  } catch (err) {
+    console.error('Daily room/token error:', err.message);
+    res.status(500).json({ error: 'Failed to create session room' });
+  }
+});
+
+// GET /api/sessions/recordings
+// List recordings for a project's Daily room
+router.get('/recordings', requireAuth, async (req, res) => {
+  const { project_id } = req.query;
+  if (!project_id) {
+    return res.status(400).json({ error: 'project_id is required' });
+  }
+
+  // Verify access
+  const { data: membership } = await adminClient
+    .from('project_members')
+    .select('project_id')
+    .eq('user_id', req.user.id)
+    .eq('project_id', project_id)
+    .maybeSingle();
+
+  if (!membership) {
+    return res.status(403).json({ error: 'You do not have access to that project' });
+  }
+
+  const roomName = `nipc-${project_id.slice(0, 8)}`;
+
+  try {
+    const recordings = await listRecordings(roomName);
+    res.json({ recordings });
+  } catch (err) {
+    console.error('List recordings error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch recordings' });
+  }
+});
+
+// GET /api/sessions/recordings/:id/link
+// Get a signed playback URL for a recording
+router.get('/recordings/:id/link', requireAuth, async (req, res) => {
+  try {
+    const link = await getRecordingLink(req.params.id);
+    res.json({ url: link });
+  } catch (err) {
+    console.error('Recording link error:', err.message);
+    res.status(500).json({ error: 'Failed to get recording link' });
+  }
 });
 
 module.exports = router;
