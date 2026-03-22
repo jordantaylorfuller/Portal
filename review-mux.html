@@ -9,6 +9,7 @@
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * {
       margin: 0;
@@ -1170,14 +1171,67 @@
       }
     });
 
+    // ── Auth + API ──
+
+    var authToken = null;
+    var currentAssetId = new URLSearchParams(window.location.search).get('asset');
+    var currentProjectId = new URLSearchParams(window.location.search).get('project');
+
+    async function initReviewAuth() {
+      var sb = window.supabase.createClient(
+        'https://qnaqxnrbsvushgfwnjnd.supabase.co',
+        'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY'
+      );
+      var result = await sb.auth.getSession();
+      if (!result.data.session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      authToken = result.data.session.access_token;
+      if (currentAssetId) loadComments();
+    }
+
+    async function loadComments() {
+      var res = await fetch('/api/reviews/' + currentAssetId + '/comments', {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      });
+      if (!res.ok) return;
+      var data = await res.json();
+      comments = data.comments || [];
+      renderComments();
+      var media = getMedia();
+      renderMarkers(media ? media.duration : 0);
+      updateCount();
+    }
+
+    async function postComment(timecode, text) {
+      var res = await fetch('/api/reviews/' + currentAssetId + '/comments', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ timecode: timecode, text: text })
+      });
+      if (!res.ok) return null;
+      var data = await res.json();
+      return data.comment;
+    }
+
+    async function toggleResolve(commentId, resolved) {
+      await fetch('/api/reviews/' + currentAssetId + '/comments', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ commentId: commentId, resolved: resolved })
+      });
+    }
+
     // ── Comment Panel ──
 
-    var comments = [
-      { id: 1, initials: 'CL', author: 'Carla Luffe', timecode: 12, text: 'Color feels warm here. Can we push the highlights cooler?', resolved: false },
-      { id: 2, initials: 'JD', author: 'Jordan Davis', timecode: 34, text: 'Love this transition. Keep as-is.', resolved: true },
-      { id: 3, initials: 'CL', author: 'Carla Luffe', timecode: 62, text: 'Audio dip at this cut. Needs crossfade.', resolved: false },
-      { id: 4, initials: 'MR', author: 'Mike Ross', timecode: 78, text: 'Client wants the lower third moved up 20px.', resolved: false }
-    ];
+    var comments = [];
 
     var commentPanel = document.getElementById('comment-panel');
     var commentList = document.getElementById('comment-list');
@@ -1261,6 +1315,7 @@
         item.querySelector('.resolve-btn').addEventListener('click', function(e) {
           e.stopPropagation();
           c.resolved = !c.resolved;
+          toggleResolve(c.id, c.resolved);
           renderComments();
           var media = getMedia();
           renderMarkers(media ? media.duration : 0);
@@ -1271,20 +1326,29 @@
       });
     }
 
-    commentSubmit.addEventListener('click', function() {
+    commentSubmit.addEventListener('click', async function() {
       var text = commentInput.value.trim();
       if (!text) return;
       var media = getMedia();
-      var newId = comments.length ? Math.max.apply(null, comments.map(function(c) { return c.id; })) + 1 : 1;
-      comments.push({
-        id: newId,
-        initials: 'JD',
-        author: 'Jordan Davis',
-        timecode: media ? Math.floor(media.currentTime) : 0,
-        text: text,
-        resolved: false
-      });
+      var timecode = media ? Math.floor(media.currentTime) : 0;
       commentInput.value = '';
+
+      if (currentAssetId && authToken) {
+        var newComment = await postComment(timecode, text);
+        if (newComment) {
+          comments.push(newComment);
+        }
+      } else {
+        // Fallback for no-API mode
+        comments.push({
+          id: Date.now(),
+          initials: '??',
+          author: 'You',
+          timecode: timecode,
+          text: text,
+          resolved: false
+        });
+      }
       renderComments();
       renderMarkers(media ? media.duration : 0);
       updateCount();
@@ -1535,24 +1599,15 @@
     document.getElementById('review-back').addEventListener('click', function(e) {
       e.preventDefault();
       reviewPlayer.classList.remove('visible');
+      var backUrl = 'review-queue.html';
+      if (currentProjectId) backUrl += '?project=' + currentProjectId;
       setTimeout(function() {
-        window.location.href = 'review-queue.html';
+        window.location.href = backUrl;
       }, 500);
     });
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // Auth guard: redirect to login if not authenticated
-    (async function() {
-      var sb = window.supabase.createClient(
-        'https://qnaqxnrbsvushgfwnjnd.supabase.co',
-        'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY'
-      );
-      var result = await sb.auth.getSession();
-      if (!result.data.session) {
-        window.location.href = 'index.html';
-      }
-    })();
+
+    // Init auth and load comments
+    initReviewAuth();
   </script>
 
 </body>

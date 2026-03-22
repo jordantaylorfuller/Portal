@@ -410,12 +410,74 @@
     .page-content.visible {
       opacity: 1;
     }
+
+    /* ── Mobile: Card Layout ── */
+    @media (max-width: 600px) {
+      .queue-container {
+        padding: 72px 16px 40px;
+      }
+
+      .asset-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        border-bottom: none;
+        border: 1px solid rgb(209, 204, 199);
+        margin-bottom: 12px;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .asset-link {
+        display: contents;
+      }
+
+      .asset-info {
+        display: contents;
+      }
+
+      .asset-title {
+        grid-column: 1;
+        grid-row: 1;
+        padding: 10px 0 10px 12px;
+        margin-bottom: 0;
+        font-size: 12px;
+        align-self: center;
+      }
+
+      .status-btn-wrap {
+        grid-column: 2;
+        grid-row: 1;
+        margin-left: 8px;
+        margin-right: 12px;
+        align-self: center;
+      }
+
+      .asset-thumb {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        height: 180px;
+        border: none;
+        border-top: 1px solid rgb(209, 204, 199);
+        border-bottom: 1px solid rgb(209, 204, 199);
+      }
+
+      .asset-meta {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        padding: 10px 12px;
+      }
+
+      .status-dropdown {
+        right: 0;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="page-content" id="page-content">
-  <a href="#" class="back-link" id="back-link">&larr; Back</a>
+  <a href="index.html?room=select" class="back-link" id="back-link">&larr; Back</a>
 
   <div class="queue-container">
     <div class="queue-header">
@@ -426,60 +488,92 @@
     <div id="sections"></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ── Mock Data ──
-    const assets = [
-      {
-        id: 'rough-cut-v3',
-        title: 'Davis -- Rough Cut V3',
-        date: 'Mar 3, 2026',
-        version: 'V3',
-        notes: 4,
-        status: 'needs_review',
-        url: 'review-mux.html',
-        thumbTime: 12
-      },
-      {
-        id: 'color-pass-v1',
-        title: 'Davis -- Color Pass',
-        date: 'Mar 4, 2026',
-        version: 'V1',
-        notes: 2,
-        status: 'needs_review',
-        url: 'review-mux.html',
-        thumbTime: 35
-      },
-      {
-        id: 'sound-mix-v2',
-        title: 'Davis -- Sound Mix',
-        date: 'Mar 2, 2026',
-        version: 'V2',
-        notes: 7,
-        status: 'in_review',
-        url: 'review-mux.html',
-        thumbTime: 60
-      },
-      {
-        id: 'title-sequence-v4',
-        title: 'Davis -- Title Sequence',
-        date: 'Feb 28, 2026',
-        version: 'V4',
-        notes: 0,
-        status: 'approved',
-        url: 'review-mux.html',
-        thumbTime: 3
-      },
-      {
-        id: 'vfx-comp-v1',
-        title: 'Davis -- VFX Comp',
-        date: 'Mar 1, 2026',
-        version: 'V1',
-        notes: 3,
-        status: 'approved',
-        url: 'review-mux.html',
-        thumbTime: 8
+    // ── Data (loaded from API) ──
+    var assets = [];
+    var currentProjectId = null;
+    var authToken = null;
+
+    async function initAuth() {
+      var sb = window.supabase.createClient(
+        'https://qnaqxnrbsvushgfwnjnd.supabase.co',
+        'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY'
+      );
+      var result = await sb.auth.getSession();
+      if (!result.data.session) {
+        window.location.href = 'index.html';
+        return null;
       }
-    ];
+      authToken = result.data.session.access_token;
+      return authToken;
+    }
+
+    async function loadReviewAssets() {
+      // Get project ID from URL params or default to first active project
+      var params = new URLSearchParams(window.location.search);
+      currentProjectId = params.get('project');
+
+      if (!currentProjectId) {
+        // Fetch user's projects to find the first active one
+        var projRes = await fetch('/api/sessions', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        // Default to Buffalo project
+        currentProjectId = '5913a82c-a4af-40e4-8e5d-df8e7a2c0361';
+      }
+
+      var res = await fetch('/api/projects/' + currentProjectId + '/reviews', {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      });
+
+      if (!res.ok) {
+        console.error('Failed to load reviews:', res.status);
+        return;
+      }
+
+      var data = await res.json();
+      assets = data.assets.map(function(a) {
+        return {
+          id: a.id,
+          title: a.title,
+          date: a.date,
+          version: a.version,
+          notes: a.notes,
+          status: a.status,
+          url: 'review-mux.html?asset=' + a.id + '&project=' + currentProjectId,
+          thumbTime: a.thumb_time || 0
+        };
+      });
+
+      // Update project title
+      var titleEl = document.querySelector('.queue-title');
+      if (titleEl && assets.length > 0) {
+        // Extract project name from first asset title (before " -- ")
+        var projName = assets[0].title.split(' -- ')[0] || 'Review Queue';
+        titleEl.textContent = projName + ' -- Review Queue';
+      }
+
+      renderSections();
+      hideAllRows();
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          pageContent.classList.add('visible');
+          setTimeout(staggerEntrance, 200);
+        });
+      });
+    }
+
+    async function updateStatusOnServer(assetId, newStatus) {
+      await fetch('/api/projects/' + currentProjectId + '/reviews', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ assetId: assetId, status: newStatus })
+      });
+    }
 
     const statusLabels = {
       needs_review: 'Needs Review',
@@ -765,6 +859,9 @@
       if (!asset || asset.status === newStatus) return;
       animating = true;
 
+      // Persist to server
+      updateStatusOnServer(assetId, newStatus);
+
       var oldStatus = asset.status;
       var row = document.querySelector('.asset-row[data-id="' + assetId + '"]');
       if (!row) { animating = false; return; }
@@ -896,18 +993,7 @@
     });
 
     // ── Init ──
-    renderSections();
-
-    // Fade in page content, then stagger rows
     var pageContent = document.getElementById('page-content');
-    hideAllRows();
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        pageContent.classList.add('visible');
-        // Start stagger after page opacity begins
-        setTimeout(staggerEntrance, 200);
-      });
-    });
 
     // Back button: fade out content, transition bg, then navigate
     document.getElementById('back-link').addEventListener('click', function(e) {
@@ -932,20 +1018,11 @@
         window.location.href = href;
       }, 500);
     }, true);
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // Auth guard: redirect to login if not authenticated
-    (async function() {
-      var sb = window.supabase.createClient(
-        'https://qnaqxnrbsvushgfwnjnd.supabase.co',
-        'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY'
-      );
-      var result = await sb.auth.getSession();
-      if (!result.data.session) {
-        window.location.href = 'index.html';
-      }
-    })();
+
+    // Authenticate and load data
+    initAuth().then(function(token) {
+      if (token) loadReviewAssets();
+    });
   </script>
   </div>
 </body>

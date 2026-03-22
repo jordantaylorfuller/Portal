@@ -1,4 +1,9 @@
 backend/.env
 backend/node_modules/
+node_modules/
+package-lock.json
 test-results/
 supabase/.temp/
+.vercel/
+.vercel
+.env*.local
