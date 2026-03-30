@@ -6,7 +6,8 @@ module.exports = async function handler(req, res) {
   const auth = await getAuthUser(req);
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
 
-  const segments = (req.query.path || []);
+  const raw = req.query.path;
+  const segments = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const route = segments.join('/');
 
   // GET /api/sessions
