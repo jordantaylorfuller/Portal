@@ -140,25 +140,6 @@ async function bookSession(req, res, auth) {
 // ── Join a Daily.co session ──
 async function joinSession(req, res, auth) {
   const { project_id } = req.body;
-  if (!project_id) {
-    return res.status(400).json({ error: 'project_id is required' });
-  }
-
-  const { data: membership, error: membershipError } = await adminClient
-    .from('project_members')
-    .select('project_id, role, projects(id, name, status)')
-    .eq('user_id', auth.id)
-    .eq('project_id', project_id)
-    .maybeSingle();
-
-  if (membershipError) {
-    console.error('Project membership lookup error:', membershipError.message);
-    return res.status(500).json({ error: 'Failed to validate project access' });
-  }
-
-  if (!membership || !membership.projects) {
-    return res.status(403).json({ error: 'You do not have access to that project' });
-  }
 
   const { data: profile } = await adminClient
     .from('user_profiles')
@@ -167,10 +148,38 @@ async function joinSession(req, res, auth) {
     .maybeSingle();
 
   const displayName = (profile && profile.display_name) || auth.email;
-  const isOwner = membership.role === 'lead';
+
+  // If a project_id is provided, validate membership and use project room
+  let roomProjectId = project_id;
+  let projectName = 'NIPC Session';
+  let isOwner = false;
+
+  if (project_id) {
+    const { data: membership, error: membershipError } = await adminClient
+      .from('project_members')
+      .select('project_id, role, projects(id, name, status)')
+      .eq('user_id', auth.id)
+      .eq('project_id', project_id)
+      .maybeSingle();
+
+    if (membershipError) {
+      console.error('Project membership lookup error:', membershipError.message);
+      return res.status(500).json({ error: 'Failed to validate project access' });
+    }
+
+    if (membership && membership.projects) {
+      projectName = membership.projects.name;
+      isOwner = membership.role === 'lead';
+    }
+  }
+
+  // Fallback to a dev room if no project
+  if (!roomProjectId) {
+    roomProjectId = 'dev-room0';
+  }
 
   try {
-    const room = await getOrCreateRoom(project_id, membership.projects.name);
+    const room = await getOrCreateRoom(roomProjectId, projectName);
     const token = await createMeetingToken(room.name, {
       userName: displayName,
       userId: auth.id,
@@ -182,7 +191,7 @@ async function joinSession(req, res, auth) {
       url: room.url,
       token,
       roomName: room.name,
-      projectName: membership.projects.name
+      projectName
     });
   } catch (err) {
     console.error('Daily room/token error:', err.message);
