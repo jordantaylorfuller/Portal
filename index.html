@@ -3337,19 +3337,18 @@
     });
 
     async function joinDailySession() {
-      if (!currentProject || !currentProject.id) {
-        sessionMessage.textContent = 'No project selected';
-        return;
-      }
-
       sessionMessage.innerHTML = 'Connecting to session<span class="dot-pulse"></span>';
       connectionStatusEl.textContent = '';
 
       try {
         // Get room URL + token from backend
+        var body = {};
+        if (currentProject && currentProject.id) {
+          body.project_id = currentProject.id;
+        }
         var result = await apiCall('/api/sessions/join', {
           method: 'POST',
-          body: JSON.stringify({ project_id: currentProject.id })
+          body: JSON.stringify(body)
         });
 
         if (result.error) {
