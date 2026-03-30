@@ -10,8 +10,8 @@ module.exports = async function handler(req, res) {
   const segments = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const route = segments.join('/');
 
-  // GET /api/sessions
-  if (!route && req.method === 'GET') {
+  // GET /api/sessions/list
+  if (route === 'list' && req.method === 'GET') {
     return listSessions(req, res, auth);
   }
 
