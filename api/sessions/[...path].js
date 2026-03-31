@@ -3,14 +3,23 @@ const { adminClient } = require('../../lib/supabase');
 const { getOrCreateRoom, createMeetingToken, listRecordings, getRecordingLink } = require('../../lib/daily');
 
 module.exports = async function handler(req, res) {
+  // Debug endpoint (no auth required) — remove after diagnosing
+  if (req.url.includes('_debug') || (req.query.path && req.query.path.toString().includes('_debug'))) {
+    return res.json({ url: req.url, query: req.query, method: req.method });
+  }
+
   const auth = await getAuthUser(req);
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
 
-  // Parse path from URL as fallback since req.query.path may be empty
+  // Parse path segments — try req.query.path first, fall back to req.url
   let raw = req.query.path;
   if (!raw || (Array.isArray(raw) && raw.length === 0)) {
-    const match = req.url.match(/\/api\/sessions\/([^?]*)/);
-    if (match && match[1]) raw = match[1].split('/').filter(Boolean);
+    // Try matching from full URL
+    const urlPath = req.url.split('?')[0];
+    const idx = urlPath.indexOf('/api/sessions/');
+    if (idx !== -1) {
+      raw = urlPath.slice(idx + '/api/sessions/'.length).split('/').filter(Boolean);
+    }
   }
   const segments = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const route = segments.join('/');
