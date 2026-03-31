@@ -422,6 +422,25 @@
       margin: 6px 0;
     }
 
+    .project-dropdown-signout {
+      display: block;
+      width: 100%;
+      padding: 5px 0;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.25);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: right;
+      transition: color 150ms ease;
+    }
+
+    .project-dropdown-signout:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
     .room-selection.visible {
       opacity: 1;
       pointer-events: auto;
@@ -3054,7 +3073,13 @@
         });
         html += '</div>';
       }
+      html += '<div class="project-dropdown-divider"></div>';
+      html += '<button class="project-dropdown-signout" id="signout-btn">Sign Out</button>';
       dropdown.innerHTML = html;
+      document.getElementById('signout-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        supabaseClient.auth.signOut().then(function() { location.reload(); });
+      });
     }
 
     // Check for existing session on page load — pre-stage the dashboard
