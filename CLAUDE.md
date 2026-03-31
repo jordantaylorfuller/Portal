@@ -8,10 +8,13 @@ Static single-page site for New International Picture Company (NIPC), a post-pro
 index.html        -- Single-page app (all HTML/CSS/JS inline)
 video.mp4         -- Session video (Git LFS, ~58MB)
 images/           -- Logo, favicon, webclip
-serve.sh          -- Local dev server (deterministic port per worktree)
+api/              -- Vercel serverless functions (auth, sessions, deliveries)
+lib/              -- Shared backend modules (Supabase client)
+backend/          -- Express backend (Docker, not used in Vercel deploy)
+vercel.json       -- Vercel config (redirects, headers)
+serve.sh          -- Local dev server (Vercel dev, deterministic port)
 setup.sh          -- Worktree/dependency bootstrapper
 .gitattributes    -- LFS tracking for *.mp4
-.github/workflows/deploy.yml -- GitHub Pages deployment
 ```
 
 ## Tech Stack
@@ -19,26 +22,26 @@ setup.sh          -- Worktree/dependency bootstrapper
 - Vanilla HTML/CSS/JS -- no build step, no frameworks
 - Google Fonts: DM Mono (300/400/500)
 - Git LFS for video assets
-- live-server for local development
-- GitHub Pages for hosting (video served from GitHub Releases)
+- Vercel for hosting and serverless API routes
+- Supabase for auth and database
+- `vercel dev` for local development (static files + API routes)
 
 ## Local Development
 
 ```bash
-./setup.sh    # Install deps (git-lfs, live-server), pull LFS assets
-./serve.sh    # Start dev server on deterministic port (5200-5999)
+./setup.sh    # Install deps (vercel, npm, lfs), pull env, link project
+./serve.sh    # Start Vercel dev server on deterministic port (5200-5999)
 ```
 
 Port is hash-based from the worktree path so multiple worktrees don't collide.
 
+The `.env` file contains API keys for Supabase, Resend, Asana, and Daily. For new worktrees, `setup.sh` copies it from the main repo or pulls from Vercel.
+
 ## Deployment
 
-Push to `main` triggers GitHub Pages deploy. The deploy workflow:
-1. Rewrites `video.mp4` src to a GitHub Releases URL
-2. Removes the LFS video file from the deploy artifact
-3. Uploads remaining files to GitHub Pages
+Push to `main` triggers Vercel production deploy (https://atlanta-beta.vercel.app). Vercel is connected to the GitHub repo with auto-deploy enabled.
 
-Video must be uploaded as a GitHub Release asset (tag `v1.0`).
+Video is served via a Vercel redirect (`vercel.json`) pointing to a GitHub Releases asset (tag `v1.0`).
 
 ## Key Features
 
@@ -50,6 +53,7 @@ Video must be uploaded as a GitHub Release asset (tag `v1.0`).
 ## Conventions
 
 - All code lives in `index.html` (inline styles and scripts)
-- No package.json or node_modules -- keep it zero-dependency
+- Serverless API routes go in `api/` following Vercel conventions
+- Shared backend modules go in `lib/`
 - Test changes with `./serve.sh` before committing
 - Large binary assets go through Git LFS

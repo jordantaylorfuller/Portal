@@ -2988,7 +2988,6 @@
     }
 
 	    function showDashboard(me) {
-	      document.getElementById('dev-login').style.display = 'none';
 	      roomWelcomeTitle.textContent = 'Welcome Back, ' + me.displayName + '.';
 	      if (me.projects && me.projects.length > 0) {
 	        var active = me.projects.filter(function(p) { return p.status === 'active'; });
