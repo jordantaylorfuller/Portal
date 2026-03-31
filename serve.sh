@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ── Portal Dev Server ──
-# Deterministic port per worktree (hash-based), with branch name in tab title.
+# Deterministic port per worktree (hash-based), using Vercel dev
+# so API routes work locally.
 # Usage: ./serve.sh
 
 set -euo pipefail
@@ -28,9 +29,9 @@ find_port() {
       echo $port
       return 0
     fi
-    # If our own live-server is already on this port, reuse it
+    # If our own vercel dev is already on this port, reuse it
     local cmd=$(ps -p $pid -o args= 2>/dev/null || true)
-    if echo "$cmd" | grep -q "live-server.*--port=$port"; then
+    if echo "$cmd" | grep -q "vercel dev.*--listen $port"; then
       echo "already:$port:$pid"
       return 0
     fi
@@ -60,42 +61,10 @@ else
   PORT=$RESULT
 fi
 
-# Inject branch name into page title via live-server middleware
-MIDDLEWARE_FILE=$(mktemp /tmp/portal-middleware-XXXXXXXX)
-mv "$MIDDLEWARE_FILE" "${MIDDLEWARE_FILE}.js"
-MIDDLEWARE_FILE="${MIDDLEWARE_FILE}.js"
-cat > "$MIDDLEWARE_FILE" << JSEOF
-module.exports = function(req, res, next) {
-  var originalWrite = res.write;
-  var originalEnd = res.end;
-  var chunks = [];
-
-  if (req.url === '/' || req.url.endsWith('.html')) {
-    res.write = function(chunk) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      return true;
-    };
-    res.end = function(chunk) {
-      if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      var body = Buffer.concat(chunks).toString('utf8');
-      body = body.replace(/<title>/, '<title>[$BRANCH :$PORT] ');
-      res.setHeader('content-length', Buffer.byteLength(body));
-      originalWrite.call(res, body);
-      originalEnd.call(res);
-    };
-  }
-  next();
-};
-JSEOF
-
-# Clean up middleware file on exit
-cleanup() { rm -f "$MIDDLEWARE_FILE"; }
-trap cleanup EXIT
-
 echo "──────────────────────────────────"
 echo "  Branch:  $BRANCH"
 echo "  Port:    $PORT"
 echo "  URL:     http://localhost:$PORT"
 echo "──────────────────────────────────"
 
-live-server --port=$PORT --no-browser --middleware="$MIDDLEWARE_FILE"
+npx vercel dev --listen $PORT

@@ -3060,16 +3060,10 @@
       dropdown.innerHTML = html;
     }
 
-    supabaseClient.auth.onAuthStateChange(function(event, session) {
-      if (event === 'SIGNED_IN' && session) {
-        history.replaceState(null, '', location.pathname);
-        landingPage.classList.add('slid');
-        loadAuthenticatedState();
-      }
-    });
-
     // Check for existing session on page load — pre-stage the dashboard
-    // so clicking "Clients" never flashes the login form
+    // so clicking "Clients" never flashes the login form.
+    // Register onAuthStateChange AFTER the check so a restored session
+    // doesn't auto-slide past the landing page.
     var _preAuthed = false;
     (async function() {
       var result = await supabaseClient.auth.getSession();
@@ -3079,6 +3073,19 @@
         loginForm.classList.add('faded');
         await loadAuthenticatedState();
       }
+
+      // Now listen for NEW sign-ins (magic-link callback, dev-login, etc.)
+      // _preAuthed prevents a restored session from auto-sliding past the landing page.
+      supabaseClient.auth.onAuthStateChange(function(event, session) {
+        if (event === 'SIGNED_IN' && session && !_preAuthed) {
+          history.replaceState(null, '', location.pathname);
+          landingPage.classList.add('slid');
+          loadAuthenticatedState();
+        }
+        // Once any sign-in event is handled, clear the flag so future
+        // sign-ins (after sign-out) work normally.
+        if (event === 'SIGNED_OUT') _preAuthed = false;
+      });
     })();
 
     // Project Switcher
