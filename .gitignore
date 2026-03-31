@@ -1,3 +1,5 @@
+.env
+.env*.local
 backend/.env
 backend/node_modules/
 node_modules/
@@ -6,4 +8,3 @@ test-results/
 supabase/.temp/
 .vercel/
 .vercel
-.env*.local
