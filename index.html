@@ -2530,7 +2530,7 @@
 
     async function fetchUpcomingSessions() {
       try {
-        var data = await apiCall('/api/sessions');
+        var data = await apiCall('/api/sessions/list');
         if (data.sessions && data.sessions.length > 0) {
           var next = data.sessions[0];
           var t = parseSessionTime(next.session_time);
