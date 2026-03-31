@@ -2993,11 +2993,8 @@
 	      if (me.projects && me.projects.length > 0) {
 	        var active = me.projects.filter(function(p) { return p.status === 'active'; });
 	        var archived = me.projects.filter(function(p) { return p.status === 'archived'; });
-	        var current = active[0] || me.projects[0];
-	        if (_devLogin) {
-	          var portal = active.find(function(p) { return p.name === 'Portal'; });
-	          if (portal) current = portal;
-	        }
+	        var portal = active.find(function(p) { return p.name === 'Portal'; });
+	        var current = portal || active[0] || me.projects[0];
 	        renderProjectSwitcher(active, archived);
 	        setCurrentProject(current);
 	      } else {
