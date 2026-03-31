@@ -6,7 +6,12 @@ module.exports = async function handler(req, res) {
   const auth = await getAuthUser(req);
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
 
-  const raw = req.query.path;
+  // Parse path from URL as fallback since req.query.path may be empty
+  let raw = req.query.path;
+  if (!raw || (Array.isArray(raw) && raw.length === 0)) {
+    const match = req.url.match(/\/api\/sessions\/([^?]*)/);
+    if (match && match[1]) raw = match[1].split('/').filter(Boolean);
+  }
   const segments = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const route = segments.join('/');
 
