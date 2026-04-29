@@ -2965,8 +2965,28 @@
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
+      fadeScrubberAudio(700);
       landingPage.classList.add('slid');
     });
+
+    function fadeScrubberAudio(durationMs) {
+      var island = document.querySelector('code-island');
+      var root = island && island.shadowRoot;
+      if (!root) return;
+      var audios = root.querySelectorAll('audio, video');
+      audios.forEach(function (a) {
+        if (a.paused || a.muted || a.volume === 0) return;
+        var startVol = a.volume;
+        var startTime = performance.now();
+        function step(now) {
+          var t = Math.min(1, (now - startTime) / durationMs);
+          a.volume = startVol * (1 - t);
+          if (t < 1) requestAnimationFrame(step);
+          else { try { a.pause(); } catch (e) {} a.volume = startVol; }
+        }
+        requestAnimationFrame(step);
+      });
+    }
 
     // Dev login -- skip auth, sign in as Jordan
     var _devLogin = false;
