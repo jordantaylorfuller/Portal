@@ -2965,27 +2965,18 @@
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
-      fadeScrubberAudio(700);
+      muteScrubber();
       landingPage.classList.add('slid');
     });
 
-    function fadeScrubberAudio(durationMs) {
+    function muteScrubber() {
       var island = document.querySelector('code-island');
       var root = island && island.shadowRoot;
       if (!root) return;
-      var audios = root.querySelectorAll('audio, video');
-      audios.forEach(function (a) {
-        if (a.paused || a.muted || a.volume === 0) return;
-        var startVol = a.volume;
-        var startTime = performance.now();
-        function step(now) {
-          var t = Math.min(1, (now - startTime) / durationMs);
-          a.volume = startVol * (1 - t);
-          if (t < 1) requestAnimationFrame(step);
-          else { try { a.pause(); } catch (e) {} a.volume = startVol; }
-        }
-        requestAnimationFrame(step);
-      });
+      // The Scrubber's mute toggle button is the only <button> in the shadow DOM
+      // once playback has started (.Pi43lAtntwBSfSInG6pT, currently bottom-right).
+      var muteBtn = root.querySelector('.Pi43lAtntwBSfSInG6pT') || root.querySelector('button');
+      if (muteBtn) muteBtn.click();
     }
 
     // Dev login -- skip auth, sign in as Jordan
