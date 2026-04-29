@@ -16,7 +16,8 @@
   <link href="images/webclip.png" rel="apple-touch-icon"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+  <script>!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js"+t+"ix3",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -2066,6 +2067,7 @@
       position: fixed;
       top: 20px;
       right: 24px;
+      z-index: 100;
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       font-weight: 400;
@@ -2432,11 +2434,28 @@
   <!-- Landing page overlay (slides left to reveal login) -->
   <div class="landing-page">
     <a href="#" class="portal-link">Clients</a>
-    <div class="container">
-      <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
-      <h2 class="subheading">Sound on, please.</h2>
-      <a href="#" class="btn">Play</a>
-    </div>
+    <code-island
+      data-loader='{"tag":"FEDERATION","val":{"clientModuleUrl":"/home/js/scrubber/wf-manifest.json","moduleId":"_69a006de65dbfb3c908606dc","submoduleId":"SoundscapeScrubber","exportPath":"default","serverModuleUrl":"_"}}'
+      data-props='{"framesBaseUrl":"/home/scrubber/frames/"}'
+      data-slots="[]"
+      data-hydrate="true"
+      data-webflow-context='{"mode":"publish","interactive":true,"locale":"en"}'
+      data-interactive="true"
+      style="display:contents">
+      <template shadowrootmode="open">
+        <link rel="stylesheet" type="text/css" href="/home/js/scrubber/d5fbce1f3a44483935a3.css">
+        <div data-root="true" style="display:contents">
+          <div class="VDF8FyhPZeWZzhNwOiqg">
+            <div class="oH0hZAnH1QthrFy5usPu">
+              <span>Loading frames... <!-- -->0<!-- -->%</span>
+              <div class="MFOrhpDSqfLbZQUK2SsP">
+                <div class="eN92Zm4wSPKCZpSj6B_7" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </code-island>
   </div>
 
   <script src="https://unpkg.com/@daily-co/daily-js"></script>
@@ -4589,5 +4608,8 @@
     }
   </script>
 
+  <script src="/home/js/jquery.min.js"></script>
+  <script src="/home/js/webflow.schunk.js"></script>
+  <script src="/home/js/webflow.js"></script>
 </body>
 </html>
