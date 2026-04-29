@@ -1,0 +1,49 @@
+{
+  "totalFrames": 1984,
+  "steps": [
+    {
+      "name": "new",
+      "label": "New",
+      "zip": "step-0.zip",
+      "range": [
+        0,
+        495
+      ],
+      "frameCount": 496,
+      "beats": 3
+    },
+    {
+      "name": "international",
+      "label": "International",
+      "zip": "step-1.zip",
+      "range": [
+        496,
+        991
+      ],
+      "frameCount": 496,
+      "beats": 13
+    },
+    {
+      "name": "picture",
+      "label": "Picture",
+      "zip": "step-2.zip",
+      "range": [
+        992,
+        1487
+      ],
+      "frameCount": 496,
+      "beats": 7
+    },
+    {
+      "name": "company",
+      "label": "Company",
+      "zip": "step-3.zip",
+      "range": [
+        1488,
+        1983
+      ],
+      "frameCount": 496,
+      "beats": 7
+    }
+  ]
+}

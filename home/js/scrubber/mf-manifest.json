@@ -1,0 +1,70 @@
+{
+  "id": "_69a006de65dbfb3c908606dc",
+  "name": "_69a006de65dbfb3c908606dc",
+  "metaData": {
+    "name": "_69a006de65dbfb3c908606dc",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "1.0.0",
+      "buildName": "nipc-webflow-components"
+    },
+    "remoteEntry": {
+      "name": "remoteEntry.js",
+      "path": "",
+      "type": "global"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "_69a006de65dbfb3c908606dc",
+    "pluginVersion": "0.20.0",
+    "prefetchInterface": false,
+    "publicPath": "/home/js/scrubber/"
+  },
+  "shared": [],
+  "remotes": [],
+  "exposes": [
+    {
+      "id": "_69a006de65dbfb3c908606dc:@webflow_renderer",
+      "name": "@webflow_renderer",
+      "assets": {
+        "js": {
+          "sync": [
+            "658.js",
+            "__federation_expose_scope_webflow_renderer.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./@webflow_renderer"
+    },
+    {
+      "id": "_69a006de65dbfb3c908606dc:SoundscapeScrubber",
+      "name": "SoundscapeScrubber",
+      "assets": {
+        "js": {
+          "sync": [
+            "658.js",
+            "121.js",
+            "__federation_expose_SoundscapeScrubber.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "d5fbce1f3a44483935a3.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./SoundscapeScrubber"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+var link = document.createElement('link'); link.rel = 'icon'; link.type = 'image/png'; link.sizes = '32x32'; link.href = 'https://cdn.prod.website-files.com/69825ff61e64a3a9dbde7814/69a09985358e54555150a07e_favicon.png'; document.head.appendChild(link);
