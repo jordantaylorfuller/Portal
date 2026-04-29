@@ -92,12 +92,36 @@
     totalEl.textContent = `TOTAL ENTRIES: ${editors.length}`;
   }
 
-  if (window.Webflow && typeof window.Webflow.destroy === 'function') {
-    window.Webflow.destroy();
-    window.Webflow.ready();
-    if (window.Webflow.require) {
-      try { window.Webflow.require('ix2').init(); } catch (e) {}
-      try { window.Webflow.require('dropdown').ready(); } catch (e) {}
-    }
-  }
+  list.querySelectorAll('.w-dropdown').forEach(dropdown => {
+    const toggle = dropdown.querySelector('.w-dropdown-toggle');
+    const panel = dropdown.querySelector('.w-dropdown-list');
+    if (!toggle || !panel) return;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.style.cursor = 'pointer';
+    toggle.addEventListener('click', e => {
+      e.preventDefault();
+      const willOpen = !dropdown.classList.contains('w--open');
+      list.querySelectorAll('.w-dropdown.w--open').forEach(other => {
+        if (other === dropdown) return;
+        other.classList.remove('w--open');
+        const ot = other.querySelector('.w-dropdown-toggle');
+        const op = other.querySelector('.w-dropdown-list');
+        if (ot) { ot.classList.remove('w--open'); ot.setAttribute('aria-expanded', 'false'); }
+        if (op) { op.classList.remove('w--open'); op.style.display = 'none'; }
+      });
+      dropdown.classList.toggle('w--open', willOpen);
+      toggle.classList.toggle('w--open', willOpen);
+      toggle.setAttribute('aria-expanded', String(willOpen));
+      panel.classList.toggle('w--open', willOpen);
+      panel.style.display = willOpen ? 'block' : 'none';
+    });
+  });
+
+  document.querySelectorAll('.vimeo-shell').forEach(shell => {
+    if (window.__vimeoMounted && window.__vimeoMounted.has(shell)) return;
+    const urlEl = shell.querySelector('.vimeo-url');
+    if (!urlEl || !urlEl.textContent.trim()) return;
+    const evt = new Event('vimeo-mount', { bubbles: true });
+    shell.dispatchEvent(evt);
+  });
 })();
