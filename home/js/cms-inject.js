@@ -91,4 +91,13 @@
   if (totalEl && /TOTAL ENTRIES/.test(totalEl.textContent)) {
     totalEl.textContent = `TOTAL ENTRIES: ${editors.length}`;
   }
+
+  if (window.Webflow && typeof window.Webflow.destroy === 'function') {
+    window.Webflow.destroy();
+    window.Webflow.ready();
+    if (window.Webflow.require) {
+      try { window.Webflow.require('ix2').init(); } catch (e) {}
+      try { window.Webflow.require('dropdown').ready(); } catch (e) {}
+    }
+  }
 })();
