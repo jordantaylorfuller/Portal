@@ -18,6 +18,30 @@
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
   <script>!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js"+t+"ix3",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  <script>
+    // Insert a master gain in front of every AudioContext destination so we can fade
+    // the Scrubber's synthesized audio (Web Audio oscillators -> destination) in/out
+    // when the CLIENTS link slides the landing away or BACK slides it back.
+    (function () {
+      var Orig = window.AudioContext || window.webkitAudioContext;
+      if (!Orig) return;
+      window.__nipcMasterGains = [];
+      function Patched(opts) {
+        var ctx = opts !== undefined ? new Orig(opts) : new Orig();
+        try {
+          var realDest = Orig.prototype.__lookupGetter__('destination').call(ctx);
+          var master = ctx.createGain();
+          master.connect(realDest);
+          Object.defineProperty(ctx, 'destination', { get: function () { return master; }, configurable: true });
+          window.__nipcMasterGains.push({ ctx: ctx, gain: master });
+        } catch (e) { /* if intercept fails the audio just plays normally */ }
+        return ctx;
+      }
+      Patched.prototype = Orig.prototype;
+      window.AudioContext = Patched;
+      if (window.webkitAudioContext) window.webkitAudioContext = Patched;
+    })();
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -2965,18 +2989,23 @@
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
-      muteScrubber();
+      fadeScrubberAudio('out', 0.7);
       landingPage.classList.add('slid');
     });
 
-    function muteScrubber() {
-      var island = document.querySelector('code-island');
-      var root = island && island.shadowRoot;
-      if (!root) return;
-      // The Scrubber's mute toggle button is the only <button> in the shadow DOM
-      // once playback has started (.Pi43lAtntwBSfSInG6pT, currently bottom-right).
-      var muteBtn = root.querySelector('.Pi43lAtntwBSfSInG6pT') || root.querySelector('button');
-      if (muteBtn) muteBtn.click();
+    // Ramp every master gain we patched into the AudioContext(s). 'in' goes to 1, 'out' goes to 0.
+    function fadeScrubberAudio(direction, durationSec) {
+      var entries = window.__nipcMasterGains || [];
+      var target = direction === 'in' ? 1 : 0;
+      entries.forEach(function (e) {
+        try {
+          var now = e.ctx.currentTime;
+          e.gain.gain.cancelScheduledValues(now);
+          // Anchor the curve at the current value, then ramp linearly.
+          e.gain.gain.setValueAtTime(e.gain.gain.value, now);
+          e.gain.gain.linearRampToValueAtTime(target, now + durationSec);
+        } catch (err) { /* gain ramp failed; ignore */ }
+      });
     }
 
     // Dev login -- skip auth, sign in as Jordan
@@ -3805,6 +3834,7 @@
 	        resetLoginStates();
 	      }
 	      landingPage.classList.remove('slid');
+	      fadeScrubberAudio('in', 0.7);
 	    });
 
     // Session back button
