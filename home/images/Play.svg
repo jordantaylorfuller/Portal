@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="219" height="219" viewBox="0 0 219 219">
+  <defs>
+    <clipPath id="clip-Play">
+      <rect width="219" height="219"/>
+    </clipPath>
+  </defs>
+  <g id="Play" clip-path="url(#clip-Play)">
+    <rect width="219" height="219" fill="rgba(255,255,255,0)"/>
+    <path id="Polygon_1" data-name="Polygon 1" d="M37.5,0,75,53H0Z" transform="translate(141 72) rotate(90)" fill="#fff"/>
+  </g>
+</svg>

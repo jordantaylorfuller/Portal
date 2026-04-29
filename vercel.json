@@ -7,7 +7,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/home", "destination": "/home/coming-soon.html" }
+    { "source": "/home", "destination": "/home/index.html" },
+    { "source": "/home/coming-soon", "destination": "/home/coming-soon.html" }
   ],
   "headers": [
     {
