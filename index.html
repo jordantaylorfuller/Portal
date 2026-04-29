@@ -2087,10 +2087,10 @@
       margin-top: 12px;
     }
 
-    .portal-link {
+    .portal-link,
+    .home-link {
       position: fixed;
       top: 20px;
-      right: 24px;
       z-index: 100;
       font-family: 'DM Mono', monospace;
       font-size: 10px;
@@ -2103,7 +2103,11 @@
       transition: opacity 0.2s ease;
     }
 
-    .portal-link:hover {
+    .portal-link { right: 24px; }
+    .home-link { left: 24px; }
+
+    .portal-link:hover,
+    .home-link:hover {
       opacity: 0.8;
     }
     /* ── Mobile ── */
@@ -2457,6 +2461,7 @@
 
   <!-- Landing page overlay (slides left to reveal login) -->
   <div class="landing-page">
+    <a href="/home" class="home-link">Home</a>
     <a href="#" class="portal-link">Clients</a>
     <code-island
       data-loader='{"tag":"FEDERATION","val":{"clientModuleUrl":"/home/js/scrubber/wf-manifest.json","moduleId":"_69a006de65dbfb3c908606dc","submoduleId":"SoundscapeScrubber","exportPath":"default","serverModuleUrl":"_"}}'
