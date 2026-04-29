@@ -9,7 +9,6 @@
   ],
   "rewrites": [
     { "source": "/home", "destination": "/home/index.html" },
-    { "source": "/home/coming-soon", "destination": "/home/coming-soon.html" },
     { "source": "/works/:slug", "destination": "/works/:slug.html" },
     { "source": "/editors/:slug", "destination": "/editors/:slug.html" }
   ],
