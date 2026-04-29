@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "source": "Webflow CMS collection 69844a7507448272441bba0f (Works)",
+    "siteId": "69825ff61e64a3a9dbde7814",
+    "snapshotAt": "2026-04-29",
+    "totalItems": 5
+  },
+  "items": [
+    {
+      "id": "698fc75cb08ed4747f99d3e0",
+      "name": "The Grace",
+      "slug": "the-grace",
+      "client": "DDC Film|",
+      "year": "2024",
+      "typeOfWork": "Short Documentary",
+      "visitLink": "https://vimeo.com/1160592223?fl=pl&fe=sh",
+      "thumbnailCover": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698fcbfe5857b0b5f3043743_Screenshot%202026-02-13%20at%208.12.21%E2%80%AFPM.png",
+      "video": {
+        "url": "https://vimeo.com/1160592223?fl=pl&fe=sh",
+        "title": "The Grace",
+        "author": "Natalie Berger",
+        "description": "Over the course of one year, a sustainable salmon fisherman struggles to stay afloat at sea and on land as the demands of her small salmon business mount.",
+        "provider": "Vimeo",
+        "width": 1920,
+        "height": 1080,
+        "thumbnail": "https://i.vimeocdn.com/video/2115647314-46021f034cad05e9bc793103c10a2118e8fc5c1f83eafbfb040f635e82a79333-d_1280?region=us"
+      },
+      "referenceEditors": null,
+      "order": null,
+      "isDraft": false
+    },
+    {
+      "id": "69844ac1f4df110696d95243",
+      "name": "Project Alpha",
+      "slug": "project-alpha",
+      "client": "Tech Innovations Inc.",
+      "year": "2023",
+      "typeOfWork": "Commercial",
+      "visitLink": "https://vimeo.com/1158419326?fl=pl&fe=sh",
+      "thumbnailCover": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698cf2d88d87198556629cea_Screenshot%202026-02-11%20at%204.21.17%E2%80%AFPM.png",
+      "video": {
+        "url": "https://vimeo.com/1158419326?fl=pl&fe=sh",
+        "title": "Trails Will Blaze - BBC Winter Olympics 2026",
+        "author": "NOMINT",
+        "description": "Stop-motion + Real Fire + Real Explosions. The BBC's 2026 Winter Olympics film celebrates the trails athletes will blaze, as they smash records and break boundaries at the games. Created in stop motion using real fire and 700 individually 3D-printed athletes.",
+        "provider": "Vimeo",
+        "width": 1920,
+        "height": 1080,
+        "thumbnail": "https://i.vimeocdn.com/video/2112444166-6aa3be3ad1e215e9f8c744d6f633946846b7f305a79fb1f9cc51e777d3abd3e5-d_1280?region=us"
+      },
+      "referenceEditors": ["69844762668f6310d841923d", "69844734a7115796512cc663", "69845102fc69feacaf674379"],
+      "order": 1,
+      "isDraft": false
+    },
+    {
+      "id": "69844ac1f4df110696d95247",
+      "name": "Mobile App Launch",
+      "slug": "mobile-app-launch",
+      "client": "App Development Co.",
+      "year": "2023",
+      "typeOfWork": "Music Video",
+      "visitLink": "https://vimeo.com/1140004517?fl=pl&fe=sh",
+      "thumbnailCover": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698cf2a830596fc5588229a2_Screenshot%202026-02-11%20at%204.20.30%E2%80%AFPM.png",
+      "video": {
+        "url": "https://vimeo.com/1140004517?fl=pl&fe=sh",
+        "title": "CHICO",
+        "author": "Manifest",
+        "description": "Jojo, a clumsy and bumbling young gay squatter, sets out to repair a washing machine in order to satisfy Lucien, whom he desires.",
+        "provider": "Vimeo",
+        "width": 1920,
+        "height": 1080,
+        "thumbnail": "https://i.vimeocdn.com/video/2086971262-15b7169351a4529521b6e7e70f3c6d956cf07553b4043900637a9f17d2940797-d_1280?region=us"
+      },
+      "referenceEditors": ["69844762668f6310d841923d", "69844734a7115796512cc663", "69845102fc69feacaf674379"],
+      "order": 3,
+      "isDraft": false
+    },
+    {
+      "id": "69844ac1f4df110696d95249",
+      "name": "E-commerce Platform",
+      "slug": "ecommerce-platform",
+      "client": "Retail Ventures",
+      "year": "2021",
+      "typeOfWork": "Short Film",
+      "visitLink": "https://vimeo.com/1158598174?fl=pl&fe=sh",
+      "thumbnailCover": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698cf25d42bc5f14127422c5_Screenshot%202026-02-11%20at%204.19.13%E2%80%AFPM.png",
+      "video": {
+        "url": "https://vimeo.com/1158598174?fl=pl&fe=sh",
+        "title": "HARRY STYLES - APERTURE",
+        "author": "AUBE PERRIE",
+        "description": "Harry Styles 'Aperture' written and directed by Aube Perrie, produced by DIVISION.",
+        "provider": "Vimeo",
+        "width": 1920,
+        "height": 1080,
+        "thumbnail": "https://i.vimeocdn.com/video/2112694699-dbe6622df75a19d6e1f2993d10eedf840b487984f69c8a716d012f4c23305747-d_1280?region=us"
+      },
+      "referenceEditors": ["69844762668f6310d841923d", "69844734a7115796512cc663", "69845102fc69feacaf674379"],
+      "order": 4,
+      "isDraft": false
+    },
+    {
+      "id": "69844ac1f4df110696d9524b",
+      "name": "Digital Marketing Strategy",
+      "slug": "digital-marketing-strategy",
+      "client": "Marketing Gurus",
+      "year": "2023",
+      "typeOfWork": "Film Trailer",
+      "visitLink": "https://vimeo.com/1161071310?fl=pl&fe=sh",
+      "thumbnailCover": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698cf23b5fabf7d9024df64f_Screenshot%202026-02-11%20at%204.18.39%E2%80%AFPM.png",
+      "video": {
+        "url": "https://vimeo.com/1161071310?fl=pl&fe=sh",
+        "title": "Ever Behind The Sunset",
+        "author": "Jason Mitcham",
+        "description": "A hand-painted stop-motion elegy, Ever Behind the Sunset traces the erasure of a family home by eminent domain, accompanied by a soundscape drawn from archival family VHS recordings.",
+        "provider": "Vimeo",
+        "width": 1920,
+        "height": 1280,
+        "thumbnail": "https://i.vimeocdn.com/video/2119164000-95f3ed273e5bf7a755be5414317dd6ad07dbdfc5a220767a0f2475b560c2f740-d_1280?region=us"
+      },
+      "referenceEditors": ["69844734a7115796512cc663", "69845102fc69feacaf674379", "69844762668f6310d841923d"],
+      "order": 5,
+      "isDraft": false
+    }
+  ]
+}
