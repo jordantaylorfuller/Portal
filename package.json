@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "build": "node scripts/build-cms-pages.mjs"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0"
   }

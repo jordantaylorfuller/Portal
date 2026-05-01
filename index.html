@@ -16,7 +16,32 @@
   <link href="images/webclip.png" rel="apple-touch-icon"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+  <script>!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js"+t+"ix3",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  <script>
+    // Insert a master gain in front of every AudioContext destination so we can fade
+    // the Scrubber's synthesized audio (Web Audio oscillators -> destination) in/out
+    // when the CLIENTS link slides the landing away or BACK slides it back.
+    (function () {
+      var Orig = window.AudioContext || window.webkitAudioContext;
+      if (!Orig) return;
+      window.__nipcMasterGains = [];
+      function Patched(opts) {
+        var ctx = opts !== undefined ? new Orig(opts) : new Orig();
+        try {
+          var realDest = Orig.prototype.__lookupGetter__('destination').call(ctx);
+          var master = ctx.createGain();
+          master.connect(realDest);
+          Object.defineProperty(ctx, 'destination', { get: function () { return master; }, configurable: true });
+          window.__nipcMasterGains.push({ ctx: ctx, gain: master });
+        } catch (e) { /* if intercept fails the audio just plays normally */ }
+        return ctx;
+      }
+      Patched.prototype = Orig.prototype;
+      window.AudioContext = Patched;
+      if (window.webkitAudioContext) window.webkitAudioContext = Patched;
+    })();
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -2062,10 +2087,11 @@
       margin-top: 12px;
     }
 
-    .portal-link {
+    .portal-link,
+    .home-link {
       position: fixed;
       top: 20px;
-      right: 24px;
+      z-index: 100;
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       font-weight: 400;
@@ -2077,7 +2103,11 @@
       transition: opacity 0.2s ease;
     }
 
-    .portal-link:hover {
+    .portal-link { right: 24px; }
+    .home-link { left: 24px; }
+
+    .portal-link:hover,
+    .home-link:hover {
       opacity: 0.8;
     }
     /* ── Mobile ── */
@@ -2431,12 +2461,30 @@
 
   <!-- Landing page overlay (slides left to reveal login) -->
   <div class="landing-page">
+    <a href="/home" class="home-link">Home</a>
     <a href="#" class="portal-link">Clients</a>
-    <div class="container">
-      <h1 class="heading">While we're busy building a<br/><span>new international picture company</span>,<br/>feel free to play around with our logo.</h1>
-      <h2 class="subheading">Sound on, please.</h2>
-      <a href="#" class="btn">Play</a>
-    </div>
+    <code-island
+      data-loader='{"tag":"FEDERATION","val":{"clientModuleUrl":"/home/js/scrubber/wf-manifest.json","moduleId":"_69a006de65dbfb3c908606dc","submoduleId":"SoundscapeScrubber","exportPath":"default","serverModuleUrl":"_"}}'
+      data-props='{"framesBaseUrl":"/home/scrubber/frames/"}'
+      data-slots="[]"
+      data-hydrate="true"
+      data-webflow-context='{"mode":"publish","interactive":true,"locale":"en"}'
+      data-interactive="true"
+      style="display:contents">
+      <template shadowrootmode="open">
+        <link rel="stylesheet" type="text/css" href="/home/js/scrubber/d5fbce1f3a44483935a3.css">
+        <div data-root="true" style="display:contents">
+          <div class="VDF8FyhPZeWZzhNwOiqg">
+            <div class="oH0hZAnH1QthrFy5usPu">
+              <span>Loading frames... <!-- -->0<!-- -->%</span>
+              <div class="MFOrhpDSqfLbZQUK2SsP">
+                <div class="eN92Zm4wSPKCZpSj6B_7" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </code-island>
   </div>
 
   <script src="https://unpkg.com/@daily-co/daily-js"></script>
@@ -2946,8 +2994,24 @@
 
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
+      fadeScrubberAudio('out', 0.7);
       landingPage.classList.add('slid');
     });
+
+    // Ramp every master gain we patched into the AudioContext(s). 'in' goes to 1, 'out' goes to 0.
+    function fadeScrubberAudio(direction, durationSec) {
+      var entries = window.__nipcMasterGains || [];
+      var target = direction === 'in' ? 1 : 0;
+      entries.forEach(function (e) {
+        try {
+          var now = e.ctx.currentTime;
+          e.gain.gain.cancelScheduledValues(now);
+          // Anchor the curve at the current value, then ramp linearly.
+          e.gain.gain.setValueAtTime(e.gain.gain.value, now);
+          e.gain.gain.linearRampToValueAtTime(target, now + durationSec);
+        } catch (err) { /* gain ramp failed; ignore */ }
+      });
+    }
 
     // Dev login -- skip auth, sign in as Jordan
     var _devLogin = false;
@@ -3775,6 +3839,7 @@
 	        resetLoginStates();
 	      }
 	      landingPage.classList.remove('slid');
+	      fadeScrubberAudio('in', 0.7);
 	    });
 
     // Session back button
@@ -4589,5 +4654,8 @@
     }
   </script>
 
+  <script src="/home/js/jquery.min.js"></script>
+  <script src="/home/js/webflow.schunk.js"></script>
+  <script src="/home/js/webflow.js"></script>
 </body>
 </html>

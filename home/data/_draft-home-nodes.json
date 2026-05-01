@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "source": "Webflow page 69825ff81e64a3a9dbde7859 (draft Home)",
+    "siteId": "69825ff61e64a3a9dbde7814",
+    "snapshotAt": "2026-04-29",
+    "totalNodes": 92,
+    "note": "Webflow MCP returns a FLAT list of nodes (text + image + component-instance) with class names but does NOT expose the parent-child DOM structure. To rebuild the layout faithfully we need the rendered HTML (publish + curl) or a Webflow Code Export ZIP."
+  },
+  "summary": {
+    "sections": [
+      "Studio info block (STUDIO label, NEW INTERNATIONAL PICTURE COMPANY, LOCATION NEW YORK NY, SEASON 2026, STATUS OPERATIONAL)",
+      "Hero title (NEW INTERNATIONAL PICTURE COMPANY)",
+      "Service tags ([F] FILM, [C] COMMERCIAL, [M] MUSIC VIDEO, [D] DOCUMENTARY)",
+      "Value prop paragraph (NIPC IS A POST-PRODUCTION STUDIO SPECIALIZING IN EDITORIAL...)",
+      "Editor index header (NO. EDITOR ROLE Client(s) Year)",
+      "Editor Roll component placeholders (cb6a27650-ed43-d370-8524-d9d6433589bb)",
+      "Editor Profile (uses Editor Detail Roll component aef2a072-8732-9b67-bc8f-9cda28e69f7c)",
+      "Drag indicator (◀︎ drag to see more ▶︎)",
+      "Founder Editor section (Carla)",
+      "Footer with contact info and social links",
+      "Version footer (VER.VON: 2.0.24, LAST UPDATE: 01.14.2026, STATUS: OPERATIONAL)"
+    ],
+    "componentIds": {
+      "editorRoll": "b6a27650-ed43-d370-8524-d9d6433589bb",
+      "editorDetailRollWorkCard": "aef2a072-8732-9b67-bc8f-9cda28e69f7c",
+      "editorDetailRoll": "69d8bd7a-40a9-f974-d6c4-0c87ea4c3981"
+    },
+    "placeholders": [
+      "Many work cards have placeholder text: 'NIKE | Artist name Name', 'Cool Project', 'Carbin', year '63281'",
+      "Phone shows 'COMING SOON' as placeholder",
+      "Footer text 'VER.VON: 2.0.24' is fake version string",
+      "Editor Index 'TOTAL ENTRIES: 13' matches the actual Editors collection count"
+    ],
+    "openQuestions": [
+      "The draft Home page in Webflow appears to still be in WIP state with placeholder copy in several places — is the design intent finalized or are you still iterating?",
+      "Without a Code Export or staging URL, faithful layout reconstruction requires reading the Webflow CSS class system and inferring structure — this is best-effort, not pixel-perfect."
+    ]
+  }
+}
