@@ -1,0 +1,1 @@
+(function(){var s=document.createElement('style');s.textContent='@supports(height:100dvh){.body-2{min-height:100dvh!important}}@media(max-width:991px){.body-2{background-color:#F3F0ED!important}}';document.head.appendChild(s)})();
