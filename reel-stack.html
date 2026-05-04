@@ -84,11 +84,9 @@
 
     .stack {
       position: relative;
-      transform-style: preserve-3d;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      max-height: calc(56.25vw * 0.92);
+      gap: 10px;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: rgba(255,255,255,0.15) transparent;
@@ -132,8 +130,12 @@
       filter: brightness(0.5);
       opacity: 0.5;
     }
-    .stack-item:hover { transform: translateZ(40px) translateX(-12px) scale(1.04); }
-    .stack-item.is-active:hover { transform: none; }
+    .stack-item:hover {
+      box-shadow:
+        0 24px 50px rgba(0,0,0,0.7),
+        0 8px 16px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(220,40,40,0.6);
+    }
 
     /* Motion blur during swap */
     .stage-wrap.shifting .featured-card,
@@ -302,22 +304,15 @@
         if (e.key === 'ArrowUp') goTo(current - 1);
       });
 
-      // Mouse parallax on stack
-      var stageWrap = document.getElementById('stage-wrap');
-      stageWrap.addEventListener('mousemove', function(e){
-        if (transitioning) return;
-        var rect = stageWrap.getBoundingClientRect();
-        var nx = (e.clientX - rect.left) / rect.width - 0.5;  // -0.5..0.5
-        var ny = (e.clientY - rect.top) / rect.height - 0.5;
-        var stack = document.getElementById('stack');
-        stack.style.transform = 'rotateY(' + (-nx * 6) + 'deg) rotateX(' + (ny * 4) + 'deg)';
-        var fc = document.getElementById('featured-card');
-        fc.style.transform = 'rotateY(' + (-nx * 2) + 'deg) rotateX(' + (ny * 1.5) + 'deg) translateZ(20px)';
-      });
-      stageWrap.addEventListener('mouseleave', function(){
-        document.getElementById('stack').style.transform = '';
-        document.getElementById('featured-card').style.transform = '';
-      });
+      // Pin stack height to match featured exactly
+      var featuredEl = document.getElementById('featured');
+      var stackEl = document.getElementById('stack');
+      var syncHeight = function() { stackEl.style.height = featuredEl.offsetHeight + 'px'; };
+      syncHeight();
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(syncHeight).observe(featuredEl);
+      }
+      window.addEventListener('resize', syncHeight);
 
       mountFeatured();
       updateMeta();
