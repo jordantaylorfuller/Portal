@@ -171,6 +171,22 @@
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.3);
     }
+
+    .style-picker {
+      position: fixed; bottom: 24px; right: 24px; z-index: 60;
+      display: flex; gap: 8px;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .style-picker a {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      transition: color 150ms, border-color 150ms;
+    }
+    .style-picker a:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+    .style-picker a.current { color: #fff; border-color: rgb(220,40,40); background: rgba(220,40,40,0.08); }
   </style>
 </head>
 <body>
@@ -182,6 +198,12 @@
   <main id="main">
     <div class="loader">Loading.</div>
   </main>
+
+  <nav class="style-picker" id="style-picker">
+    <a href="#" data-style="baseline" class="current">List</a>
+    <a href="#" data-style="coverflow">Cover Flow</a>
+    <a href="#" data-style="stack">Stack</a>
+  </nav>
 
   <script>
     var slug = new URLSearchParams(location.search).get('s');
@@ -265,6 +287,15 @@
     }
 
     load();
+
+    document.getElementById('style-picker').addEventListener('click', function(e){
+      var a = e.target.closest('a[data-style]');
+      if (!a) return;
+      e.preventDefault();
+      var style = a.dataset.style;
+      var url = (style === 'baseline' ? '/reel.html' : '/reel-' + style + '.html') + '?s=' + encodeURIComponent(slug);
+      location.href = url;
+    });
   </script>
 </body>
 </html>

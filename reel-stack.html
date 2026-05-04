@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>NIPC</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 22px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 50;
+      mix-blend-mode: difference;
+    }
+    .header-mark { font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; }
+    .header-mark .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: rgb(220, 40, 40); margin-right: 10px; vertical-align: middle; }
+    .header-meta { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; opacity: 0.6; }
+
+    .hero {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 110px 32px 30px;
+    }
+    .hero-eyebrow { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+    .hero-title { font-size: clamp(28px, 5vw, 56px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 16px; }
+    .hero-desc { font-size: 14px; font-weight: 300; line-height: 1.7; color: rgba(255,255,255,0.55); max-width: 560px; }
+
+    /* ── 3D Floating Stack ── */
+    .stage-wrap {
+      position: relative;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 32px;
+      perspective: 2000px;
+      perspective-origin: 30% 40%;
+    }
+
+    .featured {
+      position: relative;
+      aspect-ratio: 16/9;
+      transform-style: preserve-3d;
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .featured-card {
+      position: absolute;
+      inset: 0;
+      box-shadow:
+        0 60px 140px rgba(0,0,0,0.85),
+        0 24px 50px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 0 100px rgba(220,40,40,0.18);
+      background: #000 center/cover no-repeat;
+      transform: translateZ(0);
+      transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease;
+      will-change: transform, opacity;
+    }
+    .featured-card mux-player, .featured-card .poster {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      background: center/cover no-repeat #000;
+    }
+
+    .stack {
+      position: relative;
+      transform-style: preserve-3d;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-self: stretch;
+      padding-top: 8px;
+    }
+    .stack-item {
+      position: relative;
+      aspect-ratio: 16/9;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transform-origin: center center;
+      transition:
+        transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 600ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 500ms ease,
+        box-shadow 500ms ease;
+      box-shadow:
+        0 24px 50px rgba(0,0,0,0.7),
+        0 8px 16px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.04);
+      background: #000 center/cover no-repeat;
+      will-change: transform, filter, opacity;
+    }
+    .stack-item::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6));
+      pointer-events: none;
+    }
+    .stack-item .label {
+      position: absolute;
+      left: 12px; right: 12px; bottom: 10px;
+      font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      z-index: 2;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .stack-item.is-active {
+      filter: brightness(0.5);
+      opacity: 0.5;
+    }
+    .stack-item:hover { transform: translateZ(40px) translateX(-12px) scale(1.04); }
+    .stack-item.is-active:hover { transform: none; }
+
+    /* Motion blur during swap */
+    .stage-wrap.shifting .featured-card,
+    .stage-wrap.shifting .stack-item { filter: blur(6px); }
+
+    .meta {
+      max-width: 1180px;
+      margin: 24px auto 0;
+      padding: 0 32px;
+      display: flex; align-items: baseline; justify-content: space-between;
+    }
+    .meta-title {
+      font-size: 16px; font-weight: 400; letter-spacing: 0.02em;
+      transition: opacity 250ms ease;
+    }
+    .meta-title.fade { opacity: 0; }
+    .meta-pos {
+      font-variant-numeric: tabular-nums;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .footer {
+      max-width: 1180px;
+      margin: 80px auto 0;
+      padding: 32px 32px 60px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .empty, .loader {
+      max-width: 720px; margin: 200px auto;
+      padding: 0 32px; text-align: center;
+    }
+    .empty-title { font-size: 16px; margin-bottom: 12px; }
+    .empty-msg { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+    .loader { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+    .style-picker {
+      position: fixed; bottom: 24px; right: 24px; z-index: 60;
+      display: flex; gap: 8px;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .style-picker a {
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      transition: color 150ms, border-color 150ms;
+    }
+    .style-picker a:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+    .style-picker a.current { color: #fff; border-color: rgb(220,40,40); background: rgba(220,40,40,0.08); }
+
+    @media (max-width: 800px) {
+      .stage-wrap { grid-template-columns: 1fr; }
+      .stack { flex-direction: row; overflow-x: auto; gap: 12px; padding-bottom: 12px; }
+      .stack-item { flex: 0 0 220px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-mark"><span class="dot"></span>NIPC</div>
+    <div class="header-meta" id="header-meta">Selected Work</div>
+  </header>
+
+  <main id="main">
+    <div class="loader">Loading.</div>
+  </main>
+
+  <nav class="style-picker" id="style-picker">
+    <a href="#" data-style="baseline">List</a>
+    <a href="#" data-style="coverflow">Cover Flow</a>
+    <a href="#" data-style="stack" class="current">Stack</a>
+  </nav>
+
+  <script>
+    var slug = new URLSearchParams(location.search).get('s');
+    var current = 0;
+    var assets = [];
+    var muxEl = null;
+    var transitioning = false;
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+      });
+    }
+    function thumbUrl(playbackId) {
+      return 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=1280&fit_mode=preserve';
+    }
+    function fmtDuration(seconds) {
+      if (!seconds) return '';
+      var s = Math.round(seconds);
+      var m = Math.floor(s / 60);
+      var r = s % 60;
+      return m + ':' + (r < 10 ? '0' + r : r);
+    }
+    function renderEmpty(title, msg) {
+      document.getElementById('main').innerHTML =
+        '<div class="empty"><div class="empty-title">' + escapeHtml(title) + '</div>' +
+        '<div class="empty-msg">' + escapeHtml(msg) + '</div></div>';
+    }
+
+    async function load() {
+      if (!slug) return renderEmpty('Reel not found', 'This link is missing a reel identifier.');
+      var res, data;
+      try {
+        res = await fetch('/api/reels/public?s=' + encodeURIComponent(slug));
+        data = await res.json();
+      } catch (e) { return renderEmpty('Connection error', 'Try refreshing the page.'); }
+      if (res.status === 404 || !data.reel) return renderEmpty('Reel not found', 'This reel may have moved or been unpublished.');
+
+      assets = data.assets || [];
+      var reel = data.reel;
+      document.title = 'NIPC | ' + reel.title;
+      document.getElementById('header-meta').textContent = reel.title;
+
+      var html = '';
+      html += '<section class="hero">';
+      html += '  <div class="hero-eyebrow">Selected Work</div>';
+      html += '  <h1 class="hero-title">' + escapeHtml(reel.title) + '</h1>';
+      if (reel.description) html += '<p class="hero-desc">' + escapeHtml(reel.description) + '</p>';
+      html += '</section>';
+
+      if (!assets.length) {
+        html += '<div class="empty"><div class="empty-title">Coming soon</div><div class="empty-msg">Videos for this reel are still being prepared.</div></div>';
+        document.getElementById('main').innerHTML = html;
+        return;
+      }
+
+      html += '<div class="stage-wrap" id="stage-wrap">';
+      html += '  <div class="featured" id="featured">';
+      html += '    <div class="featured-card" id="featured-card"></div>';
+      html += '  </div>';
+      html += '  <div class="stack" id="stack">';
+      assets.forEach(function(a, i) {
+        html += '<div class="stack-item' + (i === 0 ? ' is-active' : '') + '" data-i="' + i + '" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')">';
+        html += '  <div class="label">' + escapeHtml(a.title || '') + '</div>';
+        html += '</div>';
+      });
+      html += '  </div>';
+      html += '</div>';
+
+      html += '<div class="meta">';
+      html += '  <div class="meta-title" id="meta-title"></div>';
+      html += '  <div class="meta-pos" id="meta-pos"></div>';
+      html += '</div>';
+
+      html += '<footer class="footer"><div>NIPC &nbsp;//&nbsp; New International Picture Company</div><div>New York</div></footer>';
+
+      document.getElementById('main').innerHTML = html;
+
+      // Wire up stack items
+      document.querySelectorAll('.stack-item').forEach(function(item){
+        item.addEventListener('click', function(){
+          var i = Number(item.dataset.i);
+          if (i !== current) goTo(i);
+        });
+      });
+      window.addEventListener('keydown', function(e){
+        if (e.key === 'ArrowDown') goTo(current + 1);
+        if (e.key === 'ArrowUp') goTo(current - 1);
+      });
+
+      // Mouse parallax on stack
+      var stageWrap = document.getElementById('stage-wrap');
+      stageWrap.addEventListener('mousemove', function(e){
+        if (transitioning) return;
+        var rect = stageWrap.getBoundingClientRect();
+        var nx = (e.clientX - rect.left) / rect.width - 0.5;  // -0.5..0.5
+        var ny = (e.clientY - rect.top) / rect.height - 0.5;
+        var stack = document.getElementById('stack');
+        stack.style.transform = 'rotateY(' + (-nx * 6) + 'deg) rotateX(' + (ny * 4) + 'deg)';
+        var fc = document.getElementById('featured-card');
+        fc.style.transform = 'rotateY(' + (-nx * 2) + 'deg) rotateX(' + (ny * 1.5) + 'deg) translateZ(20px)';
+      });
+      stageWrap.addEventListener('mouseleave', function(){
+        document.getElementById('stack').style.transform = '';
+        document.getElementById('featured-card').style.transform = '';
+      });
+
+      mountFeatured();
+      updateMeta();
+    }
+
+    function clamp(i) { return Math.max(0, Math.min(assets.length - 1, i)); }
+
+    function goTo(i) {
+      i = clamp(i);
+      if (i === current || transitioning) return;
+      transitioning = true;
+      var stageWrap = document.getElementById('stage-wrap');
+      stageWrap.classList.add('shifting');
+      document.getElementById('meta-title').classList.add('fade');
+
+      unmountMux();
+      // Update active state on stack items
+      document.querySelectorAll('.stack-item').forEach(function(el){
+        el.classList.toggle('is-active', Number(el.dataset.i) === i);
+      });
+      current = i;
+
+      setTimeout(function(){
+        mountFeatured();
+        updateMeta();
+        stageWrap.classList.remove('shifting');
+        document.getElementById('meta-title').classList.remove('fade');
+        transitioning = false;
+      }, 600);
+    }
+
+    function unmountMux() {
+      if (muxEl) { try { muxEl.pause(); } catch (e) {} muxEl.remove(); muxEl = null; }
+    }
+
+    function mountFeatured() {
+      var card = document.getElementById('featured-card');
+      var a = assets[current];
+      // Set thumbnail bg as fallback
+      card.style.backgroundImage = 'url(' + thumbUrl(a.mux_playback_id) + ')';
+      // Mount mux player on top
+      muxEl = document.createElement('mux-player');
+      muxEl.setAttribute('playback-id', a.mux_playback_id);
+      muxEl.setAttribute('stream-type', 'on-demand');
+      muxEl.setAttribute('accent-color', '#dc2828');
+      muxEl.setAttribute('disable-cookies', '');
+      muxEl.style.position = 'absolute';
+      muxEl.style.inset = '0';
+      muxEl.style.width = '100%';
+      muxEl.style.height = '100%';
+      muxEl.style.setProperty('--seek-backward-button', 'none');
+      muxEl.style.setProperty('--seek-forward-button', 'none');
+      muxEl.style.setProperty('--captions-button', 'none');
+      muxEl.style.setProperty('--airplay-button', 'none');
+      muxEl.style.setProperty('--cast-button', 'none');
+      muxEl.style.setProperty('--pip-button', 'none');
+      card.appendChild(muxEl);
+    }
+
+    function updateMeta() {
+      var a = assets[current];
+      var titleEl = document.getElementById('meta-title');
+      var posEl = document.getElementById('meta-pos');
+      var dur = fmtDuration(a.duration_seconds);
+      titleEl.textContent = a.title || '';
+      posEl.textContent = (current + 1) + ' / ' + assets.length + (dur ? '  ·  ' + dur : '');
+    }
+
+    document.getElementById('style-picker').addEventListener('click', function(e){
+      var a = e.target.closest('a[data-style]');
+      if (!a) return;
+      e.preventDefault();
+      var style = a.dataset.style;
+      var url = (style === 'baseline' ? '/reel.html' : '/reel-' + style + '.html') + '?s=' + encodeURIComponent(slug);
+      location.href = url;
+    });
+
+    load();
+  </script>
+</body>
+</html>
