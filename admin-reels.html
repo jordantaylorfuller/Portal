@@ -354,6 +354,7 @@
       } catch (e) { toast('Sync error: ' + e.message); }
     }
 
+
     // ── Editor view ──
     async function renderEditor(reelId) {
       $back.style.display = 'inline-block';
@@ -452,7 +453,8 @@
       document.getElementById('save-meta').addEventListener('click', async function(){
         var status = $main.querySelector('.status-toggle .active').dataset.status;
         try {
-          await api('/api/reels/' + reel.id, { method: 'PATCH', body: JSON.stringify({
+          await api('/api/reels/update', { method: 'POST', body: JSON.stringify({
+            id: reel.id,
             title: document.getElementById('f-title').value,
             description: document.getElementById('f-desc').value,
             status: status,
@@ -477,7 +479,7 @@
 
       document.getElementById('delete-reel').addEventListener('click', async function(){
         if (!confirm('Delete this reel and all its videos? This cannot be undone.')) return;
-        try { await api('/api/reels/' + reel.id, { method: 'DELETE' }); location.hash = ''; }
+        try { await api('/api/reels/delete', { method: 'POST', body: JSON.stringify({ id: reel.id }) }); location.hash = ''; }
         catch (e) { toast('Delete failed: ' + e.message); }
       });
 
@@ -485,7 +487,9 @@
         b.addEventListener('click', async function(){
           if (!confirm('Delete this video?')) return;
           try {
-            await api('/api/reels/' + reel.id + '/asset/' + b.dataset.id, { method: 'DELETE' });
+            await api('/api/reels/delete-asset', { method: 'POST',
+              body: JSON.stringify({ reel_id: reel.id, asset_id: b.dataset.id })
+            });
             renderEditor(reel.id);
           } catch (e) { toast('Delete failed: ' + e.message); }
         });
@@ -496,8 +500,9 @@
         inp.addEventListener('blur', async function(){
           if (inp.value === initial) return;
           try {
-            await api('/api/reels/' + reel.id + '/asset/' + inp.dataset.id, {
-              method: 'PATCH', body: JSON.stringify({ title: inp.value })
+            await api('/api/reels/update-asset', {
+              method: 'POST',
+              body: JSON.stringify({ reel_id: reel.id, asset_id: inp.dataset.id, title: inp.value })
             });
             initial = inp.value;
             toast('Renamed');
@@ -507,7 +512,7 @@
 
       document.getElementById('sync-this').addEventListener('click', async function(){
         toast('Scanning.');
-        try { await api('/api/reels/' + reel.id + '/sync', { method: 'POST' }); renderEditor(reel.id); }
+        try { await api('/api/reels/sync', { method: 'POST', body: JSON.stringify({ reel_id: reel.id }) }); renderEditor(reel.id); }
         catch (e) { toast('Sync failed: ' + e.message); }
       });
 
@@ -537,8 +542,8 @@
           if (fromIdx < 0 || toIdx < 0) return;
           ids.splice(toIdx, 0, ids.splice(fromIdx, 1)[0]);
           for (var i = 0; i < ids.length; i++) {
-            try { await api('/api/reels/' + reel.id + '/asset/' + ids[i], {
-              method: 'PATCH', body: JSON.stringify({ sort_order: i })
+            try { await api('/api/reels/update-asset', {
+              method: 'POST', body: JSON.stringify({ reel_id: reel.id, asset_id: ids[i], sort_order: i })
             }); } catch (e) {}
           }
           renderEditor(reel.id);
@@ -548,15 +553,15 @@
 
     async function uploadOne(reelId, file) {
       try {
-        var p = await api('/api/reels/' + reelId + '/presign', {
+        var p = await api('/api/reels/presign', {
           method: 'POST',
-          body: JSON.stringify({ filename: file.name, contentType: file.type || 'application/octet-stream' })
+          body: JSON.stringify({ reel_id: reelId, filename: file.name, contentType: file.type || 'application/octet-stream' })
         });
         var put = await fetch(p.url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
         if (!put.ok) throw new Error('Storj PUT failed: ' + put.status);
-        await api('/api/reels/' + reelId + '/asset/register', {
+        await api('/api/reels/register-asset', {
           method: 'POST',
-          body: JSON.stringify({ s3_key: p.key, title: file.name.replace(/\.[^.]+$/, '') })
+          body: JSON.stringify({ reel_id: reelId, s3_key: p.key, title: file.name.replace(/\.[^.]+$/, '') })
         });
       } catch (e) { toast('Upload failed: ' + e.message); }
     }

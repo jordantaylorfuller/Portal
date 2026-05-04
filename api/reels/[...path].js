@@ -4,6 +4,9 @@ const { adminClient } = require('../../lib/supabase');
 const { presignPut, presignGet, listPrefix, deleteObject } = require('../../lib/storj');
 const { createAssetFromUrl, deleteAsset } = require('../../lib/mux');
 
+// All routes are single-segment under /api/reels/<route>. IDs go in the body or query.
+// Vercel's [...path].js catch-all only routes 1 path segment to the function on this runtime.
+
 const slugId = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 16);
 const ROOT_PREFIX = (process.env.REELS_ROOT_PREFIX || 'reels/').replace(/\/+$/, '') + '/';
 const VIDEO_EXTS = new Set(['mov', 'mp4', 'm4v', 'mkv', 'webm', 'avi', 'mxf']);
@@ -11,12 +14,11 @@ const VIDEO_EXTS = new Set(['mov', 'mp4', 'm4v', 'mkv', 'webm', 'avi', 'mxf']);
 module.exports = async function handler(req, res) {
   const raw = req.query.path || req.query['...path'];
   const segments = Array.isArray(raw) ? raw : raw ? [raw] : [];
-  const route = segments.join('/');
+  const route = segments[0] || '';
 
   try {
-    if (segments[0] === 'public' && segments.length === 2 && req.method === 'GET') {
-      return publicReel(req, res, segments[1]);
-    }
+    if (route === 'public' && req.method === 'GET') return publicReel(req, res);
+
     if (route === 'sync-all' && req.method === 'POST') {
       const ok = isCronCall(req) || (await requireAdmin(req, res));
       if (!ok) return;
@@ -28,27 +30,15 @@ module.exports = async function handler(req, res) {
 
     if (route === 'list' && req.method === 'GET') return listReels(res);
     if (route === 'create' && req.method === 'POST') return createReel(req, res, auth);
+    if (route === 'update' && req.method === 'POST') return patchReel(req, res);
+    if (route === 'delete' && req.method === 'POST') return deleteReel(req, res);
+    if (route === 'presign' && req.method === 'POST') return presignUpload(req, res);
+    if (route === 'register-asset' && req.method === 'POST') return registerAsset(req, res);
+    if (route === 'update-asset' && req.method === 'POST') return patchAsset(req, res);
+    if (route === 'delete-asset' && req.method === 'POST') return deleteAssetRoute(req, res);
+    if (route === 'sync' && req.method === 'POST') return syncReel(req, res);
 
-    if (segments.length === 1 && req.method === 'PATCH') return patchReel(req, res, segments[0]);
-    if (segments.length === 1 && req.method === 'DELETE') return deleteReel(req, res, segments[0]);
-
-    if (segments.length === 2 && segments[1] === 'presign' && req.method === 'POST') {
-      return presignUpload(req, res, segments[0]);
-    }
-    if (segments.length === 3 && segments[1] === 'asset' && segments[2] === 'register' && req.method === 'POST') {
-      return registerAsset(req, res, segments[0]);
-    }
-    if (segments.length === 3 && segments[1] === 'asset' && req.method === 'PATCH') {
-      return patchAsset(req, res, segments[0], segments[2]);
-    }
-    if (segments.length === 3 && segments[1] === 'asset' && req.method === 'DELETE') {
-      return deleteAssetRoute(req, res, segments[0], segments[2]);
-    }
-    if (segments.length === 2 && segments[1] === 'sync' && req.method === 'POST') {
-      return syncReel(req, res, segments[0]);
-    }
-
-    return res.status(404).json({ error: 'Not found' });
+    return res.status(404).json({ error: 'Not found', route, method: req.method });
   } catch (err) {
     console.error('reels handler error:', err);
     return res.status(500).json({ error: err.message || 'Internal error' });
@@ -138,10 +128,12 @@ async function createReel(req, res, auth) {
   res.json({ reel });
 }
 
-async function patchReel(req, res, id) {
+async function patchReel(req, res) {
+  const { id } = req.body || {};
+  if (!id) return res.status(400).json({ error: 'id required' });
   const allowed = ['title', 'description', 'cover_url', 'status'];
   const patch = {};
-  for (const k of allowed) if (k in (req.body || {})) patch[k] = req.body[k];
+  for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
   if (patch.status && !['draft', 'published', 'archived'].includes(patch.status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
@@ -150,7 +142,9 @@ async function patchReel(req, res, id) {
   res.json({ reel: data });
 }
 
-async function deleteReel(req, res, id) {
+async function deleteReel(req, res) {
+  const { id } = req.body || {};
+  if (!id) return res.status(400).json({ error: 'id required' });
   const { data: assets } = await adminClient
     .from('reel_assets').select('id, s3_key, mux_asset_id').eq('reel_id', id);
   for (const a of assets || []) {
@@ -162,10 +156,10 @@ async function deleteReel(req, res, id) {
   res.json({ ok: true });
 }
 
-async function presignUpload(req, res, reelId) {
-  const { filename, contentType } = req.body || {};
-  if (!filename) return res.status(400).json({ error: 'filename required' });
-  const { data: reel } = await adminClient.from('reels').select('s3_prefix').eq('id', reelId).single();
+async function presignUpload(req, res) {
+  const { reel_id, filename, contentType } = req.body || {};
+  if (!reel_id || !filename) return res.status(400).json({ error: 'reel_id and filename required' });
+  const { data: reel } = await adminClient.from('reels').select('s3_prefix').eq('id', reel_id).single();
   if (!reel) return res.status(404).json({ error: 'Reel not found' });
   const safe = filename.replace(/[^a-zA-Z0-9._-]+/g, '_');
   const key = reel.s3_prefix + Date.now() + '-' + safe;
@@ -173,10 +167,10 @@ async function presignUpload(req, res, reelId) {
   res.json({ url, key });
 }
 
-async function registerAsset(req, res, reelId) {
-  const { s3_key, title } = req.body || {};
-  if (!s3_key) return res.status(400).json({ error: 's3_key required' });
-  const inserted = await insertAsset(reelId, s3_key, title);
+async function registerAsset(req, res) {
+  const { reel_id, s3_key, title } = req.body || {};
+  if (!reel_id || !s3_key) return res.status(400).json({ error: 'reel_id and s3_key required' });
+  const inserted = await insertAsset(reel_id, s3_key, title);
   res.json({ asset: inserted });
 }
 
@@ -208,30 +202,36 @@ async function insertAsset(reelId, s3_key, title) {
   return row;
 }
 
-async function patchAsset(req, res, reelId, assetId) {
+async function patchAsset(req, res) {
+  const { reel_id, asset_id } = req.body || {};
+  if (!reel_id || !asset_id) return res.status(400).json({ error: 'reel_id and asset_id required' });
   const allowed = ['title', 'sort_order'];
   const patch = {};
-  for (const k of allowed) if (k in (req.body || {})) patch[k] = req.body[k];
+  for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
   const { data, error } = await adminClient
     .from('reel_assets').update(patch)
-    .eq('id', assetId).eq('reel_id', reelId).select().single();
+    .eq('id', asset_id).eq('reel_id', reel_id).select().single();
   if (error) throw error;
   res.json({ asset: data });
 }
 
-async function deleteAssetRoute(req, res, reelId, assetId) {
+async function deleteAssetRoute(req, res) {
+  const { reel_id, asset_id } = req.body || {};
+  if (!reel_id || !asset_id) return res.status(400).json({ error: 'reel_id and asset_id required' });
   const { data: a } = await adminClient
     .from('reel_assets').select('s3_key, mux_asset_id')
-    .eq('id', assetId).eq('reel_id', reelId).single();
+    .eq('id', asset_id).eq('reel_id', reel_id).single();
   if (!a) return res.status(404).json({ error: 'Asset not found' });
   await deleteAsset(a.mux_asset_id).catch(e => console.error('mux delete:', e.message));
   await deleteObject(a.s3_key).catch(e => console.error('storj delete:', e.message));
-  await adminClient.from('reel_assets').delete().eq('id', assetId);
+  await adminClient.from('reel_assets').delete().eq('id', asset_id);
   res.json({ ok: true });
 }
 
-async function syncReel(req, res, reelId) {
-  const { data: reel } = await adminClient.from('reels').select('id, s3_prefix').eq('id', reelId).single();
+async function syncReel(req, res) {
+  const { reel_id } = req.body || {};
+  if (!reel_id) return res.status(400).json({ error: 'reel_id required' });
+  const { data: reel } = await adminClient.from('reels').select('id, s3_prefix').eq('id', reel_id).single();
   if (!reel) return res.status(404).json({ error: 'Reel not found' });
   const result = await reconcileReel(reel);
   res.json(result);
@@ -297,7 +297,9 @@ async function reconcileReel(reel) {
   return { added, removed };
 }
 
-async function publicReel(req, res, slug) {
+async function publicReel(req, res) {
+  const slug = req.query.s;
+  if (!slug) return res.status(400).json({ error: 's query param required' });
   const { data: reel, error } = await adminClient
     .from('public_reels_view').select('*').eq('slug', slug).maybeSingle();
   if (error) throw error;

@@ -207,7 +207,7 @@
 
       var res, data;
       try {
-        res = await fetch('/api/reels/public/' + encodeURIComponent(slug));
+        res = await fetch('/api/reels/public?s=' + encodeURIComponent(slug));
         data = await res.json();
       } catch (e) {
         return renderEmpty('Connection error', 'Try refreshing the page.');
