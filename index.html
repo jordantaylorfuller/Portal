@@ -3078,7 +3078,7 @@
 	        var archived = me.projects.filter(function(p) { return p.status === 'archived'; });
 	        var portal = active.find(function(p) { return p.name === 'Portal'; });
 	        var current = portal || active[0] || me.projects[0];
-	        renderProjectSwitcher(active, archived);
+	        renderProjectSwitcher(active, archived, me.role);
 	        setCurrentProject(current);
 	      } else {
 	        setCurrentProject(null);
@@ -3117,7 +3117,7 @@
       }
     });
 
-    function renderProjectSwitcher(active, archived) {
+    function renderProjectSwitcher(active, archived, role) {
       var dropdown = document.getElementById('project-dropdown');
       var html = '';
       if (active.length) {
@@ -3136,6 +3136,10 @@
           html += '<span class="project-dropdown-dot archived"></span>' + p.name + '</button>';
         });
         html += '</div>';
+      }
+      if (role === 'admin') {
+        html += '<div class="project-dropdown-divider"></div>';
+        html += '<a class="project-dropdown-signout" href="/admin-reels.html" style="text-decoration:none; display:block;">Reels Admin</a>';
       }
       html += '<div class="project-dropdown-divider"></div>';
       html += '<button class="project-dropdown-signout" id="signout-btn">Sign Out</button>';

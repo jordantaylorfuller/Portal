@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>NIPC | Reels Admin</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    input, textarea { font: inherit; color: inherit; }
+
+    .topbar {
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .topbar-mark {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .topbar-mark .dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: rgb(220, 40, 40); margin-right: 10px; vertical-align: middle;
+    }
+    .topbar-actions { display: flex; gap: 16px; align-items: center; }
+    .topbar-link {
+      background: none; border: none; padding: 0;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45); transition: color 150ms;
+    }
+    .topbar-link:hover { color: #fff; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 48px 32px 80px; }
+
+    .page-title {
+      font-size: 22px; font-weight: 500; letter-spacing: -0.005em; margin-bottom: 4px;
+    }
+    .page-sub {
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.35); margin-bottom: 36px;
+    }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 9px 16px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transition: background 150ms, border-color 150ms;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); }
+    .btn-primary { background: rgb(220, 40, 40); border-color: rgb(220, 40, 40); }
+    .btn-primary:hover { background: rgb(200, 30, 30); border-color: rgb(200, 30, 30); }
+    .btn-quiet {
+      background: none; border: none; padding: 4px 8px;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .btn-quiet:hover { color: #fff; }
+    .btn-danger { color: rgb(220, 80, 80); }
+    .btn-danger:hover { color: rgb(255, 100, 100); }
+
+    .list { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.05); }
+    .list-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 120px 200px;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 18px;
+      background: #131313;
+    }
+    .list-row:hover { background: #181818; }
+    .row-title { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.9); }
+    .row-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 4px; letter-spacing: 0.06em; }
+    .pill {
+      display: inline-block; padding: 3px 10px; font-size: 9px; letter-spacing: 0.16em;
+      text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); border-radius: 999px;
+    }
+    .pill.draft { color: rgba(255,255,255,0.5); }
+    .pill.published { color: rgb(80, 220, 120); border-color: rgba(80,220,120,0.4); }
+    .pill.archived { color: rgba(255,255,255,0.3); }
+    .row-counts { font-size: 11px; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; }
+    .row-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+    .empty {
+      padding: 64px 32px;
+      text-align: center;
+      background: #131313;
+      border: 1px dashed rgba(255,255,255,0.08);
+    }
+    .empty-title { font-size: 14px; margin-bottom: 8px; }
+    .empty-msg { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* Editor */
+    .editor-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
+    .editor-section {
+      padding: 24px;
+      background: #131313;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .field-label {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .field-input, .field-textarea {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .field-input:focus, .field-textarea:focus { outline: none; border-color: rgba(255,255,255,0.25); }
+    .field-textarea { resize: vertical; min-height: 80px; }
+
+    .status-toggle { display: flex; gap: 0; }
+    .status-toggle button {
+      flex: 1; padding: 10px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5); transition: background 150ms;
+    }
+    .status-toggle button + button { border-left: none; }
+    .status-toggle button.active {
+      background: rgb(220, 40, 40); border-color: rgb(220, 40, 40); color: #fff;
+    }
+
+    .share-row { display: flex; gap: 8px; align-items: center; }
+    .share-link {
+      flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 12px; font-size: 11px; color: rgba(255,255,255,0.7);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .dropzone {
+      border: 2px dashed rgba(255,255,255,0.1);
+      padding: 48px 24px;
+      text-align: center;
+      transition: border-color 150ms, background 150ms;
+    }
+    .dropzone.over { border-color: rgb(220, 40, 40); background: rgba(220,40,40,0.05); }
+    .dropzone-title { font-size: 13px; margin-bottom: 8px; }
+    .dropzone-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; }
+
+    .assets { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.05); margin-top: 18px; }
+    .asset {
+      display: grid;
+      grid-template-columns: 30px 1fr 100px 60px;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      background: #131313;
+    }
+    .asset-handle {
+      cursor: grab; color: rgba(255,255,255,0.25); font-size: 14px;
+      user-select: none;
+    }
+    .asset-handle:active { cursor: grabbing; }
+    .asset-title-input {
+      background: transparent; border: none; padding: 0; font-size: 12px; color: rgba(255,255,255,0.85);
+      width: 100%;
+    }
+    .asset-title-input:focus { outline: none; color: #fff; }
+    .asset-status {
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); text-align: right;
+    }
+    .asset-status.ready { color: rgb(80, 220, 120); }
+    .asset-status.error { color: rgb(220, 80, 80); }
+
+    .upload-progress {
+      grid-column: 1 / -1;
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .upload-progress-bar {
+      height: 100%;
+      background: rgb(220, 40, 40);
+      width: 0%;
+      transition: width 200ms;
+    }
+
+    .gate, .login-shell {
+      max-width: 420px; margin: 120px auto; padding: 0 32px; text-align: center;
+    }
+    .gate-title { font-size: 16px; margin-bottom: 12px; }
+    .gate-msg { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+      background: rgba(20,20,20,0.95); border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 18px; font-size: 11px; letter-spacing: 0.08em;
+      opacity: 0; transition: opacity 200ms; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-mark"><span class="dot"></span>NIPC // Reels Admin</div>
+    <div class="topbar-actions">
+      <button class="topbar-link" id="back-link" style="display:none">&larr; Back to list</button>
+      <button class="topbar-link" id="signout">Sign out</button>
+    </div>
+  </header>
+
+  <main class="container" id="main"></main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
+    var SUPABASE_ANON = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
+    var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    var $main = document.getElementById('main');
+    var $back = document.getElementById('back-link');
+    var $toast = document.getElementById('toast');
+    var pollHandle = null;
+
+    document.getElementById('signout').addEventListener('click', function() {
+      sb.auth.signOut().then(function(){ location.href = '/'; });
+    });
+    $back.addEventListener('click', function() { location.hash = ''; });
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+      });
+    }
+    function toast(msg) {
+      $toast.textContent = msg;
+      $toast.classList.add('show');
+      setTimeout(function(){ $toast.classList.remove('show'); }, 2200);
+    }
+    async function api(path, opts) {
+      var session = (await sb.auth.getSession()).data.session;
+      if (!session) { location.href = '/'; return; }
+      var headers = Object.assign({ 'Content-Type': 'application/json' }, (opts && opts.headers) || {});
+      headers.Authorization = 'Bearer ' + session.access_token;
+      var res = await fetch(path, Object.assign({}, opts, { headers: headers }));
+      var data = res.status === 204 ? {} : await res.json();
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+      return data;
+    }
+
+    async function gate() {
+      var session = (await sb.auth.getSession()).data.session;
+      if (!session) { location.href = '/'; return false; }
+      try {
+        var r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + session.access_token } });
+        var me = await r.json();
+        if (me.role !== 'admin') {
+          $main.innerHTML = '<div class="gate"><div class="gate-title">Admin only</div><div class="gate-msg">This area is restricted to NIPC team members. If you should have access, contact <a href="mailto:carla@newinternationalpictureco.com" style="color:rgb(220,40,40)">Carla</a>.</div></div>';
+          return false;
+        }
+      } catch (e) { location.href = '/'; return false; }
+      return true;
+    }
+
+    function shareUrl(slug) {
+      return location.origin + '/reel.html?s=' + encodeURIComponent(slug);
+    }
+
+    // ── List view ──
+    async function renderList() {
+      $back.style.display = 'none';
+      if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+      $main.innerHTML = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div><div class="loader">Loading.</div>';
+
+      var data;
+      try { data = await api('/api/reels/list'); } catch (e) { return $main.innerHTML = '<div class="gate-msg">' + escapeHtml(e.message) + '</div>'; }
+      var reels = data.reels || [];
+
+      var html = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div>';
+      html += '<div class="toolbar">';
+      html += '  <div class="row-sub">' + reels.length + ' reel' + (reels.length === 1 ? '' : 's') + '</div>';
+      html += '  <div style="display:flex; gap: 12px;">';
+      html += '    <button class="btn" id="sync-all-btn">Sync from bucket</button>';
+      html += '    <button class="btn btn-primary" id="new-btn">+ New Reel</button>';
+      html += '  </div>';
+      html += '</div>';
+
+      if (!reels.length) {
+        html += '<div class="empty"><div class="empty-title">No reels yet</div><div class="empty-msg">Create one or drop a folder into the Storj bucket.</div></div>';
+      } else {
+        html += '<div class="list">';
+        for (var i = 0; i < reels.length; i++) {
+          var r = reels[i];
+          html += '<div class="list-row" data-id="' + r.id + '">';
+          html += '  <div><div class="row-title">' + escapeHtml(r.title) + '</div><div class="row-sub">' + (r.auto_created ? 'Auto-discovered &middot; ' : '') + escapeHtml(r.s3_prefix) + '</div></div>';
+          html += '  <div><span class="pill ' + escapeHtml(r.status) + '">' + escapeHtml(r.status) + '</span></div>';
+          html += '  <div class="row-counts">' + r.counts.ready + ' / ' + r.counts.total + ' ready</div>';
+          html += '  <div class="row-actions">';
+          html += '    <button class="btn-quiet" data-act="copy" data-slug="' + escapeHtml(r.slug) + '">Copy link</button>';
+          html += '    <button class="btn-quiet" data-act="open" data-id="' + r.id + '">Open &rarr;</button>';
+          html += '  </div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      $main.innerHTML = html;
+
+      document.getElementById('new-btn').addEventListener('click', onNewReel);
+      document.getElementById('sync-all-btn').addEventListener('click', onSyncAll);
+      $main.querySelectorAll('[data-act="copy"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          navigator.clipboard.writeText(shareUrl(b.dataset.slug));
+          toast('Share link copied');
+        });
+      });
+      $main.querySelectorAll('[data-act="open"]').forEach(function(b){
+        b.addEventListener('click', function(){ location.hash = '#/reel/' + b.dataset.id; });
+      });
+    }
+
+    async function onNewReel() {
+      var title = prompt('Reel title (e.g. "Footwear Commercial Reel 2026")');
+      if (!title) return;
+      try {
+        var r = await api('/api/reels/create', { method: 'POST', body: JSON.stringify({ title: title }) });
+        location.hash = '#/reel/' + r.reel.id;
+      } catch (e) { toast('Error: ' + e.message); }
+    }
+
+    async function onSyncAll() {
+      toast('Scanning bucket.');
+      try {
+        var r = await api('/api/reels/sync-all', { method: 'POST' });
+        var added = (r.reels || []).reduce(function(s, x){ return s + (x.added || []).length; }, 0);
+        var disc = (r.discovered || []).length;
+        toast('Synced: ' + disc + ' new reel(s), ' + added + ' new asset(s)');
+        renderList();
+      } catch (e) { toast('Sync error: ' + e.message); }
+    }
+
+    // ── Editor view ──
+    async function renderEditor(reelId) {
+      $back.style.display = 'inline-block';
+      if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+      $main.innerHTML = '<div class="loader">Loading.</div>';
+
+      var listData;
+      try { listData = await api('/api/reels/list'); } catch (e) { return toast('Error: ' + e.message); }
+      var reel = (listData.reels || []).find(function(x){ return x.id === reelId; });
+      if (!reel) { location.hash = ''; return; }
+
+      var assets = await fetchAssets(reelId);
+      drawEditor(reel, assets);
+      startPolling(reel, reelId);
+    }
+
+    function startPolling(reel, reelId) {
+      pollHandle = setInterval(async function() {
+        var ass = await fetchAssets(reelId);
+        var stillProcessing = ass.some(function(a){ return a.status === 'encoding' || a.status === 'uploading'; });
+        ass.forEach(function(a){
+          var row = document.querySelector('.asset[data-id="' + a.id + '"] .asset-status');
+          if (row) {
+            row.className = 'asset-status ' + a.status;
+            row.innerHTML = a.status + (a.duration_seconds ? ' &middot; ' + Math.round(a.duration_seconds) + 's' : '');
+          }
+        });
+        if (!stillProcessing) { clearInterval(pollHandle); pollHandle = null; }
+      }, 5000);
+    }
+
+    async function fetchAssets(reelId) {
+      // Use Supabase client with the user's JWT — RLS lets admins read reel_assets
+      var session = (await sb.auth.getSession()).data.session;
+      var sbAuthed = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        global: { headers: { Authorization: 'Bearer ' + session.access_token } }
+      });
+      var { data, error } = await sbAuthed.from('reel_assets')
+        .select('id, s3_key, mux_playback_id, title, duration_seconds, sort_order, status')
+        .eq('reel_id', reelId)
+        .order('sort_order', { ascending: true });
+      if (error) { toast('Asset query: ' + error.message); return []; }
+      return data || [];
+    }
+
+    function drawEditor(reel, assets, isUpdate) {
+      var html = '';
+      html += '<div class="page-title">' + escapeHtml(reel.title) + '</div>';
+      html += '<div class="page-sub">' + escapeHtml(reel.s3_prefix) + '</div>';
+
+      html += '<div class="editor-grid">';
+
+      html += '<div class="editor-section">';
+      html += '  <div class="field"><label class="field-label">Title</label><input class="field-input" id="f-title" value="' + escapeHtml(reel.title) + '"/></div>';
+      html += '  <div class="field"><label class="field-label">Description</label><textarea class="field-textarea" id="f-desc">' + escapeHtml(reel.description || '') + '</textarea></div>';
+      html += '  <div class="field"><label class="field-label">Status</label>';
+      html += '    <div class="status-toggle">';
+      ['draft','published','archived'].forEach(function(s){
+        html += '<button data-status="' + s + '" class="' + (reel.status === s ? 'active' : '') + '">' + s + '</button>';
+      });
+      html += '    </div></div>';
+      html += '  <div class="field"><label class="field-label">Share link</label>';
+      html += '    <div class="share-row"><div class="share-link">' + escapeHtml(shareUrl(reel.slug)) + '</div>';
+      html += '      <button class="btn" id="copy-link">Copy</button></div></div>';
+      html += '  <div style="display:flex; justify-content:flex-end; gap: 12px;">';
+      html += '    <button class="btn-quiet btn-danger" id="delete-reel">Delete reel</button>';
+      html += '    <button class="btn btn-primary" id="save-meta">Save</button>';
+      html += '  </div>';
+      html += '</div>';
+
+      html += '<div class="editor-section">';
+      html += '  <div class="field-label" style="margin-bottom:14px;">Videos &middot; ' + assets.length + '</div>';
+      html += '  <div class="dropzone" id="dz"><div class="dropzone-title">Drop video files here</div><div class="dropzone-sub">.mov / .mp4 / .mkv / .webm &middot; or use rclone/Cyberduck on the bucket</div></div>';
+      html += '  <div class="assets" id="assets">';
+      if (!assets.length) {
+        html += '<div class="empty" style="border:none; padding: 40px;"><div class="empty-msg">No videos yet.</div></div>';
+      } else {
+        assets.forEach(function(a, i){
+          html += '<div class="asset" data-id="' + a.id + '" draggable="true">';
+          html += '  <div class="asset-handle">::</div>';
+          html += '  <input class="asset-title-input" data-id="' + a.id + '" value="' + escapeHtml(a.title || a.s3_key.split("/").pop()) + '"/>';
+          html += '  <div class="asset-status ' + escapeHtml(a.status) + '">' + escapeHtml(a.status) + (a.duration_seconds ? ' &middot; ' + Math.round(a.duration_seconds) + 's' : '') + '</div>';
+          html += '  <div style="text-align:right;"><button class="btn-quiet btn-danger" data-act="del-asset" data-id="' + a.id + '">Delete</button></div>';
+          html += '</div>';
+        });
+      }
+      html += '  </div>';
+      html += '  <div style="display:flex; justify-content:flex-end; margin-top: 16px;">';
+      html += '    <button class="btn-quiet" id="sync-this">Sync from bucket</button>';
+      html += '  </div>';
+      html += '</div>';
+
+      html += '</div>';
+      $main.innerHTML = html;
+
+      document.getElementById('save-meta').addEventListener('click', async function(){
+        var status = $main.querySelector('.status-toggle .active').dataset.status;
+        try {
+          await api('/api/reels/' + reel.id, { method: 'PATCH', body: JSON.stringify({
+            title: document.getElementById('f-title').value,
+            description: document.getElementById('f-desc').value,
+            status: status,
+          })});
+          toast('Saved');
+          reel.title = document.getElementById('f-title').value;
+          reel.description = document.getElementById('f-desc').value;
+          reel.status = status;
+        } catch (e) { toast('Save failed: ' + e.message); }
+      });
+
+      $main.querySelectorAll('.status-toggle button').forEach(function(b){
+        b.addEventListener('click', function(){
+          $main.querySelectorAll('.status-toggle button').forEach(function(x){ x.classList.remove('active'); });
+          b.classList.add('active');
+        });
+      });
+
+      document.getElementById('copy-link').addEventListener('click', function(){
+        navigator.clipboard.writeText(shareUrl(reel.slug)); toast('Copied');
+      });
+
+      document.getElementById('delete-reel').addEventListener('click', async function(){
+        if (!confirm('Delete this reel and all its videos? This cannot be undone.')) return;
+        try { await api('/api/reels/' + reel.id, { method: 'DELETE' }); location.hash = ''; }
+        catch (e) { toast('Delete failed: ' + e.message); }
+      });
+
+      $main.querySelectorAll('[data-act="del-asset"]').forEach(function(b){
+        b.addEventListener('click', async function(){
+          if (!confirm('Delete this video?')) return;
+          try {
+            await api('/api/reels/' + reel.id + '/asset/' + b.dataset.id, { method: 'DELETE' });
+            renderEditor(reel.id);
+          } catch (e) { toast('Delete failed: ' + e.message); }
+        });
+      });
+
+      $main.querySelectorAll('.asset-title-input').forEach(function(inp){
+        var initial = inp.value;
+        inp.addEventListener('blur', async function(){
+          if (inp.value === initial) return;
+          try {
+            await api('/api/reels/' + reel.id + '/asset/' + inp.dataset.id, {
+              method: 'PATCH', body: JSON.stringify({ title: inp.value })
+            });
+            initial = inp.value;
+            toast('Renamed');
+          } catch (e) { toast('Rename failed: ' + e.message); }
+        });
+      });
+
+      document.getElementById('sync-this').addEventListener('click', async function(){
+        toast('Scanning.');
+        try { await api('/api/reels/' + reel.id + '/sync', { method: 'POST' }); renderEditor(reel.id); }
+        catch (e) { toast('Sync failed: ' + e.message); }
+      });
+
+      // Drag and drop upload
+      var dz = document.getElementById('dz');
+      dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('over'); });
+      dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
+      dz.addEventListener('drop', async function(e){
+        e.preventDefault(); dz.classList.remove('over');
+        var files = Array.from(e.dataTransfer.files || []);
+        for (var i = 0; i < files.length; i++) await uploadOne(reel.id, files[i]);
+        renderEditor(reel.id);
+      });
+
+      // Drag-reorder
+      var dragId = null;
+      $main.querySelectorAll('.asset[draggable="true"]').forEach(function(row){
+        row.addEventListener('dragstart', function(e){ dragId = row.dataset.id; row.style.opacity = '0.5'; });
+        row.addEventListener('dragend', function(){ row.style.opacity = ''; });
+        row.addEventListener('dragover', function(e){ e.preventDefault(); });
+        row.addEventListener('drop', async function(e){
+          e.preventDefault();
+          if (!dragId || dragId === row.dataset.id) return;
+          var ids = Array.from($main.querySelectorAll('.asset')).map(function(r){ return r.dataset.id; });
+          var fromIdx = ids.indexOf(dragId);
+          var toIdx = ids.indexOf(row.dataset.id);
+          if (fromIdx < 0 || toIdx < 0) return;
+          ids.splice(toIdx, 0, ids.splice(fromIdx, 1)[0]);
+          for (var i = 0; i < ids.length; i++) {
+            try { await api('/api/reels/' + reel.id + '/asset/' + ids[i], {
+              method: 'PATCH', body: JSON.stringify({ sort_order: i })
+            }); } catch (e) {}
+          }
+          renderEditor(reel.id);
+        });
+      });
+    }
+
+    async function uploadOne(reelId, file) {
+      try {
+        var p = await api('/api/reels/' + reelId + '/presign', {
+          method: 'POST',
+          body: JSON.stringify({ filename: file.name, contentType: file.type || 'application/octet-stream' })
+        });
+        var put = await fetch(p.url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
+        if (!put.ok) throw new Error('Storj PUT failed: ' + put.status);
+        await api('/api/reels/' + reelId + '/asset/register', {
+          method: 'POST',
+          body: JSON.stringify({ s3_key: p.key, title: file.name.replace(/\.[^.]+$/, '') })
+        });
+      } catch (e) { toast('Upload failed: ' + e.message); }
+    }
+
+    // ── Router ──
+    async function route() {
+      if (!(await gate())) return;
+      var m = location.hash.match(/^#\/reel\/([\w-]+)/);
+      if (m) renderEditor(m[1]); else renderList();
+    }
+    window.addEventListener('hashchange', route);
+    route();
+  </script>
+</body>
+</html>
