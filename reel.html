@@ -11,116 +11,136 @@
   <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --reel-w: clamp(560px, 76vw, 1180px);
+      --bg: #0a0a0a;
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.55);
+      --text-faint: rgba(255, 255, 255, 0.30);
+      --border: rgba(255, 255, 255, 0.08);
+      --hover-tint: rgba(255, 255, 255, 0.06);
+      --card-shadow: 0 30px 60px rgba(0,0,0,0.75), 0 12px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+      --card-shadow-active: 0 50px 100px rgba(0,0,0,0.85), 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), 0 0 80px rgba(220,40,40,0.15);
+      --reflect-fade: rgba(0,0,0,0.35);
+      --accent: rgb(220, 40, 40);
+    }
+    :root.light {
+      --bg: #f5f3f0;
+      --text: rgb(28, 25, 25);
+      --text-dim: rgba(28, 25, 25, 0.65);
+      --text-faint: rgba(28, 25, 25, 0.35);
+      --border: rgba(28, 25, 25, 0.10);
+      --hover-tint: rgba(28, 25, 25, 0.05);
+      --card-shadow: 0 24px 48px rgba(0,0,0,0.20), 0 8px 16px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+      --card-shadow-active: 0 40px 80px rgba(0,0,0,0.28), 0 16px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.08), 0 0 80px rgba(220,40,40,0.10);
+      --reflect-fade: rgba(0,0,0,0.18);
+    }
+
     html, body {
-      background: #0d0d0d;
-      color: #fff;
+      background: var(--bg);
+      color: var(--text);
       font-family: 'DM Mono', monospace;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 350ms ease, color 350ms ease;
     }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    a { color: inherit; }
 
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
+    /* ── Top bar ── */
+    .t-bar {
+      position: fixed; top: 0; left: 0; right: 0;
       padding: 22px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(13, 13, 13, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 50;
+      pointer-events: none;
     }
-    .header-mark {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.85);
+    .t-mark, .t-actions { pointer-events: auto; }
+    .t-mark {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
     }
-    .header-mark .dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgb(220, 40, 40);
-      margin-right: 10px;
-      vertical-align: middle;
+    .t-mark .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 10px; vertical-align: middle; }
+    .t-actions { display: flex; align-items: center; gap: 8px; }
+    .t-tabs { display: flex; }
+    .t-tab {
+      padding: 6px 14px;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-dim);
+      transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
     }
-    .header-meta {
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.3);
+    .t-tab + .t-tab { border-left: none; }
+    .t-tab:hover { color: var(--text); }
+    .t-tab.active {
+      color: var(--text);
+      background: var(--hover-tint);
+      border-color: var(--text-faint);
     }
+    .t-theme {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-dim);
+      display: flex; align-items: center; justify-content: center;
+      margin-left: 12px;
+      transition: color 200ms ease, border-color 200ms ease, transform 250ms ease;
+    }
+    .t-theme:hover { color: var(--text); border-color: var(--text-faint); }
+    .t-theme svg { width: 16px; height: 16px; transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .t-theme:active svg { transform: rotate(45deg); }
 
-    .hero {
-      padding: 80px 32px 40px;
-      max-width: 1180px;
+    /* ── Hero ── */
+    .h-row {
+      width: var(--reel-w);
       margin: 0 auto;
+      padding: 110px 0 30px;
     }
-    .hero-eyebrow {
-      font-size: 10px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.4);
-      margin-bottom: 18px;
+    .h-eyebrow { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; }
+    .h-title { font-size: clamp(28px, 5vw, 56px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 16px; }
+    .h-sub { font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--text-dim); max-width: 620px; }
+
+    /* ── Stage container ── */
+    .stage {
+      position: relative;
+      transition: opacity 250ms ease;
     }
-    .hero-title {
-      font-size: clamp(28px, 5vw, 56px);
-      font-weight: 500;
-      line-height: 1.1;
-      letter-spacing: -0.01em;
-      margin-bottom: 18px;
+    .stage.swapping { opacity: 0; }
+
+    /* ── Meta strip (active video title + position) ── */
+    .meta {
+      width: var(--reel-w);
+      margin: 22px auto 0;
+      padding: 0;
+      display: flex; align-items: baseline; justify-content: space-between;
     }
-    .hero-desc {
-      font-size: 14px;
-      font-weight: 300;
-      line-height: 1.7;
-      color: rgba(255, 255, 255, 0.6);
-      max-width: 620px;
+    .meta-title { font-size: 14px; transition: opacity 250ms ease; }
+    .meta-title.fade { opacity: 0; }
+    .meta-pos {
+      font-variant-numeric: tabular-nums;
+      font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+      color: var(--text-faint);
     }
 
-    .reels {
-      max-width: 1180px;
+    /* ── List view ── */
+    .list-wrap {
+      width: var(--reel-w);
       margin: 0 auto;
-      padding: 24px 32px 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 64px;
+      padding: 0 0 60px;
+      display: flex; flex-direction: column; gap: 64px;
     }
-
-    .reel-item {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .reel-title-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .reel-title {
-      font-size: 14px;
-      font-weight: 400;
-      letter-spacing: 0.02em;
-      color: rgba(255, 255, 255, 0.85);
-    }
-    .reel-duration {
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.3);
+    .list-item { display: flex; flex-direction: column; gap: 12px; }
+    .list-row { display: flex; align-items: baseline; justify-content: space-between; }
+    .list-title { font-size: 14px; color: var(--text); }
+    .list-dur {
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-faint);
       font-variant-numeric: tabular-nums;
     }
-
-    mux-player {
+    .list-item mux-player {
       width: 100%;
       aspect-ratio: 16/9;
       background: #000;
-      --controls-backdrop-color: rgba(0, 0, 0, 0.4);
       --media-object-fit: contain;
       --seek-backward-button: none;
       --seek-forward-button: none;
@@ -130,84 +150,247 @@
       --pip-button: none;
     }
 
-    .footer {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 40px 32px 60px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    /* ── Cover Flow view ── */
+    .cf-stage {
+      perspective: 2200px;
+      perspective-origin: 50% 45%;
+      width: 100vw;
+      height: 64vh;
+      min-height: 460px;
       display: flex;
-      justify-content: space-between;
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.3);
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transform-style: preserve-3d;
     }
+    .cf-floor {
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92vw, 1100px);
+      height: 60px;
+      background: radial-gradient(ellipse at center, rgba(220,40,40,0.10), transparent 70%);
+      filter: blur(10px);
+      pointer-events: none;
+    }
+    .cf-card {
+      position: absolute;
+      width: var(--reel-w);
+      aspect-ratio: 16/9;
+      will-change: transform, filter;
+      opacity: 1;
+      transition:
+        transform 750ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      background: #000 center/cover no-repeat;
+      -webkit-box-reflect: below 8px linear-gradient(transparent 60%, var(--reflect-fade));
+    }
+    .cf-card.is-active {
+      box-shadow: var(--card-shadow-active);
+    }
+    .cf-card mux-player, .cf-card .poster {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      background: center/cover no-repeat #000;
+    }
+    .cf-card .poster::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4));
+    }
+    .cf-card .play-glyph {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px; height: 56px;
+      border: 1.5px solid rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+      transition: transform 300ms ease, opacity 300ms ease;
+      opacity: 0.9;
+    }
+    .cf-card .play-glyph::after {
+      content: '';
+      width: 0; height: 0;
+      border-left: 12px solid #fff;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      margin-left: 4px;
+    }
+    .cf-card:hover .play-glyph { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    .cf-card.is-active .play-glyph { display: none; }
+    .cf-stage.shifting .cf-card { filter: blur(var(--blur, 0px)) brightness(0.92); }
+    .cf-stage:not(.shifting) .cf-card { filter: blur(var(--blur, 0px)); }
 
-    .empty {
-      max-width: 720px;
-      margin: 80px auto;
-      padding: 0 32px;
-      text-align: center;
+    /* ── Cover Flow nav ── */
+    .cf-nav {
+      width: var(--reel-w);
+      margin: 28px auto 0;
+      padding: 0;
+      display: flex; align-items: center; justify-content: center; gap: 24px;
     }
-    .empty-title {
-      font-size: 16px;
-      font-weight: 400;
-      letter-spacing: 0.04em;
-      margin-bottom: 12px;
+    .cf-dots { display: flex; gap: 8px; align-items: center; }
+    .cf-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-faint);
+      transition: background 200ms ease, transform 200ms ease;
+      cursor: pointer; border: none; padding: 0;
     }
-    .empty-msg {
-      font-size: 12px;
-      font-weight: 300;
-      color: rgba(255, 255, 255, 0.5);
-      line-height: 1.6;
+    .cf-dot.active { background: var(--accent); transform: scale(1.4); }
+    .cf-arrow {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-dim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit; font-size: 16px;
+      transition: border-color 200ms ease, color 200ms ease, transform 200ms ease;
     }
+    .cf-arrow:hover { border-color: var(--text-faint); color: var(--text); }
+    .cf-arrow:active { transform: scale(0.95); }
+    .cf-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
 
-    .loader {
-      max-width: 980px;
-      margin: 80px auto;
-      padding: 0 32px;
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.3);
+    /* ── Stack view ── */
+    .stk-wrap {
+      position: relative;
+      width: var(--reel-w);
+      margin: 0 auto;
+      padding: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      grid-template-rows: auto;
+      align-items: start;
+      gap: 24px;
     }
+    .stk-featured {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      transition: filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .stk-card {
+      position: absolute; inset: 0;
+      box-shadow: var(--card-shadow-active);
+      background: #000 center/cover no-repeat;
+    }
+    .stk-card mux-player {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      background: #000;
+    }
+    .stk-thumbs {
+      position: relative;
+      display: flex; flex-direction: column; gap: 10px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--text-faint) transparent;
+      padding-right: 4px;
+    }
+    .stk-thumbs::-webkit-scrollbar { width: 4px; }
+    .stk-thumbs::-webkit-scrollbar-thumb { background: var(--text-faint); }
+    .stk-thumb {
+      position: relative;
+      aspect-ratio: 16/9;
+      cursor: pointer;
+      transition: filter 500ms ease, opacity 500ms ease, box-shadow 250ms ease;
+      box-shadow: var(--card-shadow);
+      background: #000 center/cover no-repeat;
+    }
+    .stk-thumb::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6));
+    }
+    .stk-thumb-label {
+      position: absolute; left: 12px; right: 12px; bottom: 10px;
+      font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85); z-index: 2;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .stk-thumb.is-active { filter: brightness(0.5); opacity: 0.5; }
+    .stk-thumb:hover { box-shadow: var(--card-shadow), 0 0 0 1px var(--accent); }
+    .stk-wrap.shifting .stk-featured,
+    .stk-wrap.shifting .stk-thumb { filter: blur(6px); }
 
-    .style-picker {
-      position: fixed; bottom: 24px; right: 24px; z-index: 60;
-      display: flex; gap: 8px;
+    /* ── Footer ── */
+    .footer {
+      width: var(--reel-w);
+      margin: 80px auto 0;
+      padding: 32px 0 60px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between;
       font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-faint);
     }
-    .style-picker a {
-      padding: 6px 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.5);
-      text-decoration: none;
-      transition: color 150ms, border-color 150ms;
+
+    .empty, .loader {
+      max-width: 720px; margin: 200px auto;
+      padding: 0 32px; text-align: center;
     }
-    .style-picker a:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
-    .style-picker a.current { color: #fff; border-color: rgb(220,40,40); background: rgba(220,40,40,0.08); }
+    .empty-title { font-size: 16px; margin-bottom: 12px; }
+    .empty-msg { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+    .loader { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+
+    /* Hide views by default; body class enables one */
+    body[data-view="list"]   .view-cf,    body[data-view="list"]   .view-stack,
+    body[data-view="cf"]     .view-list,  body[data-view="cf"]     .view-stack,
+    body[data-view="stack"]  .view-list,  body[data-view="stack"]  .view-cf {
+      display: none !important;
+    }
   </style>
 </head>
-<body>
-  <header class="header">
-    <div class="header-mark"><span class="dot"></span>NIPC</div>
-    <div class="header-meta" id="header-meta">Selected Work</div>
+<body data-view="list">
+  <header class="t-bar">
+    <div class="t-mark"><span class="dot"></span>NIPC</div>
+    <div class="t-actions">
+      <div class="t-tabs" id="t-tabs">
+        <button class="t-tab" data-view="list">List</button>
+        <button class="t-tab" data-view="cf">Cover</button>
+        <button class="t-tab" data-view="stack">Stack</button>
+      </div>
+      <button class="t-theme" id="t-theme" aria-label="Toggle theme"></button>
+    </div>
   </header>
 
   <main id="main">
     <div class="loader">Loading.</div>
   </main>
 
-  <nav class="style-picker" id="style-picker">
-    <a href="#" data-style="baseline" class="current">List</a>
-    <a href="#" data-style="coverflow">Cover Flow</a>
-    <a href="#" data-style="stack">Stack</a>
-  </nav>
-
   <script>
-    var slug = new URLSearchParams(location.search).get('s');
+    // ── Icons ──
+    var ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    var ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
 
+    var slug = new URLSearchParams(location.search).get('s');
+    var assets = [];
+    var reel = null;
+    var current = 0;
+    var view = localStorage.getItem('nipc.reel.view') || 'list';
+    var theme = localStorage.getItem('nipc.reel.theme') || 'dark';
+    var muxEl = null;
+    var transitioning = false;
+
+    function applyTheme() {
+      document.documentElement.classList.toggle('light', theme === 'light');
+      document.getElementById('t-theme').innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+    }
+    function setTheme(t) { theme = t; localStorage.setItem('nipc.reel.theme', t); applyTheme(); }
+    document.getElementById('t-theme').addEventListener('click', function(){ setTheme(theme === 'light' ? 'dark' : 'light'); });
+    applyTheme();
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+      });
+    }
+    function thumbUrl(playbackId) {
+      return 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=1280&fit_mode=preserve';
+    }
     function fmtDuration(seconds) {
       if (!seconds) return '';
       var s = Math.round(seconds);
@@ -215,87 +398,338 @@
       var r = s % 60;
       return m + ':' + (r < 10 ? '0' + r : r);
     }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
-        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
-      });
-    }
-
     function renderEmpty(title, msg) {
       document.getElementById('main').innerHTML =
-        '<div class="empty">' +
-          '<div class="empty-title">' + escapeHtml(title) + '</div>' +
-          '<div class="empty-msg">' + escapeHtml(msg) + '</div>' +
-        '</div>';
+        '<div class="empty"><div class="empty-title">' + escapeHtml(title) + '</div>' +
+        '<div class="empty-msg">' + escapeHtml(msg) + '</div></div>';
     }
 
     async function load() {
       if (!slug) return renderEmpty('Reel not found', 'This link is missing a reel identifier.');
-
       var res, data;
       try {
         res = await fetch('/api/reels/public?s=' + encodeURIComponent(slug));
         data = await res.json();
-      } catch (e) {
-        return renderEmpty('Connection error', 'Try refreshing the page.');
-      }
-      if (res.status === 404 || !data.reel) {
-        return renderEmpty('Reel not found', 'This reel may have moved or been unpublished.');
-      }
+      } catch (e) { return renderEmpty('Connection error', 'Try refreshing the page.'); }
+      if (res.status === 404 || !data.reel) return renderEmpty('Reel not found', 'This reel may have moved or been unpublished.');
 
-      var reel = data.reel;
-      var assets = data.assets || [];
-
+      reel = data.reel;
+      assets = data.assets || [];
       document.title = 'NIPC | ' + reel.title;
-      document.getElementById('header-meta').textContent = reel.title;
 
       var html = '';
-      html += '<section class="hero">';
-      html += '  <div class="hero-eyebrow">Selected Work</div>';
-      html += '  <h1 class="hero-title">' + escapeHtml(reel.title) + '</h1>';
-      if (reel.description) {
-        html += '<p class="hero-desc">' + escapeHtml(reel.description) + '</p>';
-      }
+      html += '<section class="h-row">';
+      html += '  <div class="h-eyebrow">Selected Work</div>';
+      html += '  <h1 class="h-title">' + escapeHtml(reel.title) + '</h1>';
+      if (reel.description) html += '<p class="h-sub">' + escapeHtml(reel.description) + '</p>';
       html += '</section>';
 
       if (!assets.length) {
-        html += '<div class="empty">' +
-                  '<div class="empty-title">Coming soon</div>' +
-                  '<div class="empty-msg">Videos for this reel are still being prepared.</div>' +
-                '</div>';
-      } else {
-        html += '<section class="reels">';
-        for (var i = 0; i < assets.length; i++) {
-          var a = assets[i];
-          html += '<div class="reel-item">';
-          html += '  <div class="reel-title-row">';
-          html += '    <div class="reel-title">' + escapeHtml(a.title || 'Untitled') + '</div>';
-          if (a.duration_seconds) {
-            html += '<div class="reel-duration">' + fmtDuration(a.duration_seconds) + '</div>';
-          }
-          html += '  </div>';
-          html += '  <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
-          html += '</div>';
-        }
-        html += '</section>';
+        html += '<div class="empty"><div class="empty-title">Coming soon</div><div class="empty-msg">Videos for this reel are still being prepared.</div></div>';
+        document.getElementById('main').innerHTML = html;
+        return;
       }
 
+      html += '<div id="stage-area"></div>';
       html += '<footer class="footer"><div>NIPC &nbsp;//&nbsp; New International Picture Company</div><div>New York</div></footer>';
 
       document.getElementById('main').innerHTML = html;
+
+      setView(view, true);
+      bindViewTabs();
+    }
+
+    function bindViewTabs() {
+      var tabs = document.querySelectorAll('.t-tab');
+      tabs.forEach(function(t){
+        t.classList.toggle('active', t.dataset.view === view);
+        t.addEventListener('click', function(){ setView(t.dataset.view); });
+      });
+    }
+
+    function setView(v, isInitial) {
+      if (!isInitial && v === view) return;
+      view = v;
+      localStorage.setItem('nipc.reel.view', v);
+      document.querySelectorAll('.t-tab').forEach(function(t){
+        t.classList.toggle('active', t.dataset.view === v);
+      });
+      // Tear down current mode
+      cleanupMode();
+      // Animate swap
+      var stage = document.getElementById('stage-area');
+      stage.classList.add('swapping');
+      setTimeout(function(){
+        document.body.dataset.view = v;
+        renderView();
+        stage.classList.remove('swapping');
+      }, isInitial ? 0 : 250);
+    }
+
+    function cleanupMode() {
+      if (muxEl) { try { muxEl.pause(); } catch (e) {} muxEl.remove(); muxEl = null; }
+    }
+
+    function renderView() {
+      var stage = document.getElementById('stage-area');
+      if (view === 'list') stage.innerHTML = renderList();
+      else if (view === 'cf') { stage.innerHTML = renderCoverFlow(); initCoverFlow(); }
+      else if (view === 'stack') { stage.innerHTML = renderStack(); initStack(); }
+    }
+
+    // ── List view ──
+    function renderList() {
+      var html = '<section class="list-wrap view-list">';
+      assets.forEach(function(a){
+        html += '<div class="list-item">';
+        html += '  <div class="list-row">';
+        html += '    <div class="list-title">' + escapeHtml(a.title || 'Untitled') + '</div>';
+        if (a.duration_seconds) html += '<div class="list-dur">' + fmtDuration(a.duration_seconds) + '</div>';
+        html += '  </div>';
+        html += '  <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
+        html += '</div>';
+      });
+      html += '</section>';
+      return html;
+    }
+
+    // ── Cover Flow view ──
+    function renderCoverFlow() {
+      var html = '<div class="cf-stage view-cf" id="cf-stage">';
+      html += '  <div class="cf-floor"></div>';
+      assets.forEach(function(a, i){
+        html += '<div class="cf-card" data-i="' + i + '" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')">';
+        html += '  <div class="poster" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')"></div>';
+        html += '  <div class="play-glyph"></div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      html += '<div class="meta view-cf">';
+      html += '  <div class="meta-title" id="cf-meta-title"></div>';
+      html += '  <div class="meta-pos" id="cf-meta-pos"></div>';
+      html += '</div>';
+      html += '<div class="cf-nav view-cf">';
+      html += '  <button class="cf-arrow" id="cf-prev" aria-label="Previous">&larr;</button>';
+      html += '  <div class="cf-dots" id="cf-dots"></div>';
+      html += '  <button class="cf-arrow" id="cf-next" aria-label="Next">&rarr;</button>';
+      html += '</div>';
+      return html;
+    }
+
+    function initCoverFlow() {
+      var stage = document.getElementById('cf-stage');
+      var dotsHtml = '';
+      assets.forEach(function(_, i){ dotsHtml += '<button class="cf-dot" data-i="' + i + '"></button>'; });
+      document.getElementById('cf-dots').innerHTML = dotsHtml;
+
+      stage.querySelectorAll('.cf-card').forEach(function(card){
+        card.addEventListener('click', function(){
+          var i = Number(card.dataset.i);
+          if (i !== current) cfGoTo(i);
+        });
+      });
+      document.querySelectorAll('#cf-dots .cf-dot').forEach(function(d){
+        d.addEventListener('click', function(){ cfGoTo(Number(d.dataset.i)); });
+      });
+      document.getElementById('cf-prev').addEventListener('click', function(){ cfGoTo(current - 1); });
+      document.getElementById('cf-next').addEventListener('click', function(){ cfGoTo(current + 1); });
+
+      cfLayout();
+      cfMountActive();
+      cfUpdateMeta();
+    }
+
+    function cfLayout() {
+      var cards = document.querySelectorAll('#cf-stage .cf-card');
+      cards.forEach(function(card, i){
+        var offset = i - current;
+        var abs = Math.abs(offset);
+        var sign = Math.sign(offset);
+        if (abs === 0) {
+          card.style.setProperty('--blur', '0px');
+          card.style.transform = 'translateX(0) translateZ(0) rotateY(0deg) scale(1)';
+          card.style.zIndex = 100;
+          card.classList.add('is-active');
+        } else {
+          var x = sign * (60 + (abs - 1) * 14);
+          var z = -180 - (abs - 1) * 90;
+          var rot = sign * -50;
+          var scale = Math.max(0.78, 1 - abs * 0.07);
+          card.style.transform = 'translateX(' + x + 'vw) translateZ(' + z + 'px) rotateY(' + rot + 'deg) scale(' + scale + ')';
+          card.style.zIndex = String(50 - abs);
+          card.style.setProperty('--blur', Math.min(2, abs * 0.6) + 'px');
+          card.classList.remove('is-active');
+        }
+      });
+      document.querySelectorAll('#cf-dots .cf-dot').forEach(function(d, i){ d.classList.toggle('active', i === current); });
+      var prev = document.getElementById('cf-prev'), next = document.getElementById('cf-next');
+      if (prev) prev.disabled = (current === 0);
+      if (next) next.disabled = (current === assets.length - 1);
+    }
+
+    function cfGoTo(i) {
+      i = Math.max(0, Math.min(assets.length - 1, i));
+      if (i === current || transitioning) return;
+      transitioning = true;
+      var stage = document.getElementById('cf-stage');
+      stage.classList.add('shifting');
+      var titleEl = document.getElementById('cf-meta-title');
+      if (titleEl) titleEl.classList.add('fade');
+      cleanupMode();
+      current = i;
+      cfLayout();
+      setTimeout(function(){
+        stage.classList.remove('shifting');
+        cfMountActive();
+        cfUpdateMeta();
+        if (titleEl) titleEl.classList.remove('fade');
+        transitioning = false;
+      }, 700);
+    }
+
+    function cfMountActive() {
+      var card = document.querySelector('#cf-stage .cf-card[data-i="' + current + '"]');
+      if (!card) return;
+      muxEl = makeMux(assets[current].mux_playback_id);
+      card.appendChild(muxEl);
+    }
+
+    function cfUpdateMeta() {
+      var a = assets[current];
+      var titleEl = document.getElementById('cf-meta-title');
+      var posEl = document.getElementById('cf-meta-pos');
+      if (titleEl) titleEl.textContent = a.title || '';
+      if (posEl) {
+        var dur = fmtDuration(a.duration_seconds);
+        posEl.textContent = (current + 1) + ' / ' + assets.length + (dur ? '  ·  ' + dur : '');
+      }
+    }
+
+    // Cover Flow keyboard + wheel (bound globally, ignored when not active)
+    var wheelTimer = null, wheelAccum = 0;
+    window.addEventListener('keydown', function(e){
+      if (view !== 'cf' && view !== 'stack') return;
+      if (view === 'cf') {
+        if (e.key === 'ArrowLeft') cfGoTo(current - 1);
+        if (e.key === 'ArrowRight') cfGoTo(current + 1);
+      } else if (view === 'stack') {
+        if (e.key === 'ArrowDown') stkGoTo(current + 1);
+        if (e.key === 'ArrowUp') stkGoTo(current - 1);
+      }
+    });
+    window.addEventListener('wheel', function(e){
+      if (view !== 'cf') return;
+      if (Math.abs(e.deltaX) < 25) return;
+      wheelAccum += e.deltaX;
+      if (Math.abs(wheelAccum) > 80 && !transitioning) {
+        cfGoTo(current + (wheelAccum > 0 ? 1 : -1));
+        wheelAccum = 0;
+      }
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(function(){ wheelAccum = 0; }, 200);
+    }, { passive: true });
+
+    // ── Stack view ──
+    function renderStack() {
+      var html = '<div class="stk-wrap view-stack" id="stk-wrap">';
+      html += '  <div class="stk-featured" id="stk-featured">';
+      html += '    <div class="stk-card" id="stk-card"></div>';
+      html += '  </div>';
+      html += '  <div class="stk-thumbs" id="stk-thumbs">';
+      assets.forEach(function(a, i) {
+        html += '<div class="stk-thumb' + (i === current ? ' is-active' : '') + '" data-i="' + i + '" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')">';
+        html += '  <div class="stk-thumb-label">' + escapeHtml(a.title || '') + '</div>';
+        html += '</div>';
+      });
+      html += '  </div>';
+      html += '</div>';
+      html += '<div class="meta view-stack">';
+      html += '  <div class="meta-title" id="stk-meta-title"></div>';
+      html += '  <div class="meta-pos" id="stk-meta-pos"></div>';
+      html += '</div>';
+      return html;
+    }
+
+    function initStack() {
+      document.querySelectorAll('#stk-thumbs .stk-thumb').forEach(function(item){
+        item.addEventListener('click', function(){
+          var i = Number(item.dataset.i);
+          if (i !== current) stkGoTo(i);
+        });
+      });
+      var featured = document.getElementById('stk-featured');
+      var thumbs = document.getElementById('stk-thumbs');
+      var sync = function(){ thumbs.style.height = featured.offsetHeight + 'px'; };
+      sync();
+      if (typeof ResizeObserver !== 'undefined') { new ResizeObserver(sync).observe(featured); }
+      window.addEventListener('resize', sync);
+      stkMountFeatured();
+      stkUpdateMeta();
+    }
+
+    function stkGoTo(i) {
+      i = Math.max(0, Math.min(assets.length - 1, i));
+      if (i === current || transitioning) return;
+      transitioning = true;
+      var wrap = document.getElementById('stk-wrap');
+      if (wrap) wrap.classList.add('shifting');
+      var titleEl = document.getElementById('stk-meta-title');
+      if (titleEl) titleEl.classList.add('fade');
+      cleanupMode();
+      document.querySelectorAll('#stk-thumbs .stk-thumb').forEach(function(el){
+        el.classList.toggle('is-active', Number(el.dataset.i) === i);
+      });
+      current = i;
+      setTimeout(function(){
+        stkMountFeatured();
+        stkUpdateMeta();
+        if (wrap) wrap.classList.remove('shifting');
+        if (titleEl) titleEl.classList.remove('fade');
+        transitioning = false;
+      }, 600);
+    }
+
+    function stkMountFeatured() {
+      var card = document.getElementById('stk-card');
+      if (!card) return;
+      var a = assets[current];
+      card.style.backgroundImage = 'url(' + thumbUrl(a.mux_playback_id) + ')';
+      muxEl = makeMux(a.mux_playback_id);
+      card.appendChild(muxEl);
+    }
+
+    function stkUpdateMeta() {
+      var a = assets[current];
+      var titleEl = document.getElementById('stk-meta-title');
+      var posEl = document.getElementById('stk-meta-pos');
+      if (titleEl) titleEl.textContent = a.title || '';
+      if (posEl) {
+        var dur = fmtDuration(a.duration_seconds);
+        posEl.textContent = (current + 1) + ' / ' + assets.length + (dur ? '  ·  ' + dur : '');
+      }
+    }
+
+    // ── Shared ──
+    function makeMux(playbackId) {
+      var el = document.createElement('mux-player');
+      el.setAttribute('playback-id', playbackId);
+      el.setAttribute('stream-type', 'on-demand');
+      el.setAttribute('accent-color', '#dc2828');
+      el.setAttribute('disable-cookies', '');
+      el.style.position = 'absolute';
+      el.style.inset = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.setProperty('--seek-backward-button', 'none');
+      el.style.setProperty('--seek-forward-button', 'none');
+      el.style.setProperty('--captions-button', 'none');
+      el.style.setProperty('--airplay-button', 'none');
+      el.style.setProperty('--cast-button', 'none');
+      el.style.setProperty('--pip-button', 'none');
+      return el;
     }
 
     load();
-
-    document.getElementById('style-picker').addEventListener('click', function(e){
-      var a = e.target.closest('a[data-style]');
-      if (!a) return;
-      e.preventDefault();
-      var style = a.dataset.style;
-      var url = (style === 'baseline' ? '/reel.html' : '/reel-' + style + '.html') + '?s=' + encodeURIComponent(slug);
-      location.href = url;
-    });
   </script>
 </body>
 </html>
