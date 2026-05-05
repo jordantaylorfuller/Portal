@@ -409,6 +409,9 @@
     function thumbUrl(playbackId) {
       return 'https://image.mux.com/' + playbackId + '/thumbnail.jpg?width=1280&fit_mode=preserve';
     }
+    function posterFor(a) {
+      return a.poster || thumbUrl(a.mux_playback_id);
+    }
     function fmtDuration(seconds) {
       if (!seconds) return '';
       var s = Math.round(seconds);
@@ -506,7 +509,7 @@
         html += '    <div class="list-title">' + escapeHtml(a.title || 'Untitled') + '</div>';
         if (a.duration_seconds) html += '<div class="list-dur">' + fmtDuration(a.duration_seconds) + '</div>';
         html += '  </div>';
-        html += '  <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
+        html += '  <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" poster="' + escapeHtml(posterFor(a)) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
         html += '</div>';
       });
       html += '</section>';
@@ -518,8 +521,8 @@
       var html = '<div class="cf-stage view-cf" id="cf-stage">';
       html += '  <div class="cf-floor"></div>';
       assets.forEach(function(a, i){
-        html += '<div class="cf-card" data-i="' + i + '" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')">';
-        html += '  <div class="poster" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')"></div>';
+        html += '<div class="cf-card" data-i="' + i + '" style="background-image:url(' + posterFor(a) + ')">';
+        html += '  <div class="poster" style="background-image:url(' + posterFor(a) + ')"></div>';
         html += '  <div class="play-glyph"></div>';
         html += '</div>';
       });
@@ -657,7 +660,7 @@
       html += '  </div>';
       html += '  <div class="stk-thumbs" id="stk-thumbs">';
       assets.forEach(function(a, i) {
-        html += '<div class="stk-thumb' + (i === current ? ' is-active' : '') + '" data-i="' + i + '" style="background-image:url(' + thumbUrl(a.mux_playback_id) + ')">';
+        html += '<div class="stk-thumb' + (i === current ? ' is-active' : '') + '" data-i="' + i + '" style="background-image:url(' + posterFor(a) + ')">';
         html += '  <div class="stk-thumb-label">' + escapeHtml(a.title || '') + '</div>';
         html += '</div>';
       });
@@ -713,7 +716,7 @@
       var card = document.getElementById('stk-card');
       if (!card) return;
       var a = assets[current];
-      card.style.backgroundImage = 'url(' + thumbUrl(a.mux_playback_id) + ')';
+      card.style.backgroundImage = 'url(' + posterFor(a) + ')';
       muxEl = makeMux(a.mux_playback_id);
       card.appendChild(muxEl);
     }

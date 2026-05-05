@@ -9,6 +9,7 @@
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -228,11 +229,16 @@
     .assets { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.05); margin-top: 18px; }
     .asset {
       display: grid;
-      grid-template-columns: 30px 1fr 100px 60px;
+      grid-template-columns: 24px 76px 1fr 90px 80px 60px;
       gap: 12px;
       align-items: center;
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: #131313;
+    }
+    .asset-thumb {
+      width: 76px; height: 43px;
+      background: #000 center/cover no-repeat;
+      border: 1px solid rgba(255,255,255,0.06);
     }
     .asset-handle {
       cursor: grab; color: rgba(255,255,255,0.25); font-size: 14px;
@@ -278,6 +284,59 @@
       opacity: 0; transition: opacity 200ms; pointer-events: none;
     }
     .toast.show { opacity: 1; }
+
+    /* Poster modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(6px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 720px; max-width: 92vw;
+      max-height: 88vh; overflow: auto;
+      background: #131313;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 24px;
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 14px; font-weight: 400; }
+    .modal-close { background: none; border: none; font-size: 16px; color: rgba(255,255,255,0.5); padding: 4px 8px; }
+    .modal-tabs { display: flex; margin-bottom: 18px; }
+    .modal-tab {
+      padding: 8px 16px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+    }
+    .modal-tab + .modal-tab { border-left: none; }
+    .modal-tab.active { color: #fff; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.25); position: relative; z-index: 1; }
+    .modal-pane { display: none; }
+    .modal-pane.active { display: block; }
+    .pane-current {
+      display: flex; gap: 16px; margin-bottom: 18px;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .pane-current-thumb { width: 120px; height: 67px; background: #000 center/cover no-repeat; border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+    .pane-current-meta { flex: 1; font-size: 11px; color: rgba(255,255,255,0.6); }
+    .pane-current-meta strong { color: #fff; font-weight: 400; display: block; margin-bottom: 4px; }
+    .pane-upload-zone {
+      border: 2px dashed rgba(255,255,255,0.1);
+      padding: 36px 24px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .pane-upload-zone.over { border-color: rgb(220, 40, 40); background: rgba(220,40,40,0.05); }
+    .frame-player { width: 100%; aspect-ratio: 16/9; margin-bottom: 14px; background: #000; }
+    .frame-player mux-player { width: 100%; height: 100%; }
+    .frame-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .frame-time { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.6); font-size: 11px; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
   </style>
 </head>
 <body>
@@ -291,6 +350,44 @@
 
   <main class="container" id="main"></main>
   <div class="toast" id="toast"></div>
+
+  <div class="modal-backdrop" id="poster-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title" id="poster-title">Poster frame</div>
+        <button class="modal-close" id="poster-close">&times;</button>
+      </div>
+
+      <div class="pane-current" id="poster-current"></div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="frame">Pick frame</button>
+        <button class="modal-tab" data-tab="upload">Upload image</button>
+      </div>
+
+      <div class="modal-pane active" data-pane="frame">
+        <div class="frame-player" id="frame-player-wrap"></div>
+        <div class="frame-actions">
+          <div class="frame-time" id="frame-time">Scrub the video, then pick a frame.</div>
+          <button class="btn btn-primary" id="use-frame">Use this frame</button>
+        </div>
+      </div>
+
+      <div class="modal-pane" data-pane="upload">
+        <div class="pane-upload-zone" id="poster-dz">
+          <input type="file" id="poster-file" accept="image/*" style="display:none"/>
+          <div class="dropzone-title">Drop an image here</div>
+          <div class="dropzone-sub">.jpg / .png / .webp</div>
+          <button type="button" class="dropzone-btn" id="poster-pick" style="margin-top:14px;">Choose Image</button>
+          <div class="frame-time" id="poster-upload-status" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn-quiet" id="poster-reset">Reset to default</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     var SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
@@ -344,6 +441,24 @@
 
     function shareUrl(slug) {
       return location.origin + '/reel.html?s=' + encodeURIComponent(slug);
+    }
+
+    function adminPosterFor(a) {
+      // Best-effort thumbnail for the admin row. Custom uploads need a presign — skip and fall back to Mux.
+      if (a.poster_time != null && a.mux_playback_id) {
+        return 'https://image.mux.com/' + a.mux_playback_id + '/thumbnail.jpg?width=320&time=' + a.poster_time;
+      }
+      if (a.mux_playback_id) {
+        return 'https://image.mux.com/' + a.mux_playback_id + '/thumbnail.jpg?width=320';
+      }
+      return '';
+    }
+    function fmtSec(s) {
+      if (s == null || isNaN(s)) return '';
+      var t = Math.round(s * 10) / 10;
+      var m = Math.floor(t / 60);
+      var r = (t - m * 60).toFixed(1);
+      return m + ':' + (r < 10 ? '0' + r : r);
     }
 
     // ── List view ──
@@ -505,8 +620,10 @@
         assets.forEach(function(a, i){
           html += '<div class="asset" data-id="' + a.id + '" draggable="true">';
           html += '  <div class="asset-handle">::</div>';
+          html += '  <div class="asset-thumb" data-role="thumb" style="background-image:url(' + escapeHtml(adminPosterFor(a)) + ')"></div>';
           html += '  <input class="asset-title-input" data-id="' + a.id + '" value="' + escapeHtml(a.title || a.s3_key.split("/").pop()) + '"/>';
           html += '  <div class="asset-status ' + escapeHtml(a.status) + '">' + escapeHtml(a.status) + (a.duration_seconds ? ' &middot; ' + Math.round(a.duration_seconds) + 's' : '') + '</div>';
+          html += '  <div style="text-align:right;"><button class="btn-quiet" data-act="poster" data-id="' + a.id + '">Poster</button></div>';
           html += '  <div style="text-align:right;"><button class="btn-quiet btn-danger" data-act="del-asset" data-id="' + a.id + '">Delete</button></div>';
           html += '</div>';
         });
@@ -562,6 +679,13 @@
             });
             renderEditor(reel.id);
           } catch (e) { toast('Delete failed: ' + e.message); }
+        });
+      });
+
+      $main.querySelectorAll('[data-act="poster"]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var asset = assets.find(function(x){ return x.id === b.dataset.id; });
+          if (asset) openPosterModal(reel, asset);
         });
       });
 
@@ -695,6 +819,151 @@
         toast('Upload failed: ' + e.message);
       }
     }
+
+    // ── Poster modal ──
+    var posterCtx = null;  // { reel, asset }
+    var posterModal = document.getElementById('poster-modal');
+    var posterPlayer = null;
+
+    function openPosterModal(reel, asset) {
+      posterCtx = { reel: reel, asset: asset };
+      document.getElementById('poster-title').textContent = 'Poster: ' + (asset.title || asset.s3_key.split('/').pop());
+
+      var current = document.getElementById('poster-current');
+      var label = 'Default (Mux auto frame)';
+      if (asset.poster_url) label = 'Custom uploaded image';
+      else if (asset.poster_time != null) label = 'Mux frame at ' + fmtSec(asset.poster_time);
+      current.innerHTML =
+        '<div class="pane-current-thumb" style="background-image:url(' + escapeHtml(adminPosterFor(asset)) + ')"></div>' +
+        '<div class="pane-current-meta"><strong>Current poster</strong>' + escapeHtml(label) + '</div>';
+
+      // Default tab
+      switchTab('frame');
+
+      // Mount mux-player for frame picking
+      var wrap = document.getElementById('frame-player-wrap');
+      wrap.innerHTML = '';
+      posterPlayer = document.createElement('mux-player');
+      posterPlayer.setAttribute('playback-id', asset.mux_playback_id);
+      posterPlayer.setAttribute('stream-type', 'on-demand');
+      posterPlayer.setAttribute('accent-color', '#dc2828');
+      posterPlayer.setAttribute('disable-cookies', '');
+      if (asset.poster_time != null) posterPlayer.setAttribute('start-time', String(asset.poster_time));
+      wrap.appendChild(posterPlayer);
+      document.getElementById('frame-time').textContent = 'Scrub the video, then pick a frame.';
+
+      // Reset upload pane
+      document.getElementById('poster-file').value = '';
+      document.getElementById('poster-upload-status').textContent = '';
+
+      posterModal.classList.add('open');
+    }
+
+    function closePosterModal() {
+      posterModal.classList.remove('open');
+      var wrap = document.getElementById('frame-player-wrap');
+      if (posterPlayer) { try { posterPlayer.pause(); } catch (e) {} }
+      wrap.innerHTML = '';
+      posterPlayer = null;
+      posterCtx = null;
+    }
+
+    function switchTab(name) {
+      posterModal.querySelectorAll('.modal-tab').forEach(function(t){
+        t.classList.toggle('active', t.dataset.tab === name);
+      });
+      posterModal.querySelectorAll('.modal-pane').forEach(function(p){
+        p.classList.toggle('active', p.dataset.pane === name);
+      });
+    }
+
+    document.getElementById('poster-close').addEventListener('click', closePosterModal);
+    posterModal.addEventListener('click', function(e){ if (e.target === posterModal) closePosterModal(); });
+    posterModal.querySelectorAll('.modal-tab').forEach(function(t){
+      t.addEventListener('click', function(){ switchTab(t.dataset.tab); });
+    });
+
+    document.getElementById('use-frame').addEventListener('click', async function(){
+      if (!posterCtx || !posterPlayer) return;
+      var t = posterPlayer.currentTime;
+      if (typeof t !== 'number' || isNaN(t)) { toast('No time available yet'); return; }
+      try {
+        await api('/api/reels/update-asset', {
+          method: 'POST',
+          body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_time: t, poster_url: null })
+        });
+        toast('Poster set to frame at ' + fmtSec(t));
+        var reelId = posterCtx.reel.id;
+        closePosterModal();
+        renderEditor(reelId);
+      } catch (e) { toast('Failed: ' + e.message); }
+    });
+
+    document.getElementById('poster-pick').addEventListener('click', function(){
+      document.getElementById('poster-file').click();
+    });
+    document.getElementById('poster-file').addEventListener('change', async function(){
+      var file = this.files && this.files[0];
+      if (!file) return;
+      await uploadPoster(file);
+    });
+    var pdz = document.getElementById('poster-dz');
+    pdz.addEventListener('dragover', function(e){ e.preventDefault(); pdz.classList.add('over'); });
+    pdz.addEventListener('dragleave', function(){ pdz.classList.remove('over'); });
+    pdz.addEventListener('drop', async function(e){
+      e.preventDefault(); pdz.classList.remove('over');
+      var file = (e.dataTransfer.files || [])[0];
+      if (file) await uploadPoster(file);
+    });
+
+    async function uploadPoster(file) {
+      if (!posterCtx) return;
+      var status = document.getElementById('poster-upload-status');
+      try {
+        status.innerHTML = '<span class="spinner"></span>requesting upload URL';
+        var p = await api('/api/reels/presign', {
+          method: 'POST',
+          body: JSON.stringify({ reel_id: posterCtx.reel.id, filename: 'poster-' + file.name, contentType: file.type || 'image/jpeg' })
+        });
+        await new Promise(function(resolve, reject){
+          var xhr = new XMLHttpRequest();
+          xhr.open('PUT', p.url);
+          xhr.setRequestHeader('Content-Type', file.type || 'image/jpeg');
+          xhr.upload.onprogress = function(e){
+            if (e.lengthComputable) status.innerHTML = '<span class="spinner"></span>uploading ' + Math.round(e.loaded / e.total * 100) + '%';
+          };
+          xhr.onload = function(){ xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error('Storj PUT ' + xhr.status)); };
+          xhr.onerror = function(){ reject(new Error('network error')); };
+          xhr.send(file);
+        });
+        status.innerHTML = '<span class="spinner"></span>saving';
+        await api('/api/reels/update-asset', {
+          method: 'POST',
+          body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_url: p.key, poster_time: null })
+        });
+        toast('Poster uploaded');
+        var reelId = posterCtx.reel.id;
+        closePosterModal();
+        renderEditor(reelId);
+      } catch (e) {
+        status.textContent = 'Failed: ' + e.message;
+        toast('Upload failed: ' + e.message);
+      }
+    }
+
+    document.getElementById('poster-reset').addEventListener('click', async function(){
+      if (!posterCtx) return;
+      try {
+        await api('/api/reels/update-asset', {
+          method: 'POST',
+          body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_url: null, poster_time: null })
+        });
+        toast('Reset to default poster');
+        var reelId = posterCtx.reel.id;
+        closePosterModal();
+        renderEditor(reelId);
+      } catch (e) { toast('Failed: ' + e.message); }
+    });
 
     // ── Router ──
     async function route() {
