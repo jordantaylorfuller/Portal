@@ -78,10 +78,10 @@
       color: var(--text-dim);
       transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
     }
-    .t-tab + .t-tab { border-left: none; }
-    .t-tab:hover { color: var(--text); }
+    .t-tab + .t-tab { margin-left: -1px; }
+    .t-tab:hover { color: var(--text); z-index: 1; }
     .t-tab.active {
-      z-index: 1;
+      z-index: 2;
       color: var(--text);
       background: var(--hover-tint);
       border-color: var(--text-faint);
