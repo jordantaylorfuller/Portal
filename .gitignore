@@ -7,5 +7,6 @@ supabase/.temp/
 .vercel/
 .vercel
 .env*.local
+.env.local.bak*
 .gstack/
 _webflow-export/
