@@ -10,5 +10,8 @@
     "@supabase/supabase-js": "^2.49.0",
     "googleapis": "^171.4.0",
     "nanoid": "^3.3.7"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2"
   }
 }
