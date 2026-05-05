@@ -308,18 +308,21 @@
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: var(--text-faint) transparent;
-      padding-right: 4px;
+      padding-right: 16px;
+      margin-right: -16px;
     }
     .stk-thumbs::-webkit-scrollbar { width: 4px; }
-    .stk-thumbs::-webkit-scrollbar-thumb { background: var(--text-faint); }
+    .stk-thumbs::-webkit-scrollbar-thumb { background: var(--text-faint); border-radius: 4px; }
     .stk-thumb {
       position: relative;
       aspect-ratio: 16/9;
       cursor: pointer;
-      transition: filter 500ms ease, opacity 500ms ease, box-shadow 250ms ease;
+      opacity: 0.78;
+      transition: filter 400ms ease, opacity 250ms ease;
       box-shadow: var(--card-shadow);
       background: #000 center/cover no-repeat;
     }
+    .stk-thumb:hover { opacity: 1; }
     .stk-thumb::after {
       content: '';
       position: absolute; inset: 0;
@@ -331,8 +334,8 @@
       color: rgba(255,255,255,0.85); z-index: 2;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .stk-thumb.is-active { filter: brightness(0.5); opacity: 0.5; }
-    .stk-thumb:hover { box-shadow: var(--card-shadow), 0 0 0 1px var(--accent); }
+    .stk-thumb.is-active { filter: brightness(0.5); opacity: 0.4; }
+    .stk-thumb.is-active:hover { opacity: 0.4; }
     .stk-wrap.shifting .stk-featured,
     .stk-wrap.shifting .stk-thumb { filter: blur(6px); }
 
