@@ -60,7 +60,11 @@
     .t-mark, .t-actions { pointer-events: auto; }
     .t-mark {
       font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none;
+      color: inherit;
+      transition: opacity 200ms ease;
     }
+    .t-mark:hover { opacity: 0.7; }
     .t-mark .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 10px; vertical-align: middle; }
     .t-actions { display: flex; align-items: center; gap: 8px; }
     .t-tabs { display: flex; }
@@ -364,7 +368,7 @@
 </head>
 <body data-view="list">
   <header class="t-bar">
-    <div class="t-mark"><span class="dot"></span>NIPC</div>
+    <a class="t-mark" href="/home"><span class="dot"></span>NIPC</a>
     <div class="t-actions">
       <div class="t-tabs" id="t-tabs">
         <button class="t-tab" data-view="list">List</button>
