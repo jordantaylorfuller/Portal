@@ -72,6 +72,10 @@
           }
           const vimeoUrl = wi.querySelector('.vimeo-url');
           if (vimeoUrl && w.video && w.video.url) vimeoUrl.textContent = w.video.url;
+          const shell = wi.querySelector('.vimeo-shell');
+          if (shell && w.video && w.video.playbackId) {
+            shell.dataset.muxPlaybackId = w.video.playbackId;
+          }
           workSlider.appendChild(wi);
         }
       }
@@ -117,53 +121,5 @@
     });
   });
 
-  function getVimeoId(url) {
-    if (!url) return null;
-    const s = String(url).trim();
-    const m = s.match(/vimeo\.com\/(?:.*\/)?(\d+)(?:\b|\/|\?)/) || s.match(/player\.vimeo\.com\/video\/(\d+)/);
-    return m ? m[1] : null;
-  }
-  function buildVimeoIframe(id) {
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1&title=0&byline=0&portrait=0&autopause=0&dnt=1`;
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('playsinline', '');
-    iframe.style.position = 'absolute';
-    iframe.style.inset = '0';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.zIndex = '0';
-    return iframe;
-  }
-  document.querySelectorAll('.vimeo-shell').forEach(shell => {
-    if (shell.dataset.cmsInjectWired === '1') return;
-    const urlEl = shell.querySelector('.vimeo-url');
-    const posterImg = shell.querySelector('.vimeo-poster-img');
-    const rawUrl = (urlEl && urlEl.textContent || '').trim();
-    const id = getVimeoId(rawUrl);
-    if (!id) return;
-    shell.dataset.cmsInjectWired = '1';
-    shell.dataset.vimeoId = id;
-    shell.style.position = shell.style.position || 'relative';
-    shell.style.overflow = 'hidden';
-    if (posterImg) {
-      posterImg.style.transition = 'opacity 150ms ease';
-      posterImg.style.zIndex = '1';
-    }
-    let mounted = false;
-    shell.addEventListener('mouseenter', () => {
-      if (mounted) return;
-      shell.appendChild(buildVimeoIframe(id));
-      if (posterImg) posterImg.style.opacity = '0';
-      mounted = true;
-    });
-    shell.addEventListener('mouseleave', () => {
-      const iframe = shell.querySelector('iframe');
-      if (iframe) iframe.remove();
-      if (posterImg) posterImg.style.opacity = '1';
-      mounted = false;
-    });
-  });
+  document.dispatchEvent(new CustomEvent('cms:editors-ready'));
 })();

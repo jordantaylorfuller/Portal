@@ -1,257 +1,84 @@
 {
   "_meta": {
-    "source": "Webflow CMS collection 6984465ddede531633d1734d (Editors)",
-    "siteId": "69825ff61e64a3a9dbde7814",
-    "snapshotAt": "2026-04-29",
-    "totalItems": 13
+    "source": "Generated from Supabase reels",
+    "snapshotAt": "2026-05-05",
+    "totalItems": 3
   },
   "items": [
     {
-      "id": "698a2bec22cf0a8884d49695",
-      "name": "Alex Morgan",
-      "slug": "alex-morgan",
+      "id": "f3b4930f-1308-4966-8e69-ee84c32b87a8",
+      "name": "Carla Luffe",
+      "slug": "carla-luffe",
       "role": "Senior Editor",
-      "featureClients": "Nike, Apple, HBO",
-      "yearRange": "2018–Present",
-      "bio": "Alex specializes in narrative-driven brand films and high-impact commercial storytelling. With a background in long-form documentary, his work balances emotional depth with technical precision.",
+      "featureClients": "Apple, Burberry, Hermès, Vogue, Meta, Volvo",
+      "yearRange": "2026",
+      "bio": "Carla cuts brand and fashion films across the world’s biggest names — spanning beauty, luxury, automotive, and culture.",
       "order": 1,
       "numOnList": "01",
       "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95243",
-        "698fc75cb08ed4747f99d3e0"
+        "edbe9209-90ca-41a1-8d0c-9bcb115219d5",
+        "f6563ce6-c2e9-4c94-a019-fb2150adc2c6",
+        "cb61972d-64d0-4d5a-a978-cd8b7ba79a0d",
+        "e5fce17c-d2b8-466d-a244-edefb3fc85e7",
+        "1d214279-5865-4112-b004-5b2a216f62f6",
+        "a6cef2f9-9a2d-4a81-ad56-50c89da4589e",
+        "2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe",
+        "53569abe-003d-46d1-8a5f-593f06b6fa18",
+        "cbc9054e-f14c-4c69-aa48-cb719b6ffd9a",
+        "f2af8115-138b-4bfd-806c-6c95da704b69",
+        "143b5824-a71e-429d-a39f-5b43c9e8e339",
+        "c7d00cee-e408-4626-b851-61cad2930361",
+        "98cd8683-1182-473b-a596-8fab8f823ae3",
+        "15ecdcde-5b6b-464d-8c47-fda912f5fca0",
+        "5d08ac46-1b32-49da-9a40-89a6f06264ed",
+        "f2a07bc0-51a0-41c6-b2d3-50372e596cf6",
+        "611b7aba-c303-4dc0-ae58-2a7847f2609a",
+        "5fe70455-6a01-4101-b141-c9036946d09c",
+        "f9ad543b-f40c-4835-8eba-6cb039a231b9",
+        "678ef582-90d4-4006-a610-ba29f3da8dd8"
       ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698fcf9c92c6dfba13cfb643_Screen%20Recording%202026-02-13%20at%208.22.01%E2%80%AFPM.gif",
+      "workPreviewLoopingGif": "https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/animated.gif?width=640&height=360&fps=15",
+      "reelSlug": "carla-luffe",
       "isDraft": false
     },
     {
-      "id": "69899f3d16afc2f95816b9bc",
-      "name": "James Chen",
-      "slug": "james-chen",
-      "role": "Editor",
-      "featureClients": "Google, Netflix, Spotify",
-      "yearRange": "2019–Present",
-      "bio": "James focuses on rhythm-based editing and graphic-led storytelling, bridging motion systems and cinematic pacing.",
+      "id": "be6f9634-6dae-47c3-8ae8-55129c75e13c",
+      "name": "Josh Lee",
+      "slug": "josh-lee",
+      "role": "Senior Editor",
+      "featureClients": "Netflix, A24",
+      "yearRange": "2026",
+      "bio": "Josh edits long-form narrative — prestige film and television trailers driven by character, restraint, and tension.",
       "order": 2,
       "numOnList": "02",
       "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95249"
+        "6508d726-a28f-4288-a5e6-a1b46a57387b",
+        "0b617920-1cbe-459b-aa06-144c21b4f9ea"
       ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698a34263b4f82d2c4718300_Screenshot%202026-02-09%20at%201.31.15%E2%80%AFPM.png",
+      "workPreviewLoopingGif": "https://image.mux.com/uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA/animated.gif?width=640&height=360&fps=15",
+      "reelSlug": "josh-lee",
       "isDraft": false
     },
     {
-      "id": "69899ebb7d1e8fe6bb9be5b6",
-      "name": "Sarah Wilson",
-      "slug": "sarah-wilson",
-      "role": "Editor",
-      "featureClients": "Mercedes-Benz, Nike, Meta",
-      "yearRange": "2017–Present",
-      "bio": "Sarah brings refined pacing and luxury sensibility to global campaigns, often collaborating with top-tier directors and agencies.",
+      "id": "bb4477fd-d42d-4a8e-89ab-18f510ad4404",
+      "name": "Lucian Johnston",
+      "slug": "lucian-johnston",
+      "role": "Senior Editor",
+      "featureClients": "A24",
+      "yearRange": "2026",
+      "bio": "Lucian shapes trailers for some of A24’s most singular films — where dread, tone, and rhythm do the heavy lifting.",
       "order": 3,
       "numOnList": "03",
       "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "698fc75cb08ed4747f99d3e0"
+        "1ceb4ada-ade3-4086-8319-655d7d2b2549",
+        "cf05c78c-c345-48f0-9f96-0303e66c9f19",
+        "9d37cc4c-34ff-46fe-a126-31d33a38cdcc",
+        "abddfb54-ce0d-46c6-9c60-4e5e3aeea76a",
+        "18fde76a-f85c-44bf-b981-645cbf1dca53"
       ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/69899eb134556ce4eaa6b0eb_Commercial%20Movie.jpg",
+      "workPreviewLoopingGif": "https://image.mux.com/mR1ZLUyM558PMFaui1gt01UmnfwwBppcIZ8yIxLI7jYE/animated.gif?width=640&height=360&fps=15",
+      "reelSlug": "lucian-johnston",
       "isDraft": false
-    },
-    {
-      "id": "69844734a7115796512cc663",
-      "name": "Tyler Brooks",
-      "slug": "tyler-brooks",
-      "role": "Editor",
-      "featureClients": "AMIRI, Gucci",
-      "yearRange": "2020-Present",
-      "bio": "A visual exploration of athletic transformation through abstract motion and dynamic typography. The project aims to",
-      "order": 4,
-      "numOnList": "04",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95243"
-      ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698978e3a6ee3976a11fa9ba_Cinematic%20Photo%20Guide.webp",
-      "isDraft": false
-    },
-    {
-      "id": "6984c22cc8269315308800bc",
-      "name": "Marcus Lee",
-      "slug": "marcus-lee",
-      "role": "Editor",
-      "featureClients": "Amazon",
-      "yearRange": "2020-Present",
-      "bio": "Marcus focuses on long-form storytelling and character-driven narratives. His editing style emphasizes restraint, rhythm, and emotional clarity. He has collaborated on independent features and streaming originals, bringing cinematic structure to both film and branded work.",
-      "order": 5,
-      "numOnList": "05",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95243",
-        "69844ac1f4df110696d95247"
-      ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698978ccfb1cb2b49a401472_Cinematic%20Look%20Landscape.jpg",
-      "isDraft": false
-    },
-    {
-      "id": "69844762668f6310d841923d",
-      "name": "Emma Davis",
-      "slug": "emma-davis",
-      "role": "Senior Editor",
-      "featureClients": "Adidas, Apple, Beats",
-      "yearRange": "2018-Present",
-      "bio": "A visual exploration of athletic transformation through abstract motion and dynamic typography. The project aims to",
-      "order": 6,
-      "numOnList": "06",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95243"
-      ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/698978dd8497f0629cd030e4_Cinematic%20Photo%20Effects%202022.avif",
-      "isDraft": false
-    },
-    {
-      "id": "69845102fc69feacaf674379",
-      "name": "Nina Patel",
-      "slug": "nina-patel",
-      "role": "Editor",
-      "featureClients": "National Geographic, PBS",
-      "yearRange": "2021–Present",
-      "bio": "",
-      "order": 7,
-      "numOnList": "07",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95243"
-      ],
-      "workPreviewLoopingGif": "https://cdn.prod.website-files.com/6983bc8694ca89040d55af91/6984faa2a82414c36ec2f25a_Screenshot%202026-02-05%20at%203.16.22%E2%80%AFPM.png",
-      "isDraft": false
-    },
-    {
-      "id": "698fa20829a9f6b7ed8fdb64",
-      "name": "Daniel Park",
-      "slug": "daniel-park",
-      "role": "Editor",
-      "featureClients": "YouTube Originals, TikTok",
-      "yearRange": "2021–Present",
-      "bio": null,
-      "order": 8,
-      "numOnList": "08",
-      "referencingWork": [
-        "698fc75cb08ed4747f99d3e0",
-        "69844ac1f4df110696d95243",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d9524b"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": false
-    },
-    {
-      "id": "698fa3352ef59c51e76fce0e",
-      "name": "Olivia Martinez",
-      "slug": "olivia-martinez",
-      "role": "Editor",
-      "featureClients": "HBO, Vice",
-      "yearRange": "2014–Present",
-      "bio": null,
-      "order": 9,
-      "numOnList": "09",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95243"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": false
-    },
-    {
-      "id": "698fa35c1ccecee9367c8472",
-      "name": "Ethan Brown",
-      "slug": "ethan-brown",
-      "role": "Assistant Editor",
-      "featureClients": "Nike, Local Hoops",
-      "yearRange": "2022–Present",
-      "bio": null,
-      "order": 10,
-      "numOnList": "10",
-      "referencingWork": [
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95243",
-        "69844ac1f4df110696d95249",
-        "698fc75cb08ed4747f99d3e0",
-        "69844ac1f4df110696d95247"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": false
-    },
-    {
-      "id": "698fa38f24fb960aeb9443b3",
-      "name": "Grace Kim",
-      "slug": "grace-kim",
-      "role": "Editor",
-      "featureClients": "Apple Music, Nike",
-      "yearRange": "2019–Present",
-      "bio": null,
-      "order": 11,
-      "numOnList": "11",
-      "referencingWork": [
-        "698fc75cb08ed4747f99d3e0"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": false
-    },
-    {
-      "id": "698fa4eb53c63d7e45f330e3",
-      "name": "Leo Rodriguez",
-      "slug": "leo-rodriguez",
-      "role": "Editor",
-      "featureClients": "BMW, Samsung",
-      "yearRange": "2017–Present",
-      "bio": null,
-      "order": 12,
-      "numOnList": "12",
-      "referencingWork": [
-        "698fc75cb08ed4747f99d3e0",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d9524b",
-        "69844ac1f4df110696d95243"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": false
-    },
-    {
-      "id": "698fa52c752e3ee5c0c81351",
-      "name": "Chloe Anderson",
-      "slug": "chloe-anderson",
-      "role": "Editor",
-      "featureClients": "Pepsi, Coca-Cola",
-      "yearRange": "2016–Present",
-      "bio": "Chloe's strength lies in brand storytelling and performance-driven pacing. She works closely with agencies to refine messaging while maintaining cinematic quality.",
-      "order": 13,
-      "numOnList": "13",
-      "referencingWork": [
-        "698fc75cb08ed4747f99d3e0",
-        "69844ac1f4df110696d95243",
-        "69844ac1f4df110696d95247",
-        "69844ac1f4df110696d95249",
-        "69844ac1f4df110696d9524b"
-      ],
-      "workPreviewLoopingGif": null,
-      "isDraft": true
     }
   ]
 }

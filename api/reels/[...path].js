@@ -205,9 +205,12 @@ async function insertAsset(reelId, s3_key, title) {
 async function patchAsset(req, res) {
   const { reel_id, asset_id } = req.body || {};
   if (!reel_id || !asset_id) return res.status(400).json({ error: 'reel_id and asset_id required' });
-  const allowed = ['title', 'sort_order'];
+  const allowed = ['title', 'sort_order', 'poster_url', 'poster_time'];
   const patch = {};
   for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
+  // Setting one poster source clears the other so they can't fight.
+  if ('poster_url' in patch && patch.poster_url) patch.poster_time = null;
+  if ('poster_time' in patch && patch.poster_time != null) patch.poster_url = null;
   const { data, error } = await adminClient
     .from('reel_assets').update(patch)
     .eq('id', asset_id).eq('reel_id', reel_id).select().single();
@@ -304,8 +307,33 @@ async function publicReel(req, res) {
     .from('public_reels_view').select('*').eq('slug', slug).maybeSingle();
   if (error) throw error;
   if (!reel) return res.status(404).json({ error: 'Not found' });
-  const { data: assets } = await adminClient
+  const { data: rawAssets } = await adminClient
     .from('public_reel_assets_view').select('*').eq('reel_id', reel.id)
     .order('sort_order', { ascending: true });
-  res.json({ reel, assets: assets || [] });
+
+  const assets = [];
+  for (const a of rawAssets || []) {
+    let poster;
+    if (a.poster_url) {
+      // Custom uploaded poster — generate a long-lived presigned GET URL.
+      try { poster = await presignGet(a.poster_url, 60 * 60 * 24); }
+      catch (e) { console.error('poster presign failed', e.message); }
+    }
+    if (!poster && a.poster_time != null) {
+      poster = `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280&time=${a.poster_time}`;
+    }
+    if (!poster) {
+      poster = `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280`;
+    }
+    assets.push({
+      id: a.id,
+      reel_id: a.reel_id,
+      mux_playback_id: a.mux_playback_id,
+      title: a.title,
+      sort_order: a.sort_order,
+      duration_seconds: a.duration_seconds,
+      poster,
+    });
+  }
+  res.json({ reel, assets });
 }

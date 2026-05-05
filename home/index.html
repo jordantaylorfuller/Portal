@@ -1,6 +1,7 @@
 <!DOCTYPE html><!--  Last Published: Wed Apr 29 2026 19:50:52 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69825ff81e64a3a9dbde7859" data-wf-site="69825ff61e64a3a9dbde7814" lang="en">
 <head>
+  <meta name="robots" content="noindex, nofollow"/>
   <meta charset="utf-8">
   <title>NIPC | Post-Production Studio - Editorial, Color, Sound | New York</title>
   <meta content="New International Picture Company (NIPC) is a full-service post-production studio in New York specializing in editorial, motion graphics, and color grading for brands, agencies, and entertainment studios." name="description">
@@ -1090,64 +1091,86 @@
 })();
 </script>
   <script>
-// Here's the code for Vimeo on this page to play auto & mute, without showing video playbar and icon etc on the homepage.
-document.addEventListener("DOMContentLoaded", () => {
-  function getVimeoId(url) {
-    if (!url) return null;
-    url = String(url).trim();
-    const m =
-      url.match(/vimeo\.com\/(?:.*\/)?(\d+)(?:\b|\/|\?)/) ||
-      url.match(/player\.vimeo\.com\/video\/(\d+)/);
-    return m ? m[1] : null;
+// Hover-to-autoplay using Mux Player. cms-inject.js stamps each .vimeo-shell
+// with data-mux-playback-id from works.json; on first hover we lazy-load the
+// Mux Player web component and mount a muted, looping, controls-less player
+// over the poster. Wait for cms:editors-ready since shells are async-injected.
+(function () {
+  const MUX_PLAYER_SRC = "https://cdn.jsdelivr.net/npm/@mux/mux-player";
+  let muxPlayerLoader = null;
+  function ensureMuxPlayer() {
+    if (window.customElements && window.customElements.get("mux-player")) return Promise.resolve();
+    if (muxPlayerLoader) return muxPlayerLoader;
+    muxPlayerLoader = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = MUX_PLAYER_SRC;
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return muxPlayerLoader;
   }
-  function buildVimeoIframe(id) {
-    const iframe = document.createElement("iframe");
-    iframe.src =
-      `https://player.vimeo.com/video/${id}` +
-      `?autoplay=1&muted=1&loop=1&background=1` +
-      `&title=0&byline=0&portrait=0&autopause=0&dnt=1`;
-    iframe.setAttribute("frameborder", "0");
-    iframe.setAttribute("allow", "autoplay; fullscreen; picture-in-picture");
-    iframe.setAttribute("allowfullscreen", "");
-    iframe.setAttribute("playsinline", "");
-    iframe.style.position = "absolute";
-    iframe.style.inset = "0";
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.zIndex = "0";
-    return iframe;
-  }
-  document.querySelectorAll(".vimeo-shell").forEach(shell => {
-    const urlEl = shell.querySelector(".vimeo-url");
+
+  function wireShell(shell) {
+    if (shell.dataset.muxWired === "1") return;
+    const playbackId = shell.dataset.muxPlaybackId;
+    if (!playbackId) return;
+    shell.dataset.muxWired = "1";
+
     const posterImg = shell.querySelector(".vimeo-poster-img");
-    const rawUrl = (urlEl?.textContent || "").trim();
-    const id = getVimeoId(rawUrl);
-    if (!id) return;
-    shell.dataset.vimeoId = id;
-    shell.dataset.mounted = "0";
     shell.style.position = shell.style.position || "relative";
     shell.style.overflow = "hidden";
     if (posterImg) {
       posterImg.style.transition = "opacity 150ms ease";
       posterImg.style.zIndex = "1";
     }
-    function mount() {
-      if (shell.dataset.mounted === "1") return;
-      const iframe = buildVimeoIframe(id);
-      shell.appendChild(iframe);
+
+    let player = null;
+    let mounted = false;
+
+    async function mount() {
+      if (mounted) return;
+      mounted = true;
+      await ensureMuxPlayer();
+      if (!mounted) return; // user already left
+      player = document.createElement("mux-player");
+      player.setAttribute("playback-id", playbackId);
+      player.setAttribute("stream-type", "on-demand");
+      player.setAttribute("autoplay", "muted");
+      player.setAttribute("muted", "");
+      player.setAttribute("loop", "");
+      player.setAttribute("playsinline", "");
+      player.setAttribute("preload", "auto");
+      player.setAttribute("nohotkeys", "");
+      player.setAttribute("disable-cookies", "");
+      player.style.position = "absolute";
+      player.style.inset = "0";
+      player.style.width = "100%";
+      player.style.height = "100%";
+      player.style.zIndex = "0";
+      player.style.setProperty("--controls", "none");
+      player.style.setProperty("--media-object-fit", "cover");
+      shell.appendChild(player);
       if (posterImg) posterImg.style.opacity = "0";
-      shell.dataset.mounted = "1";
     }
+
     function unmount() {
-      const iframe = shell.querySelector("iframe");
-      if (iframe) iframe.remove();
+      mounted = false;
+      if (player) { player.remove(); player = null; }
       if (posterImg) posterImg.style.opacity = "1";
-      shell.dataset.mounted = "0";
     }
+
     shell.addEventListener("mouseenter", mount);
     shell.addEventListener("mouseleave", unmount);
-  });
-});
+  }
+
+  function wireAll() {
+    document.querySelectorAll(".vimeo-shell[data-mux-playback-id]").forEach(wireShell);
+  }
+
+  document.addEventListener("cms:editors-ready", wireAll, { once: true });
+})();
 </script>
   <script>
 (function () {
@@ -1190,6 +1213,20 @@ body.theme-light{
 .switch .switch-button{
   transition: transform 200ms ease;
 }
+/* Editor row hover: red accent fade.
+   Closed rows tint to the brand red on hover; open rows stay calm. */
+.editor-dropdown .dropdown-toggle {
+  transition: background-color 440ms ease, color 440ms ease;
+}
+.editor-dropdown:not(.w--open) .dropdown-toggle:hover {
+  background-color: #dc2828;
+  color: #fff;
+}
+.editor-dropdown:not(.w--open) .dropdown-toggle:hover .text-13,
+.editor-dropdown:not(.w--open) .dropdown-toggle:hover .text-14 {
+  color: inherit;
+}
+
 /* 这个位移你按你的开关宽度微调：比如 18px / 20px / 22px */
 .switch.is-on .switch-button{
   transform: translateX(0px);
