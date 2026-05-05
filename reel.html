@@ -97,10 +97,26 @@
       width: var(--reel-w);
       margin: 0 auto;
       padding: 110px 0 30px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
     }
+    .h-left { min-width: 0; flex: 1; }
     .h-eyebrow { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; }
-    .h-title { font-size: clamp(28px, 5vw, 56px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 16px; }
-    .h-sub { font-size: 13px; font-weight: 300; line-height: 1.7; color: var(--text-dim); max-width: 620px; }
+    .h-title { font-size: clamp(28px, 5vw, 56px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
+    .h-sub {
+      font-size: 13px; font-weight: 300; line-height: 1.7;
+      color: var(--text-dim);
+      max-width: 360px;
+      text-align: right;
+      padding-bottom: 6px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 720px) {
+      .h-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .h-sub { text-align: left; max-width: 100%; padding-bottom: 0; }
+    }
 
     /* ── Stage container ── */
     .stage {
@@ -422,8 +438,10 @@
 
       var html = '';
       html += '<section class="h-row">';
-      html += '  <div class="h-eyebrow">Selected Work</div>';
-      html += '  <h1 class="h-title">' + escapeHtml(reel.title) + '</h1>';
+      html += '  <div class="h-left">';
+      html += '    <div class="h-eyebrow">Selected Work</div>';
+      html += '    <h1 class="h-title">' + escapeHtml(reel.title) + '</h1>';
+      html += '  </div>';
       if (reel.description) html += '<p class="h-sub">' + escapeHtml(reel.description) + '</p>';
       html += '</section>';
 
