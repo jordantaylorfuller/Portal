@@ -364,6 +364,133 @@
       color: var(--text-faint);
     }
 
+    /* ── Scheduler ── */
+    .sched-fab {
+      position: fixed; right: 24px; bottom: 24px; z-index: 60;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-dim);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: color 200ms ease, border-color 200ms ease, transform 200ms ease;
+    }
+    .sched-fab:hover { color: var(--text); border-color: var(--text-faint); }
+    .sched-fab.open { color: var(--text); border-color: var(--text-faint); transform: rotate(45deg); }
+    .sched-fab svg { width: 18px; height: 18px; transition: transform 250ms ease; }
+
+    .sched-overlay {
+      position: fixed; right: 24px; bottom: 78px; z-index: 60;
+      width: 340px; max-width: calc(100vw - 48px);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
+      padding: 18px;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 250ms ease, transform 250ms ease;
+    }
+    .sched-overlay.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .sched-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .sched-title {
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text);
+    }
+    .sched-month {
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim);
+    }
+    .sched-nav { display: flex; gap: 8px; }
+    .sched-nav-btn {
+      background: none; border: none; color: var(--text-faint);
+      font-family: inherit; font-size: 13px; cursor: pointer; padding: 0;
+      transition: color 150ms ease;
+    }
+    .sched-nav-btn:hover { color: var(--text); }
+    .sched-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .sched-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+    .sched-weekday {
+      font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-faint); text-align: center; padding: 4px 0;
+    }
+    .sched-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .sched-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 300;
+      color: var(--text-faint);
+      border: 1px solid transparent;
+      border-radius: 2px;
+      cursor: default;
+      background: none;
+    }
+    .sched-day.available {
+      color: var(--text-dim);
+      border-color: var(--border);
+      cursor: pointer;
+      transition: border-color 150ms ease, color 150ms ease;
+    }
+    .sched-day.available:hover { border-color: var(--text-faint); color: var(--text); }
+    .sched-day.selected { border-color: var(--accent); color: var(--text); background: rgba(220,40,40,0.08); }
+    .sched-day.today { color: var(--text); font-weight: 500; }
+    .sched-day.past { opacity: 0.25; }
+
+    .sched-times { margin-top: 14px; display: none; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+    .sched-times.visible { display: flex; }
+    .sched-times-empty {
+      font-size: 10px; color: var(--text-faint);
+      letter-spacing: 0.06em; text-align: center;
+      padding: 16px 0;
+    }
+    .sched-time {
+      font-size: 11px; font-weight: 300; color: var(--text-dim);
+      border: 1px solid var(--border); border-radius: 2px;
+      padding: 8px 12px; cursor: pointer; background: none; text-align: left;
+      font-family: inherit;
+      transition: border-color 150ms ease, color 150ms ease;
+    }
+    .sched-time:hover { border-color: var(--text-faint); color: var(--text); }
+    .sched-time.selected { border-color: var(--accent); color: var(--text); background: rgba(220,40,40,0.08); }
+
+    .sched-form { margin-top: 14px; display: none; flex-direction: column; gap: 8px; }
+    .sched-form.visible { display: flex; }
+    .sched-input {
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: inherit; font-size: 12px;
+    }
+    .sched-input:focus { outline: none; border-color: var(--text-faint); }
+    .sched-confirm {
+      width: 100%;
+      font-family: inherit; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+      color: #fff;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      padding: 10px;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+      margin-top: 4px;
+    }
+    .sched-confirm:hover { opacity: 0.9; }
+    .sched-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .sched-success {
+      padding: 22px 14px; text-align: center;
+    }
+    .sched-success-title { font-size: 12px; letter-spacing: 0.08em; margin-bottom: 8px; color: var(--text); }
+    .sched-success-msg { font-size: 11px; color: var(--text-dim); line-height: 1.6; margin-bottom: 14px; }
+    .sched-success a { color: var(--accent); text-decoration: none; font-size: 11px; }
+    .sched-success a:hover { text-decoration: underline; }
+
+    .sched-error { font-size: 10px; color: rgb(220,80,80); margin-top: 6px; min-height: 12px; letter-spacing: 0.04em; }
+
     .empty, .loader {
       max-width: 720px; margin: 200px auto;
       padding: 0 32px; text-align: center;
@@ -396,6 +523,39 @@
   <main id="main">
     <div class="loader">Loading.</div>
   </main>
+
+  <button class="sched-fab" id="sched-fab" title="Schedule a call" aria-label="Schedule a call">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="12" height="11" rx="1.5"/>
+      <line x1="2" y1="6.5" x2="14" y2="6.5"/>
+      <line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/>
+      <line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/>
+    </svg>
+  </button>
+
+  <div class="sched-overlay" id="sched-overlay">
+    <div id="sched-body">
+      <div class="sched-head">
+        <div>
+          <div class="sched-title">Schedule a call</div>
+          <div class="sched-month" id="sched-month">—</div>
+        </div>
+        <div class="sched-nav">
+          <button class="sched-nav-btn" id="sched-prev" aria-label="Previous month">&lsaquo;</button>
+          <button class="sched-nav-btn" id="sched-next" aria-label="Next month">&rsaquo;</button>
+        </div>
+      </div>
+      <div class="sched-weekdays" id="sched-weekdays"></div>
+      <div class="sched-days" id="sched-days"></div>
+      <div class="sched-times" id="sched-times"></div>
+      <div class="sched-form" id="sched-form">
+        <input type="text" class="sched-input" id="sched-name" placeholder="Your name (optional)" autocomplete="name"/>
+        <input type="email" class="sched-input" id="sched-email" placeholder="Your email" autocomplete="email" required/>
+        <button class="sched-confirm" id="sched-confirm" disabled>Confirm booking</button>
+        <div class="sched-error" id="sched-error"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ── Icons ──
@@ -794,6 +954,202 @@
     }
 
     load();
+
+    // ── Scheduler popover ──
+    (function initScheduler(){
+      var fab = document.getElementById('sched-fab');
+      var overlay = document.getElementById('sched-overlay');
+      var monthEl = document.getElementById('sched-month');
+      var weekdaysEl = document.getElementById('sched-weekdays');
+      var daysEl = document.getElementById('sched-days');
+      var timesEl = document.getElementById('sched-times');
+      var formEl = document.getElementById('sched-form');
+      var prevBtn = document.getElementById('sched-prev');
+      var nextBtn = document.getElementById('sched-next');
+      var nameEl = document.getElementById('sched-name');
+      var emailEl = document.getElementById('sched-email');
+      var confirmBtn = document.getElementById('sched-confirm');
+      var errorEl = document.getElementById('sched-error');
+      var bodyEl = document.getElementById('sched-body');
+
+      var viewMonth = new Date();
+      viewMonth.setDate(1);
+      var selectedDay = null;   // YYYY-MM-DD string
+      var selectedSlot = null;  // { start, end }
+      var availabilityCache = {}; // dateStr -> slots[]
+
+      // Weekday header
+      ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(w){
+        var el = document.createElement('div');
+        el.className = 'sched-weekday';
+        el.textContent = w.slice(0, 1);
+        weekdaysEl.appendChild(el);
+      });
+
+      function fmtMonth(d) {
+        return d.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+      }
+      function dateKey(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      }
+
+      function renderMonth() {
+        monthEl.textContent = fmtMonth(viewMonth);
+        daysEl.innerHTML = '';
+        var firstDow = viewMonth.getDay();
+        var year = viewMonth.getFullYear();
+        var month = viewMonth.getMonth();
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+        var today = new Date(); today.setHours(0,0,0,0);
+
+        // Leading blanks
+        for (var i = 0; i < firstDow; i++) {
+          var blank = document.createElement('div');
+          blank.className = 'sched-day';
+          daysEl.appendChild(blank);
+        }
+        for (var d = 1; d <= daysInMonth; d++) {
+          var dt = new Date(year, month, d);
+          var k = dateKey(dt);
+          var btn = document.createElement('button');
+          btn.className = 'sched-day';
+          btn.textContent = String(d);
+          btn.dataset.date = k;
+          var dow = dt.getDay();
+          var isWeekend = dow === 0 || dow === 6;
+          var isPast = dt < today;
+          if (isPast) btn.classList.add('past');
+          else if (!isWeekend) btn.classList.add('available');
+          if (dt.getTime() === today.getTime()) btn.classList.add('today');
+          if (k === selectedDay) btn.classList.add('selected');
+          btn.addEventListener('click', function(){
+            if (this.classList.contains('available')) selectDay(this.dataset.date);
+          });
+          daysEl.appendChild(btn);
+        }
+
+        // Disable prev if it would land before today's month
+        var thisMonth = new Date(); thisMonth.setDate(1); thisMonth.setHours(0,0,0,0);
+        prevBtn.disabled = (viewMonth.getFullYear() === thisMonth.getFullYear() && viewMonth.getMonth() === thisMonth.getMonth());
+      }
+
+      async function selectDay(dateStr) {
+        selectedDay = dateStr;
+        selectedSlot = null;
+        renderMonth();
+        timesEl.classList.add('visible');
+        formEl.classList.remove('visible');
+        timesEl.innerHTML = '<div class="sched-times-empty">Loading.</div>';
+        var slots = availabilityCache[dateStr];
+        if (!slots) {
+          try {
+            var r = await fetch('/api/scheduler/availability?date=' + encodeURIComponent(dateStr));
+            var data = await r.json();
+            if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+            slots = data.slots || [];
+            availabilityCache[dateStr] = slots;
+          } catch (e) {
+            timesEl.innerHTML = '<div class="sched-times-empty">' + escapeHtml(e.message) + '</div>';
+            return;
+          }
+        }
+        if (!slots.length) {
+          timesEl.innerHTML = '<div class="sched-times-empty">No availability that day.</div>';
+          return;
+        }
+        timesEl.innerHTML = '';
+        slots.forEach(function(s){
+          var btn = document.createElement('button');
+          btn.className = 'sched-time';
+          btn.textContent = formatSlotTime(s.start);
+          btn.addEventListener('click', function(){
+            timesEl.querySelectorAll('.sched-time').forEach(function(b){ b.classList.remove('selected'); });
+            btn.classList.add('selected');
+            selectedSlot = s;
+            formEl.classList.add('visible');
+            updateConfirmEnabled();
+          });
+          timesEl.appendChild(btn);
+        });
+      }
+
+      function formatSlotTime(iso) {
+        var d = new Date(iso);
+        return d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      }
+
+      function updateConfirmEnabled() {
+        var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value || '');
+        confirmBtn.disabled = !(selectedSlot && emailOk);
+      }
+      emailEl.addEventListener('input', updateConfirmEnabled);
+
+      confirmBtn.addEventListener('click', async function(){
+        if (!selectedSlot) return;
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Booking…';
+        errorEl.textContent = '';
+        try {
+          var r = await fetch('/api/scheduler/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: nameEl.value || null,
+              email: emailEl.value,
+              start: selectedSlot.start,
+              end: selectedSlot.end,
+              reel_slug: slug,
+            }),
+          });
+          var data = await r.json();
+          if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+          renderSuccess(data, selectedSlot);
+        } catch (e) {
+          errorEl.textContent = e.message || 'Could not book';
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirm booking';
+        }
+      });
+
+      function renderSuccess(data, slot) {
+        bodyEl.innerHTML =
+          '<div class="sched-success">' +
+            '<div class="sched-success-title">Booked.</div>' +
+            '<div class="sched-success-msg">' +
+              'Calendar invite sent to ' + escapeHtml(emailEl.value) + '.<br/>' +
+              formatSlotTime(slot.start) + ' on ' +
+              new Date(slot.start).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) +
+            '</div>' +
+            (data.meet_link ? '<a href="' + escapeHtml(data.meet_link) + '" target="_blank" rel="noopener">Open Google Meet link</a>' : '') +
+          '</div>';
+      }
+
+      prevBtn.addEventListener('click', function(){
+        viewMonth.setMonth(viewMonth.getMonth() - 1);
+        selectedDay = null; selectedSlot = null;
+        timesEl.classList.remove('visible'); formEl.classList.remove('visible');
+        renderMonth();
+      });
+      nextBtn.addEventListener('click', function(){
+        viewMonth.setMonth(viewMonth.getMonth() + 1);
+        selectedDay = null; selectedSlot = null;
+        timesEl.classList.remove('visible'); formEl.classList.remove('visible');
+        renderMonth();
+      });
+
+      fab.addEventListener('click', function(){
+        var open = overlay.classList.toggle('open');
+        fab.classList.toggle('open', open);
+        if (open) renderMonth();
+      });
+
+      document.addEventListener('click', function(e){
+        if (!overlay.classList.contains('open')) return;
+        if (overlay.contains(e.target) || fab.contains(e.target)) return;
+        overlay.classList.remove('open');
+        fab.classList.remove('open');
+      });
+    })();
   </script>
 </body>
 </html>
