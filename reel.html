@@ -10,7 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+    input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+    ::selection { background: transparent; }
     :root {
       --reel-w: clamp(560px, 76vw, 1180px);
       --bg: #0a0a0a;
