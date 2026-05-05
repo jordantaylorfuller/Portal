@@ -227,28 +227,40 @@
       position: absolute; inset: 0;
       background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4));
     }
-    .cf-card .play-glyph {
+    .play-glyph {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 56px; height: 56px;
-      border: 1.5px solid rgba(255,255,255,0.9);
+      width: 64px; height: 64px;
+      border: 1.5px solid rgba(255,255,255,0.95);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       transition: transform 300ms ease, opacity 300ms ease;
-      opacity: 0.9;
+      opacity: 0.95;
+      pointer-events: none;
+      z-index: 5;
     }
-    .cf-card .play-glyph::after {
+    .play-glyph::after {
       content: '';
       width: 0; height: 0;
-      border-left: 12px solid #fff;
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
+      border-left: 14px solid #fff;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
       margin-left: 4px;
     }
-    .cf-card:hover .play-glyph { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
-    .cf-card.is-active .play-glyph { display: none; }
+    .cf-card:hover .play-glyph,
+    .list-item:hover .play-glyph,
+    .stk-featured:hover .play-glyph { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    .play-glyph.hidden { opacity: 0; }
+    /* Hide Mux Player's central big-play button so our white glyph reads. Multiple selectors
+       cover different Mux Player versions / Media Chrome internal naming. */
+    mux-player::part(top),
+    mux-player::part(top-chrome),
+    mux-player::part(center),
+    mux-player::part(centered-chrome),
+    mux-player::part(big-button) { display: none !important; }
     .cf-stage.shifting .cf-card { filter: blur(var(--blur, 0px)) brightness(0.92); }
     .cf-stage:not(.shifting) .cf-card { filter: blur(var(--blur, 0px)); }
 
@@ -501,9 +513,17 @@
 
     function renderView() {
       var stage = document.getElementById('stage-area');
-      if (view === 'list') stage.innerHTML = renderList();
+      if (view === 'list') { stage.innerHTML = renderList(); initList(); }
       else if (view === 'cf') { stage.innerHTML = renderCoverFlow(); initCoverFlow(); }
       else if (view === 'stack') { stage.innerHTML = renderStack(); initStack(); }
+    }
+
+    function initList() {
+      document.querySelectorAll('.list-item').forEach(function(item){
+        var p = item.querySelector('mux-player');
+        var g = item.querySelector('.play-glyph');
+        attachGlyph(p, g);
+      });
     }
 
     // ── List view ──
@@ -515,7 +535,10 @@
         html += '    <div class="list-title">' + escapeHtml(a.title || 'Untitled') + '</div>';
         if (a.duration_seconds) html += '<div class="list-dur">' + fmtDuration(a.duration_seconds) + '</div>';
         html += '  </div>';
-        html += '  <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" poster="' + escapeHtml(posterFor(a)) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
+        html += '  <div style="position:relative;">';
+        html += '    <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" poster="' + escapeHtml(posterFor(a)) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
+        html += '    <div class="play-glyph"></div>';
+        html += '  </div>';
         html += '</div>';
       });
       html += '</section>';
@@ -621,6 +644,7 @@
       if (!card) return;
       muxEl = makeMux(assets[current].mux_playback_id);
       card.appendChild(muxEl);
+      attachGlyph(muxEl, card.querySelector('.play-glyph'));
     }
 
     function cfUpdateMeta() {
@@ -663,6 +687,7 @@
       var html = '<div class="stk-wrap view-stack" id="stk-wrap">';
       html += '  <div class="stk-featured" id="stk-featured">';
       html += '    <div class="stk-card" id="stk-card"></div>';
+      html += '    <div class="play-glyph" id="stk-glyph"></div>';
       html += '  </div>';
       html += '  <div class="stk-thumbs" id="stk-thumbs">';
       assets.forEach(function(a, i) {
@@ -725,6 +750,9 @@
       card.style.backgroundImage = 'url(' + posterFor(a) + ')';
       muxEl = makeMux(a.mux_playback_id);
       card.appendChild(muxEl);
+      attachGlyph(muxEl, document.getElementById('stk-glyph'));
+      var g = document.getElementById('stk-glyph');
+      if (g) g.classList.remove('hidden');
     }
 
     function stkUpdateMeta() {
@@ -756,6 +784,13 @@
       el.style.setProperty('--cast-button', 'none');
       el.style.setProperty('--pip-button', 'none');
       return el;
+    }
+
+    function attachGlyph(playerEl, glyphEl) {
+      if (!playerEl || !glyphEl) return;
+      playerEl.addEventListener('play', function(){ glyphEl.classList.add('hidden'); });
+      playerEl.addEventListener('pause', function(){ glyphEl.classList.remove('hidden'); });
+      playerEl.addEventListener('ended', function(){ glyphEl.classList.remove('hidden'); });
     }
 
     load();
