@@ -323,16 +323,12 @@
       background: #000 center/cover no-repeat;
     }
     .stk-thumb:hover { opacity: 1; }
-    .stk-thumb::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6));
-    }
     .stk-thumb-label {
       position: absolute; left: 12px; right: 12px; bottom: 10px;
       font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
-      color: rgba(255,255,255,0.85); z-index: 2;
+      color: rgba(255,255,255,0.95); z-index: 2;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
     }
     .stk-thumb.is-active { filter: brightness(0.5); opacity: 0.4; }
     .stk-thumb.is-active:hover { opacity: 0.4; }
