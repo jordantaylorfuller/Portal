@@ -990,9 +990,12 @@
     var DRAG_SLOP = 5;                // px before we commit to a horizontal drag
     function endDrag(ds, navDir) {
       var stage = ds.stage;
-      stage.style.transition = 'transform 520ms cubic-bezier(0.45, 0, 0.25, 1)';
+      // Match the cf-card transition (750ms ease-out-quart) so stage and cards
+      // travel on the same curve and finish at the same time — no relative
+      // motion, no perceived bounce.
+      stage.style.transition = 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)';
       stage.style.transform = 'translate3d(0, 0, 0)';
-      setTimeout(function(){ stage.style.transition = ''; stage.style.transform = ''; }, 560);
+      setTimeout(function(){ stage.style.transition = ''; stage.style.transform = ''; }, 800);
       if (navDir && view === 'cf' && !transitioning) cfGoTo(current + navDir);
     }
     document.addEventListener('pointerdown', function(e){
