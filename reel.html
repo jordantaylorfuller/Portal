@@ -835,7 +835,7 @@
         if (a.duration_seconds) html += '<div class="list-dur">' + fmtDuration(a.duration_seconds) + '</div>';
         html += '  </div>';
         html += '  <div style="position:relative;">';
-        html += '    <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" poster="' + escapeHtml(posterFor(a)) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies></mux-player>';
+        html += '    <mux-player playback-id="' + escapeHtml(a.mux_playback_id) + '" poster="' + escapeHtml(posterFor(a)) + '" stream-type="on-demand" accent-color="#dc2828" disable-cookies nohotkeys></mux-player>';
         html += '    <div class="play-glyph"></div>';
         html += '  </div>';
         html += '</div>';
@@ -1251,6 +1251,9 @@
       el.setAttribute('stream-type', 'on-demand');
       el.setAttribute('accent-color', '#dc2828');
       el.setAttribute('disable-cookies', '');
+      // Disable mux-player's built-in J/K/L hotkeys so our window-level
+      // listener can repurpose them for playback-speed control.
+      el.setAttribute('nohotkeys', '');
       el.style.position = 'absolute';
       el.style.inset = '0';
       el.style.width = '100%';
