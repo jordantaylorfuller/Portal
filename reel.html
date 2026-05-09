@@ -258,33 +258,7 @@
       position: absolute; inset: 0;
       background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4));
     }
-    .play-glyph {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 64px; height: 64px;
-      border: 1.5px solid rgba(255,255,255,0.95);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: transform 300ms ease, opacity 300ms ease;
-      opacity: 0.95;
-      pointer-events: none;
-      z-index: 5;
-    }
-    .play-glyph::after {
-      content: '';
-      width: 0; height: 0;
-      border-left: 14px solid #fff;
-      border-top: 9px solid transparent;
-      border-bottom: 9px solid transparent;
-      margin-left: 4px;
-    }
-    .cf-card:hover .play-glyph,
-    .list-item:hover .play-glyph,
-    .stk-featured:hover .play-glyph { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
-    .play-glyph.hidden { opacity: 0; }
+    .play-glyph { display: none; }
     /* Hide Mux Player's central big-play button so our white glyph reads. Multiple selectors
        cover different Mux Player versions / Media Chrome internal naming. */
     mux-player::part(top),
@@ -434,8 +408,6 @@
         padding: 14px 0 22px;
       }
       .footer-loc { display: none; }
-      /* Experiment: minimalist mobile — no custom play glyph on poster or during playback */
-      .play-glyph { display: none; }
     }
 
     /* ── Footer ── */
@@ -970,9 +942,44 @@
     }
 
     // Cover Flow keyboard + wheel (bound globally, ignored when not active)
+    function isTypingTarget(el) {
+      if (!el) return false;
+      var tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+    }
+    function togglePlayActive() {
+      if (view === 'cf') {
+        if (!muxEl) { cfPlayActive(); return; }
+      } else if (view !== 'stack') {
+        return;
+      }
+      if (!muxEl) return;
+      if (muxEl.paused) { try { var p = muxEl.play(); if (p && p.catch) p.catch(function(){}); } catch (e) {} }
+      else { try { muxEl.pause(); } catch (e) {} }
+    }
+    function fullscreenActive() {
+      if (view !== 'cf' && view !== 'stack') return;
+      if (!muxEl) {
+        if (view === 'cf') cfPlayActive();
+        if (!muxEl) return;
+      }
+      var req = muxEl.requestFullscreen || muxEl.webkitRequestFullscreen || muxEl.webkitEnterFullscreen;
+      if (req) { try { req.call(muxEl); } catch (e) {} }
+    }
     var wheelTimer = null, wheelAccum = 0;
     window.addEventListener('keydown', function(e){
+      if (isTypingTarget(e.target)) return;
       if (view !== 'cf' && view !== 'stack') return;
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        togglePlayActive();
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        fullscreenActive();
+        return;
+      }
       if (view === 'cf') {
         if (e.key === 'ArrowLeft') cfGoTo(current - 1);
         if (e.key === 'ArrowRight') cfGoTo(current + 1);
