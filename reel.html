@@ -910,15 +910,20 @@
       var stage = document.getElementById('cf-stage');
       stage.classList.add('shifting');
       var titleEl = document.getElementById('cf-meta-title');
-      if (titleEl) titleEl.classList.add('fade');
+      // Drag preview may have already updated the meta to the target asset.
+      // Skip the fade in that case so the title doesn't pointlessly fade out
+      // and back in to the same text.
+      var preUpdated = !!(titleEl && titleEl.textContent === (assets[i].title || ''));
+      if (titleEl && !preUpdated) titleEl.classList.add('fade');
       cleanupMode();
       current = i;
       cfLayout();
-      // Update meta mid-transition so title fade-in matches card settle.
-      setTimeout(function(){ cfUpdateMeta(); }, 300);
+      if (!preUpdated) {
+        setTimeout(function(){ cfUpdateMeta(); }, 300);
+      }
       setTimeout(function(){
         stage.classList.remove('shifting');
-        if (titleEl) titleEl.classList.remove('fade');
+        if (titleEl && !preUpdated) titleEl.classList.remove('fade');
         transitioning = false;
       }, 700);
     }
@@ -946,13 +951,15 @@
       muxEl.addEventListener('canplay', attemptPlay, { once: true });
     }
 
-    function cfUpdateMeta() {
-      var a = assets[current];
+    function cfUpdateMeta() { cfShowMetaFor(current); }
+    function cfShowMetaFor(idx) {
+      var a = assets[idx];
+      if (!a) return;
       var titleEl = document.getElementById('cf-meta-title');
       var posEl = document.getElementById('cf-meta-pos');
       var topEl = document.getElementById('cf-meta-top');
       if (titleEl) titleEl.textContent = a.title || '';
-      if (posEl) posEl.textContent = (current + 1) + ' / ' + assets.length;
+      if (posEl) posEl.textContent = (idx + 1) + ' / ' + assets.length;
       if (topEl) topEl.textContent = fmtDuration(a.duration_seconds);
     }
 
@@ -986,6 +993,7 @@
     // current card. The trailing click is suppressed so the active-card
     // play/pause handler doesn't also fire.
     var dragState = null;
+    var dragMetaTarget = -1;          // index whose meta is currently shown during drag
     var DRAG_THRESHOLD = 50;          // px past which we navigate ±1
     var DRAG_SLOP = 5;                // px before we commit to a horizontal drag
     function endDrag(ds, navDir) {
@@ -1017,11 +1025,23 @@
         if (Math.abs(dx) < DRAG_SLOP && Math.abs(dy) < DRAG_SLOP) return;
         if (Math.abs(dx) <= Math.abs(dy)) { dragState = null; return; }
         dragState.dragging = true;
+        dragMetaTarget = current;
       }
       if (dragState.type === 'mouse') e.preventDefault();
       dragState.lastDx = dx;
       dragState.stage.style.transition = 'none';
       dragState.stage.style.transform = 'translate3d(' + dx + 'px, 0, 0)';
+      // Live meta preview: once the drag passes the navigation threshold,
+      // swap the title to the would-land-on card so the user sees the
+      // destination before committing. Reverts if they drag back.
+      var target = current;
+      if (Math.abs(dx) >= DRAG_THRESHOLD) {
+        target = Math.max(0, Math.min(assets.length - 1, current + (dx < 0 ? 1 : -1)));
+      }
+      if (target !== dragMetaTarget) {
+        dragMetaTarget = target;
+        cfShowMetaFor(target);
+      }
     });
     window.addEventListener('pointerup', function(e){
       if (!dragState || e.pointerId !== dragState.pid) return;
@@ -1036,7 +1056,9 @@
     window.addEventListener('pointercancel', function(e){
       if (!dragState || e.pointerId !== dragState.pid) return;
       var ds = dragState; dragState = null;
-      if (ds.dragging) endDrag(ds, 0);
+      if (!ds.dragging) return;
+      endDrag(ds, 0);
+      if (dragMetaTarget !== current) { dragMetaTarget = current; cfShowMetaFor(current); }
     });
 
     // ── Stack view ──
