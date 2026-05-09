@@ -959,12 +959,28 @@
     }
     function fullscreenActive() {
       if (view !== 'cf' && view !== 'stack') return;
-      if (!muxEl) {
-        if (view === 'cf') cfPlayActive();
-        if (!muxEl) return;
+      // Toggle: if already fullscreen, exit.
+      var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fsEl) {
+        var exitFn = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exitFn) { try { exitFn.call(document); } catch (e) {} }
+        return;
       }
-      var req = muxEl.requestFullscreen || muxEl.webkitRequestFullscreen || muxEl.webkitEnterFullscreen;
-      if (req) { try { req.call(muxEl); } catch (e) {} }
+      function enterFs() {
+        if (document.fullscreenElement || document.webkitFullscreenElement) return;
+        if (!muxEl) return;
+        var req = muxEl.requestFullscreen || muxEl.webkitRequestFullscreen || muxEl.webkitEnterFullscreen;
+        if (req) { try { req.call(muxEl); } catch (e) {} }
+      }
+      // First F with no player: mount + play, then fullscreen as soon as the
+      // player is ready (canplay) — mux-player rejects requestFullscreen until
+      // it has connected and loaded metadata. We also try immediately in case
+      // it's already ready.
+      if (!muxEl && view === 'cf') {
+        cfPlayActive();
+        if (muxEl) muxEl.addEventListener('canplay', enterFs, { once: true });
+      }
+      enterFs();
     }
     var wheelTimer = null, wheelAccum = 0;
     window.addEventListener('keydown', function(e){
