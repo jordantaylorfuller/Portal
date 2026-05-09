@@ -976,10 +976,23 @@
     }
 
     // Cover Flow keyboard + wheel (bound globally, ignored when not active)
+    // Returns true when the focused element should keep its native key
+    // handling (typing, button activation, link activation, dropdown toggle).
+    // Used to gate the global Space / F / Arrow shortcuts so they don't steal
+    // keys from focused controls like the view tabs, scheduler buttons, or
+    // theme toggle.
     function isTypingTarget(el) {
       if (!el) return false;
       var tag = el.tagName;
-      return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+          tag === 'BUTTON' || tag === 'A') return true;
+      if (el.isContentEditable) return true;
+      // role="button" and other custom interactive widgets
+      var role = el.getAttribute && el.getAttribute('role');
+      if (role === 'button' || role === 'link' || role === 'menuitem' ||
+          role === 'option' || role === 'tab' || role === 'switch' ||
+          role === 'checkbox') return true;
+      return false;
     }
     function togglePlayActive() {
       if (view === 'cf') {
