@@ -980,54 +980,60 @@
       wheelTimer = setTimeout(function(){ wheelAccum = 0; }, 200);
     }, { passive: true });
 
-    // Touch swipe for cover-flow nav (mobile)
-    var touchStartX = 0, touchStartY = 0, touchActive = false;
-    window.addEventListener('touchstart', function(e){
-      if (view !== 'cf' || e.touches.length !== 1) return;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchActive = true;
-    }, { passive: true });
-    window.addEventListener('touchend', function(e){
-      if (!touchActive) return;
-      touchActive = false;
-      if (view !== 'cf' || transitioning) return;
-      var dx = e.changedTouches[0].clientX - touchStartX;
-      var dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
-      cfGoTo(current + (dx < 0 ? 1 : -1));
-    }, { passive: true });
-
-    // Mouse click-and-drag for cover-flow nav (desktop). A drag past the
-    // threshold navigates and suppresses the trailing click so the active-card
+    // Pointer drag for cover-flow nav (unified mouse + touch). The cf-stage
+    // tracks the cursor in real time during the drag, then either snaps to the
+    // adjacent card (if the drag passes threshold) or springs back to the
+    // current card. The trailing click is suppressed so the active-card
     // play/pause handler doesn't also fire.
     var dragState = null;
-    document.addEventListener('mousedown', function(e){
-      if (view !== 'cf' || e.button !== 0) return;
+    var DRAG_THRESHOLD = 50;          // px past which we navigate ±1
+    var DRAG_SLOP = 5;                // px before we commit to a horizontal drag
+    function endDrag(ds, navDir) {
+      var stage = ds.stage;
+      stage.style.transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+      stage.style.transform = 'translate3d(0, 0, 0)';
+      setTimeout(function(){ stage.style.transition = ''; stage.style.transform = ''; }, 320);
+      if (navDir && view === 'cf' && !transitioning) cfGoTo(current + navDir);
+    }
+    document.addEventListener('pointerdown', function(e){
+      if (view !== 'cf' || transitioning) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       var stage = document.getElementById('cf-stage');
       if (!stage || !stage.contains(e.target)) return;
-      dragState = { startX: e.clientX, startY: e.clientY, dragging: false };
+      dragState = {
+        pid: e.pointerId, type: e.pointerType,
+        startX: e.clientX, startY: e.clientY,
+        dragging: false, lastDx: 0, stage: stage
+      };
     });
-    window.addEventListener('mousemove', function(e){
-      if (!dragState) return;
+    window.addEventListener('pointermove', function(e){
+      if (!dragState || e.pointerId !== dragState.pid) return;
       var dx = e.clientX - dragState.startX;
       var dy = e.clientY - dragState.startY;
-      if (!dragState.dragging && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-        if (Math.abs(dx) > Math.abs(dy)) dragState.dragging = true;
-        else { dragState = null; return; }
+      if (!dragState.dragging) {
+        if (Math.abs(dx) < DRAG_SLOP && Math.abs(dy) < DRAG_SLOP) return;
+        if (Math.abs(dx) <= Math.abs(dy)) { dragState = null; return; }
+        dragState.dragging = true;
       }
-      if (dragState.dragging) e.preventDefault();
+      if (dragState.type === 'mouse') e.preventDefault();
+      dragState.lastDx = dx;
+      dragState.stage.style.transition = 'none';
+      dragState.stage.style.transform = 'translate3d(' + dx + 'px, 0, 0)';
     });
-    window.addEventListener('mouseup', function(e){
-      if (!dragState) return;
+    window.addEventListener('pointerup', function(e){
+      if (!dragState || e.pointerId !== dragState.pid) return;
       var ds = dragState; dragState = null;
-      if (!ds.dragging || view !== 'cf' || transitioning) return;
-      var dx = e.clientX - ds.startX;
-      if (Math.abs(dx) >= 40) cfGoTo(current + (dx < 0 ? 1 : -1));
-      // Suppress the click event that follows mouseup so the card's click
-      // handler doesn't toggle play/pause.
+      if (!ds.dragging) return;
+      var dx = ds.lastDx;
+      var navDir = Math.abs(dx) >= DRAG_THRESHOLD ? (dx < 0 ? 1 : -1) : 0;
+      endDrag(ds, navDir);
       var blocker = function(ev){ ev.stopPropagation(); ev.preventDefault(); };
       window.addEventListener('click', blocker, { capture: true, once: true });
+    });
+    window.addEventListener('pointercancel', function(e){
+      if (!dragState || e.pointerId !== dragState.pid) return;
+      var ds = dragState; dragState = null;
+      if (ds.dragging) endDrag(ds, 0);
     });
 
     // ── Stack view ──
