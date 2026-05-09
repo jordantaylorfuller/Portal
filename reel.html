@@ -295,34 +295,6 @@
     .cf-stage.shifting .cf-card { filter: blur(var(--blur, 0px)) brightness(0.92); }
     .cf-stage:not(.shifting) .cf-card { filter: blur(var(--blur, 0px)); }
 
-    /* ── Cover Flow nav ── */
-    .cf-nav {
-      width: var(--reel-w);
-      margin: 28px auto 0;
-      padding: 0;
-      display: flex; align-items: center; justify-content: center; gap: 24px;
-    }
-    .cf-dots { display: flex; gap: 8px; align-items: center; }
-    .cf-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--text-faint);
-      transition: background 200ms ease, transform 200ms ease;
-      cursor: pointer; border: none; padding: 0;
-    }
-    .cf-dot.active { background: var(--accent); transform: scale(1.4); }
-    .cf-arrow {
-      width: 36px; height: 36px;
-      border: 1px solid var(--border);
-      background: transparent; color: var(--text-dim);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: inherit; font-size: 16px;
-      transition: border-color 200ms ease, color 200ms ease, transform 200ms ease;
-    }
-    .cf-arrow:hover { border-color: var(--text-faint); color: var(--text); }
-    .cf-arrow:active { transform: scale(0.95); }
-    .cf-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
-
     /* ── Stack view ── */
     .stk-wrap {
       position: relative;
@@ -408,7 +380,6 @@
         touch-action: pan-y;
       }
       body[data-view="cf"] .meta { margin-top: 12px; }
-      .cf-nav { gap: 16px; margin-top: 14px; }
       .stk-wrap {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto auto auto;
@@ -888,20 +859,11 @@
       html += '  <div class="meta-title" id="cf-meta-title"></div>';
       html += '  <div class="meta-pos" id="cf-meta-pos"></div>';
       html += '</div>';
-      html += '<div class="cf-nav view-cf">';
-      html += '  <button class="cf-arrow" id="cf-prev" aria-label="Previous">&larr;</button>';
-      html += '  <div class="cf-dots" id="cf-dots"></div>';
-      html += '  <button class="cf-arrow" id="cf-next" aria-label="Next">&rarr;</button>';
-      html += '</div>';
       return html;
     }
 
     function initCoverFlow() {
       var stage = document.getElementById('cf-stage');
-      var dotsHtml = '';
-      assets.forEach(function(_, i){ dotsHtml += '<button class="cf-dot" data-i="' + i + '"></button>'; });
-      document.getElementById('cf-dots').innerHTML = dotsHtml;
-
       stage.querySelectorAll('.cf-card').forEach(function(card){
         card.addEventListener('click', function(){
           var i = Number(card.dataset.i);
@@ -912,11 +874,6 @@
           else muxEl.pause();
         });
       });
-      document.querySelectorAll('#cf-dots .cf-dot').forEach(function(d){
-        d.addEventListener('click', function(){ cfGoTo(Number(d.dataset.i)); });
-      });
-      document.getElementById('cf-prev').addEventListener('click', function(){ cfGoTo(current - 1); });
-      document.getElementById('cf-next').addEventListener('click', function(){ cfGoTo(current + 1); });
 
       cfLayout();
       cfUpdateMeta();
@@ -944,10 +901,6 @@
           card.classList.remove('is-active');
         }
       });
-      document.querySelectorAll('#cf-dots .cf-dot').forEach(function(d, i){ d.classList.toggle('active', i === current); });
-      var prev = document.getElementById('cf-prev'), next = document.getElementById('cf-next');
-      if (prev) prev.disabled = (current === 0);
-      if (next) next.disabled = (current === assets.length - 1);
     }
 
     function cfGoTo(i) {
@@ -1044,6 +997,38 @@
       if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
       cfGoTo(current + (dx < 0 ? 1 : -1));
     }, { passive: true });
+
+    // Mouse click-and-drag for cover-flow nav (desktop). A drag past the
+    // threshold navigates and suppresses the trailing click so the active-card
+    // play/pause handler doesn't also fire.
+    var dragState = null;
+    document.addEventListener('mousedown', function(e){
+      if (view !== 'cf' || e.button !== 0) return;
+      var stage = document.getElementById('cf-stage');
+      if (!stage || !stage.contains(e.target)) return;
+      dragState = { startX: e.clientX, startY: e.clientY, dragging: false };
+    });
+    window.addEventListener('mousemove', function(e){
+      if (!dragState) return;
+      var dx = e.clientX - dragState.startX;
+      var dy = e.clientY - dragState.startY;
+      if (!dragState.dragging && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+        if (Math.abs(dx) > Math.abs(dy)) dragState.dragging = true;
+        else { dragState = null; return; }
+      }
+      if (dragState.dragging) e.preventDefault();
+    });
+    window.addEventListener('mouseup', function(e){
+      if (!dragState) return;
+      var ds = dragState; dragState = null;
+      if (!ds.dragging || view !== 'cf' || transitioning) return;
+      var dx = e.clientX - ds.startX;
+      if (Math.abs(dx) >= 40) cfGoTo(current + (dx < 0 ? 1 : -1));
+      // Suppress the click event that follows mouseup so the card's click
+      // handler doesn't toggle play/pause.
+      var blocker = function(ev){ ev.stopPropagation(); ev.preventDefault(); };
+      window.addEventListener('click', blocker, { capture: true, once: true });
+    });
 
     // ── Stack view ──
     function renderStack() {
