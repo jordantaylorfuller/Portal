@@ -1041,6 +1041,15 @@
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       var stage = document.getElementById('cf-stage');
       if (!stage || !stage.contains(e.target)) return;
+      // Don't start a drag in the bottom 10% of the active card while a player
+      // is mounted — that strip is where mux-player's transport controls live.
+      if (muxEl) {
+        var activeCard = stage.querySelector('.cf-card.is-active');
+        if (activeCard) {
+          var rect = activeCard.getBoundingClientRect();
+          if (e.clientY >= rect.bottom - rect.height * 0.10) return;
+        }
+      }
       dragState = {
         pid: e.pointerId, type: e.pointerType,
         startX: e.clientX, startY: e.clientY,
