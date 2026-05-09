@@ -194,11 +194,49 @@
     .delivery-upload:hover { border-color: rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.6); }
     .delivery-upload-arrow { font-size: 14px; line-height: 1; }
 
-    .delivery-empty, .delivery-loading {
+    .delivery-empty {
       font-family: 'DM Mono', monospace;
       font-size: 11px; font-weight: 300;
       color: rgba(255, 255, 255, 0.3);
       letter-spacing: 0.05em; text-align: center; padding: 64px 0;
+    }
+
+    /* ── Unified loader (progress bar) — matches Portal/reels ── */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 64px 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .loader-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; font-weight: 300;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      margin-bottom: 14px; opacity: 0.55;
+    }
+    .loader-bar {
+      width: 40%; max-width: 280px;
+      height: 4px;
+      background: color-mix(in srgb, currentColor 14%, transparent);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .loader-bar::after {
+      content: '';
+      position: absolute; top: 0; left: 0; height: 100%;
+      width: 30%;
+      background: rgb(220, 40, 40);
+      border-radius: 2px;
+      animation: loader-bar-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes loader-bar-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(333%); }
     }
 
     @keyframes deliveryItemIn {
@@ -346,7 +384,7 @@
 
     // ── Load deliveries: try API first, fall back to mock ──
     async function loadDeliveries() {
-      deliveryGroupsContainer.innerHTML = '<div class="delivery-loading">Loading...</div>';
+      deliveryGroupsContainer.innerHTML = '<div class="loader"><div class="loader-text">Loading</div><div class="loader-bar"></div></div>';
 
       // Try to get projects from API
       var session = (await supabaseClient.auth.getSession()).data.session;

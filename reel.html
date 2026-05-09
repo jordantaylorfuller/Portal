@@ -159,6 +159,12 @@
       padding-right: 12px;
     }
     .meta-title.fade { opacity: 0; }
+    .meta-editor {
+      display: block;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-faint);
+      margin-top: 6px;
+    }
     .meta-pos { align-self: flex-start; padding-top: 2px; }
     .meta-pos {
       font-variant-numeric: tabular-nums;
@@ -185,8 +191,15 @@
       display: flex; flex-direction: column; gap: 64px;
     }
     .list-item { display: flex; flex-direction: column; gap: 12px; }
-    .list-row { display: flex; align-items: baseline; justify-content: space-between; }
+    .list-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
     .list-title { font-size: 14px; color: var(--text); }
+    .list-editor {
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-faint);
+      flex: 0 0 auto;
+      margin-left: auto;
+      padding-right: 12px;
+    }
     .list-dur {
       font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--text-faint);
@@ -262,6 +275,12 @@
     mux-player::part(centered-chrome),
     mux-player::part(big-button) { display: none !important; }
     .cf-card { filter: blur(var(--blur, 0px)); }
+    /* cf-stage forms a stacking context (via perspective), which would otherwise
+       paint above non-positioned siblings — covering meta text where the active
+       card and its mirrored reflection bleed past the stage box. Lift the
+       text overlays into a higher stacking layer so they sit above the cards
+       and reflections. */
+    .meta.view-cf, .meta-top.view-cf { position: relative; z-index: 1; }
 
     /* ── Stack view ── */
     .stk-wrap {
@@ -408,7 +427,10 @@
     .footer {
       width: var(--reel-w);
       margin: 80px auto 0;
-      padding: 32px 0 60px;
+      /* Bottom padding aligns the footer text vertically with the fixed
+         scheduler FAB (bottom: 24px, height: 44px → center 46px from viewport
+         bottom). 40px padding + ~6px half-line-height = 46px. */
+      padding: 32px 0 40px;
       border-top: 1px solid var(--border);
       display: flex; justify-content: space-between;
       font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
@@ -420,15 +442,14 @@
       position: fixed; right: 24px; bottom: 24px; z-index: 60;
       width: 44px; height: 44px;
       display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--border);
-      background: var(--bg);
+      border: none;
+      background: none;
       color: var(--text-dim);
-      border-radius: 50%;
       cursor: pointer;
-      transition: color 200ms ease, border-color 200ms ease, transform 200ms ease;
+      transition: color 200ms ease, transform 200ms ease;
     }
-    .sched-fab:hover { color: var(--text); border-color: var(--text-faint); }
-    .sched-fab.open { color: var(--text); border-color: var(--text-faint); transform: rotate(45deg); }
+    .sched-fab:hover { color: var(--text); }
+    .sched-fab.open { color: var(--text); transform: rotate(45deg); }
     .sched-fab svg { width: 18px; height: 18px; transition: transform 250ms ease; }
 
     /* Inline scheduler trigger — desktop hidden, shown in footer on mobile */
@@ -692,6 +713,18 @@
     var assets = [];
     var reel = null;
     var current = 0;
+
+    // Music video override: HAIM Relationships lives under Carla's commercial reel
+    // in works.json, but it's a music video and belongs in the music-video reel.
+    var HAIM_ID = '53569abe-003d-46d1-8a5f-593f06b6fa18';
+    var CATEGORY_REELS = {
+      'film':        { title: 'Film',        filter: function(w){ return w.typeOfWork === 'Trailer'; } },
+      'commercial':  { title: 'Commercial',  filter: function(w){ return w.typeOfWork === 'Commercial' && w.id !== HAIM_ID; } },
+      'music-video': { title: 'Music Video', filter: function(w){ return w.id === HAIM_ID; } },
+      'documentary': { title: 'Documentary', filter: function(){ return false; } }
+    };
+    var category = CATEGORY_REELS[slug] || null;
+
     var view = localStorage.getItem('nipc.reel.view') || 'list';
     var theme = localStorage.getItem('nipc.reel.theme') || 'light';
     var muxEl = null;
@@ -731,15 +764,45 @@
 
     async function load() {
       if (!slug) return renderEmpty('Reel not found', 'This link is missing a reel identifier.');
-      var res, data;
-      try {
-        res = await fetch('/api/reels/public?s=' + encodeURIComponent(slug));
-        data = await res.json();
-      } catch (e) { return renderEmpty('Connection error', 'Try refreshing the page.'); }
-      if (res.status === 404 || !data.reel) return renderEmpty('Reel not found', 'This reel may have moved or been unpublished.');
 
-      reel = data.reel;
-      assets = data.assets || [];
+      if (category) {
+        try {
+          var responses = await Promise.all([
+            fetch('/home/data/works.json').then(function(r){ return r.json(); }),
+            fetch('/home/data/editors.json').then(function(r){ return r.json(); })
+          ]);
+          var worksData = responses[0];
+          var editorsData = responses[1];
+          var editorByWork = new Map();
+          (editorsData.items || []).forEach(function(ed){
+            (ed.referencingWork || []).forEach(function(workId){ editorByWork.set(workId, ed.name); });
+          });
+          var items = (worksData.items || []).filter(category.filter);
+          reel = { id: null, slug: slug, title: category.title, description: null, cover_url: null };
+          assets = items.map(function(w, i){
+            return {
+              id: w.id,
+              reel_id: null,
+              mux_playback_id: w.video && w.video.playbackId,
+              title: (w.video && w.video.title) || w.name || '',
+              sort_order: i,
+              duration_seconds: w.video && w.video.durationSeconds,
+              poster: (w.video && w.video.thumbnail) || w.thumbnailCover,
+              editor: editorByWork.get(w.id) || null
+            };
+          });
+        } catch (e) { return renderEmpty('Connection error', 'Try refreshing the page.'); }
+      } else {
+        var res, data;
+        try {
+          res = await fetch('/api/reels/public?s=' + encodeURIComponent(slug));
+          data = await res.json();
+        } catch (e) { return renderEmpty('Connection error', 'Try refreshing the page.'); }
+        if (res.status === 404 || !data.reel) return renderEmpty('Reel not found', 'This reel may have moved or been unpublished.');
+        reel = data.reel;
+        assets = data.assets || [];
+      }
+
       document.title = 'NIPC | ' + reel.title;
 
       var html = '';
@@ -832,6 +895,7 @@
         html += '<div class="list-item">';
         html += '  <div class="list-row">';
         html += '    <div class="list-title">' + escapeHtml(a.title || 'Untitled') + '</div>';
+        if (a.editor) html += '<div class="list-editor">Edited by ' + escapeHtml(a.editor) + '</div>';
         if (a.duration_seconds) html += '<div class="list-dur">' + fmtDuration(a.duration_seconds) + '</div>';
         html += '  </div>';
         html += '  <div style="position:relative;">';
@@ -919,7 +983,7 @@
       // Drag preview may have already updated the meta to the target asset.
       // Skip the fade in that case so the title doesn't pointlessly fade out
       // and back in to the same text.
-      var preUpdated = !!(titleEl && titleEl.textContent === (assets[i].title || ''));
+      var preUpdated = !!(titleEl && titleEl.dataset.assetIdx === String(i));
       if (titleEl && !preUpdated) {
         titleEl.classList.add('fade');
         // Wait through the 200ms fade-out, dwell briefly while cards travel,
@@ -970,9 +1034,18 @@
       var titleEl = document.getElementById('cf-meta-title');
       var posEl = document.getElementById('cf-meta-pos');
       var topEl = document.getElementById('cf-meta-top');
-      if (titleEl) titleEl.textContent = a.title || '';
+      if (titleEl) {
+        titleEl.innerHTML = renderMetaTitle(a);
+        titleEl.dataset.assetIdx = String(idx);
+      }
       if (posEl) posEl.textContent = (idx + 1) + ' / ' + assets.length;
       if (topEl) topEl.textContent = fmtDuration(a.duration_seconds);
+    }
+
+    function renderMetaTitle(a) {
+      var html = escapeHtml(a.title || '');
+      if (a.editor) html += '<span class="meta-editor">Edited by ' + escapeHtml(a.editor) + '</span>';
+      return html;
     }
 
     // Cover Flow keyboard + wheel (bound globally, ignored when not active)
@@ -1228,7 +1301,7 @@
       var titleEl = document.getElementById('stk-meta-title');
       var posEl = document.getElementById('stk-meta-pos');
       var topEl = document.getElementById('stk-meta-top');
-      if (titleEl) titleEl.textContent = a.title || '';
+      if (titleEl) titleEl.innerHTML = renderMetaTitle(a);
       if (posEl) posEl.textContent = (current + 1) + ' / ' + assets.length;
       if (topEl) topEl.textContent = fmtDuration(a.duration_seconds);
     }

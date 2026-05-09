@@ -9,6 +9,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.loc
 const fs = require('fs');
 const path = require('path');
 const { adminClient } = require('../lib/supabase');
+const { presignGet } = require('../lib/storj');
 
 const DATA_DIR = path.join(__dirname, '..', 'home', 'data');
 
@@ -39,6 +40,19 @@ const EDITORS = [
 function muxThumb(playbackId, params = {}) {
   const qs = new URLSearchParams({ width: '1280', fit_mode: 'preserve', ...params });
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?${qs}`;
+}
+
+// Mirrors the resolution the public API does for /reel.html so the home page
+// shows whatever poster the admin chose in Reels (single source of truth).
+async function resolvePoster(asset) {
+  if (asset.poster_url) {
+    try { return await presignGet(asset.poster_url, 60 * 60 * 24 * 7); }
+    catch (e) { console.warn('poster presign failed', asset.id, e.message); }
+  }
+  if (asset.poster_time != null) {
+    return `https://image.mux.com/${asset.mux_playback_id}/thumbnail.jpg?width=1280&time=${asset.poster_time}`;
+  }
+  return muxThumb(asset.mux_playback_id);
 }
 
 function muxAnimated(playbackId) {
@@ -74,7 +88,7 @@ async function main() {
 
   const { data: assets, error: ae } = await adminClient
     .from('reel_assets')
-    .select('id, reel_id, title, mux_playback_id, duration_seconds, sort_order')
+    .select('id, reel_id, title, mux_playback_id, duration_seconds, sort_order, poster_url, poster_time')
     .in('reel_id', reels.map(r => r.id))
     .eq('status', 'ready')
     .order('sort_order');
@@ -98,6 +112,8 @@ async function main() {
     slugCounts.set(baseSlug, seen + 1);
     const finalSlug = seen === 0 ? baseSlug : `${baseSlug}-${seen + 1}`;
 
+    const poster = await resolvePoster(asset);
+
     works.push({
       id: asset.id,
       name: parsed.name,
@@ -107,12 +123,12 @@ async function main() {
       typeOfWork: parsed.typeOfWork,
       director: parsed.director,
       visitLink: `/reel.html?s=${editor.slug}#${asset.id}`,
-      thumbnailCover: muxThumb(asset.mux_playback_id),
+      thumbnailCover: poster,
       video: {
         url: `/reel.html?s=${editor.slug}#${asset.id}`,
         title: asset.title,
         provider: 'Mux',
-        thumbnail: muxThumb(asset.mux_playback_id),
+        thumbnail: poster,
         playbackId: asset.mux_playback_id,
         durationSeconds: asset.duration_seconds,
       },
