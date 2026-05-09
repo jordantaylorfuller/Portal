@@ -774,8 +774,13 @@
           var worksData = responses[0];
           var editorsData = responses[1];
           var editorByWork = new Map();
+          var reelSlugByWork = new Map();
           (editorsData.items || []).forEach(function(ed){
-            (ed.referencingWork || []).forEach(function(workId){ editorByWork.set(workId, ed.name); });
+            var reelSlug = ed.reelSlug || ed.slug;
+            (ed.referencingWork || []).forEach(function(workId){
+              editorByWork.set(workId, ed.name);
+              if (reelSlug) reelSlugByWork.set(workId, reelSlug);
+            });
           });
           var items = (worksData.items || []).filter(category.filter);
           reel = { id: null, slug: slug, title: category.title, description: null, cover_url: null };
@@ -840,6 +845,66 @@
 
       setView(view, true);
       bindViewTabs();
+
+      if (category && reelSlugByWork && reelSlugByWork.size) {
+        refreshCategoryPosters(reelSlugByWork);
+      }
+    }
+
+    // Category reels render from works.json, which only carries stable Mux
+    // thumbnails. Fetch each underlying editor reel through /api/reels/public
+    // to pick up admin-selected custom posters (Storj-backed, signed at
+    // request time) and patch them into the rendered cards.
+    async function refreshCategoryPosters(reelSlugByWork) {
+      var slugs = [];
+      assets.forEach(function(a){
+        var s = reelSlugByWork.get(a.id);
+        if (s && slugs.indexOf(s) === -1) slugs.push(s);
+      });
+      var posterByAssetId = new Map();
+      await Promise.all(slugs.map(async function(s){
+        try {
+          var r = await fetch('/api/reels/public?s=' + encodeURIComponent(s));
+          if (!r.ok) return;
+          var d = await r.json();
+          (d.assets || []).forEach(function(a){
+            if (a.id && a.poster) posterByAssetId.set(a.id, a.poster);
+          });
+        } catch (e) { /* leave the static thumb in place */ }
+      }));
+      if (!posterByAssetId.size) return;
+      var changed = false;
+      assets.forEach(function(a){
+        var fresh = posterByAssetId.get(a.id);
+        if (fresh && fresh !== a.poster) { a.poster = fresh; changed = true; }
+      });
+      if (changed) applyPosterUpdates(posterByAssetId);
+    }
+
+    function applyPosterUpdates(posterByAssetId) {
+      assets.forEach(function(a, i){
+        var fresh = posterByAssetId.get(a.id);
+        if (!fresh) return;
+        var bg = 'url(' + fresh + ')';
+        document.querySelectorAll('[data-i="' + i + '"]').forEach(function(card){
+          if (card.classList.contains('cf-card') || card.classList.contains('stk-thumb')) {
+            card.style.backgroundImage = bg;
+          }
+          card.querySelectorAll('.poster').forEach(function(p){ p.style.backgroundImage = bg; });
+          card.querySelectorAll('mux-player').forEach(function(m){ m.setAttribute('poster', fresh); });
+        });
+      });
+      // List view: each list-item renders mux-player directly with poster attr.
+      document.querySelectorAll('.list-item mux-player').forEach(function(m, i){
+        var fresh = posterByAssetId.get(assets[i] && assets[i].id);
+        if (fresh) m.setAttribute('poster', fresh);
+      });
+      // Stack view: featured card background is set imperatively.
+      var stkCard = document.querySelector('.stk-card');
+      if (stkCard && typeof current === 'number' && assets[current]) {
+        var fresh = posterByAssetId.get(assets[current].id);
+        if (fresh) stkCard.style.backgroundImage = 'url(' + fresh + ')';
+      }
     }
 
     function bindViewTabs() {

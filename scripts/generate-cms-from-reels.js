@@ -9,7 +9,6 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env.loc
 const fs = require('fs');
 const path = require('path');
 const { adminClient } = require('../lib/supabase');
-const { presignGet } = require('../lib/storj');
 
 const DATA_DIR = path.join(__dirname, '..', 'home', 'data');
 
@@ -42,13 +41,13 @@ function muxThumb(playbackId, params = {}) {
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?${qs}`;
 }
 
-// Mirrors the resolution the public API does for /reel.html so the home page
-// shows whatever poster the admin chose in Reels (single source of truth).
-async function resolvePoster(asset) {
-  if (asset.poster_url) {
-    try { return await presignGet(asset.poster_url, 60 * 60 * 24 * 7); }
-    catch (e) { console.warn('poster presign failed', asset.id, e.message); }
-  }
+// Resolve a *stable* poster URL for the static CMS output. Custom uploaded
+// posters (asset.poster_url, an opaque Storj key) are NOT signed here — Storj
+// presigned URLs expire (max 7d), so baking them into works.json silently
+// breaks every consumer after the TTL. Consumers that need the admin-selected
+// poster fetch a fresh signed URL from /api/reels/public at runtime
+// (home page via cms-inject.js, reel.html via the category-path sync).
+function resolvePoster(asset) {
   if (asset.poster_time != null) {
     return `https://image.mux.com/${asset.mux_playback_id}/thumbnail.jpg?width=1280&time=${asset.poster_time}`;
   }
@@ -112,7 +111,7 @@ async function main() {
     slugCounts.set(baseSlug, seen + 1);
     const finalSlug = seen === 0 ? baseSlug : `${baseSlug}-${seen + 1}`;
 
-    const poster = await resolvePoster(asset);
+    const poster = resolvePoster(asset);
 
     works.push({
       id: asset.id,
