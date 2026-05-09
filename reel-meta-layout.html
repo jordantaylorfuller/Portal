@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta charset="utf-8"/>
+  <title>NIPC — Meta Layout Audition</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+    :root {
+      --page-w: clamp(680px, 86vw, 1240px);
+      --bg: #0a0a0a;
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.55);
+      --text-faint: rgba(255, 255, 255, 0.30);
+      --text-trace: rgba(255, 255, 255, 0.14);
+      --border: rgba(255, 255, 255, 0.08);
+      --hover-tint: rgba(255, 255, 255, 0.06);
+      --accent: rgb(220, 40, 40);
+      --card-shadow-active: 0 50px 100px rgba(0,0,0,0.85), 0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), 0 0 80px rgba(220,40,40,0.15);
+    }
+    :root.light {
+      --bg: #f5f3f0;
+      --text: rgb(28, 25, 25);
+      --text-dim: rgba(28, 25, 25, 0.65);
+      --text-faint: rgba(28, 25, 25, 0.35);
+      --text-trace: rgba(28, 25, 25, 0.16);
+      --border: rgba(28, 25, 25, 0.10);
+      --hover-tint: rgba(28, 25, 25, 0.05);
+      --card-shadow-active: 0 40px 80px rgba(0,0,0,0.28), 0 16px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.08), 0 0 80px rgba(220,40,40,0.10);
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      transition: background 350ms ease, color 350ms ease;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; }
+
+    /* ── Top bar ── */
+    .t-bar {
+      position: sticky; top: 0;
+      padding: 22px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 50;
+      background: var(--bg);
+      background-color: color-mix(in srgb, var(--bg) 78%, transparent);
+      -webkit-backdrop-filter: saturate(160%) blur(12px);
+      backdrop-filter: saturate(160%) blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .t-mark {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none; color: inherit;
+    }
+    .t-mark .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 10px; vertical-align: middle; }
+    .t-theme {
+      width: 32px; height: 32px;
+      border: none;
+      background: transparent; color: var(--text-dim);
+      display: flex; align-items: center; justify-content: center;
+      transition: color 200ms ease, transform 250ms ease;
+    }
+    .t-theme:hover { color: var(--text); }
+    .t-theme svg { width: 18px; height: 18px; transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .t-theme:active svg { transform: rotate(45deg); }
+
+    /* ── Hero ── */
+    .h-row {
+      width: var(--page-w);
+      margin: 0 auto;
+      padding: 80px 0 30px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .h-eyebrow { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 16px; }
+    .h-title { font-size: clamp(28px, 5vw, 52px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
+    .h-sub {
+      font-size: 13px; font-weight: 300; line-height: 1.7;
+      color: var(--text-dim);
+      max-width: 380px;
+      text-align: right;
+      padding-bottom: 6px;
+    }
+
+    /* ── Audition grid ── */
+    .grid {
+      width: var(--page-w);
+      margin: 24px auto 0;
+      padding: 0 0 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .cell {
+      background: var(--bg);
+      padding: 44px 40px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+    }
+    .cell.span { grid-column: 1 / -1; }
+    .cell-head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    }
+    .cell-num {
+      font-size: 9px; letter-spacing: 0.22em; color: var(--text-faint); text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+    .cell-name { font-size: 13px; letter-spacing: 0.04em; color: var(--text); }
+    .cell-note { font-size: 11px; line-height: 1.7; color: var(--text-dim); max-width: 480px; }
+    .cell-stage {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: stretch;
+      padding: 10px 0 4px;
+    }
+    .cell-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint);
+      border-top: 1px dashed var(--border);
+      padding-top: 14px;
+    }
+    .cell-foot .pill {
+      color: var(--text);
+    }
+
+    @media (max-width: 880px) {
+      .grid { grid-template-columns: 1fr; }
+      .h-row { flex-direction: column; align-items: flex-start; padding-top: 56px; }
+      .h-sub { text-align: left; max-width: 100%; padding-bottom: 0; }
+      .cell { padding: 32px 24px; }
+    }
+
+    /* ── Mock player ── */
+    .mock {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background:
+        radial-gradient(60% 80% at 30% 30%, rgba(220,40,40,0.10), transparent 60%),
+        linear-gradient(180deg, #1a1414 0%, #0a0606 80%);
+      box-shadow: var(--card-shadow-active);
+    }
+    :root.light .mock {
+      background:
+        radial-gradient(60% 80% at 30% 30%, rgba(220,40,40,0.18), transparent 60%),
+        linear-gradient(180deg, #2a1f1f 0%, #120c0c 80%);
+    }
+    .mock::before {
+      /* faint film-grain texture */
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 3px);
+      pointer-events: none;
+    }
+    .mock-glyph {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px; height: 56px;
+      border: 1.5px solid rgba(255,255,255,0.95);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .mock-glyph::after {
+      content: '';
+      width: 0; height: 0;
+      border-left: 12px solid #fff;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      margin-left: 4px;
+    }
+    .mock-cap {
+      position: absolute; left: 16px; bottom: 12px;
+      font-size: 8px; letter-spacing: 0.20em; text-transform: uppercase;
+      color: rgba(255,255,255,0.70);
+    }
+
+    /* ── Meta strips (mirror reel.html .meta + .meta-title + .meta-pos) ── */
+    .meta {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 12px;
+    }
+    .meta--top    { margin-bottom: 10px; }
+    .meta--bottom { margin-top: 14px; }
+    .meta-title {
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--text);
+      flex: 1 1 auto;
+      padding-right: 12px;
+    }
+    .meta-meta {
+      font-variant-numeric: tabular-nums;
+      font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+      color: var(--text-faint);
+      flex-shrink: 0;
+    }
+    .meta--solo-right { justify-content: flex-end; }
+    .meta--stack-right .meta-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .meta-spacer { flex: 1; }
+
+    /* highlight shapes for cell legend */
+    .legend {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .legend span {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-faint);
+      border: 1px dashed var(--border);
+      padding: 3px 8px;
+    }
+    .legend .lo-top    { color: var(--accent); border-color: rgba(220,40,40,0.4); }
+    .legend .lo-bottom { color: var(--text-dim); border-color: var(--text-faint); }
+
+    /* footer */
+    .footer {
+      width: var(--page-w);
+      margin: 30px auto 0;
+      padding: 28px 0 60px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-faint);
+    }
+  </style>
+</head>
+<body>
+  <header class="t-bar">
+    <a class="t-mark" href="/reel.html"><span class="dot"></span>NIPC &nbsp;//&nbsp; Meta Layout Audition</a>
+    <button class="t-theme" id="t-theme" aria-label="Toggle theme"></button>
+  </header>
+
+  <section class="h-row">
+    <div>
+      <div class="h-eyebrow">Reel · Internal Audition</div>
+      <h1 class="h-title">Where does the runtime live?</h1>
+    </div>
+    <p class="h-sub">
+      The <em>1 / 12 · 2:43</em> ride-along under each video reads cluttered next to the title. Five placements to compare. Same mock, same data, only the meta moves.
+    </p>
+  </section>
+
+  <div class="grid">
+    <!-- 0 ─ Current (baseline) -->
+    <div class="cell">
+      <div class="cell-head">
+        <div class="cell-name">Current — baseline</div>
+        <div class="cell-num">00 / 04</div>
+      </div>
+      <p class="cell-note">
+        Today: title and <em>1 / 12 · 2:43</em> share a single row beneath the video. The combined string crowds the title on shorter widths.
+      </p>
+      <div class="cell-stage">
+        <div class="mock"><span class="mock-cap">Active video</span><span class="mock-glyph"></span></div>
+        <div class="meta meta--bottom">
+          <div class="meta-title">Apple Vision Pro — Spatial Stories</div>
+          <div class="meta-meta">03 / 12 &nbsp;·&nbsp; 2:43</div>
+        </div>
+      </div>
+      <div class="cell-foot">
+        <span>Existing layout · for reference</span>
+        <span class="pill">Title + pos·dur, both bottom</span>
+      </div>
+    </div>
+
+    <!-- A ─ Duration top-right, position bottom-right -->
+    <div class="cell">
+      <div class="cell-head">
+        <div class="cell-name">A — Duration top, position bottom</div>
+        <div class="cell-num">01 / 04</div>
+      </div>
+      <p class="cell-note">
+        Runtime hovers over the player like a shot-length annotation. The position counter sits below with the title — separated, so each gets breathing room.
+      </p>
+      <div class="cell-stage">
+        <div class="meta meta--top meta--solo-right">
+          <div class="meta-meta">2:43</div>
+        </div>
+        <div class="mock"><span class="mock-cap">Active video</span><span class="mock-glyph"></span></div>
+        <div class="meta meta--bottom">
+          <div class="meta-title">Apple Vision Pro — Spatial Stories</div>
+          <div class="meta-meta">03 / 12</div>
+        </div>
+      </div>
+      <div class="cell-foot">
+        <span>Two anchors · runtime reads as a film prop</span>
+        <span class="pill">Dur top · pos bottom</span>
+      </div>
+    </div>
+
+    <!-- B ─ Both at top -->
+    <div class="cell">
+      <div class="cell-head">
+        <div class="cell-name">B — Both at top</div>
+        <div class="cell-num">02 / 04</div>
+      </div>
+      <p class="cell-note">
+        Position and runtime both sit above the player; below, the title gets the whole row to itself — quietest treatment of the title.
+      </p>
+      <div class="cell-stage">
+        <div class="meta meta--top meta--solo-right">
+          <div class="meta-meta">03 / 12 &nbsp;·&nbsp; 2:43</div>
+        </div>
+        <div class="mock"><span class="mock-cap">Active video</span><span class="mock-glyph"></span></div>
+        <div class="meta meta--bottom">
+          <div class="meta-title">Apple Vision Pro — Spatial Stories</div>
+        </div>
+      </div>
+      <div class="cell-foot">
+        <span>Title gets a clean line of its own</span>
+        <span class="pill">Pos·dur top · title bottom</span>
+      </div>
+    </div>
+
+    <!-- C ─ Position top, duration bottom -->
+    <div class="cell">
+      <div class="cell-head">
+        <div class="cell-name">C — Position top, duration bottom</div>
+        <div class="cell-num">03 / 04</div>
+      </div>
+      <p class="cell-note">
+        Inverse of A. The "where am I in the reel" lives above; the runtime stays paired with the title below as a hint at how long this take runs.
+      </p>
+      <div class="cell-stage">
+        <div class="meta meta--top meta--solo-right">
+          <div class="meta-meta">03 / 12</div>
+        </div>
+        <div class="mock"><span class="mock-cap">Active video</span><span class="mock-glyph"></span></div>
+        <div class="meta meta--bottom">
+          <div class="meta-title">Apple Vision Pro — Spatial Stories</div>
+          <div class="meta-meta">2:43</div>
+        </div>
+      </div>
+      <div class="cell-foot">
+        <span>Position acts as a chapter marker</span>
+        <span class="pill">Pos top · title+dur bottom</span>
+      </div>
+    </div>
+
+    <!-- D ─ Drop position; duration top only -->
+    <div class="cell span">
+      <div class="cell-head">
+        <div class="cell-name">D — Drop the counter; duration top only</div>
+        <div class="cell-num">04 / 04</div>
+      </div>
+      <p class="cell-note">
+        Quietest option. The reel's length is communicated by the dot pager / list itself — we don't need a "1 / 12" if it's already implied. Runtime hangs above the player, alone.
+      </p>
+      <div class="cell-stage" style="max-width: 760px; margin: 0 auto; width: 100%;">
+        <div class="meta meta--top meta--solo-right">
+          <div class="meta-meta">2:43</div>
+        </div>
+        <div class="mock"><span class="mock-cap">Active video</span><span class="mock-glyph"></span></div>
+        <div class="meta meta--bottom">
+          <div class="meta-title">Apple Vision Pro — Spatial Stories</div>
+        </div>
+      </div>
+      <div class="cell-foot">
+        <span>Cleanest reading · loses random-access cue</span>
+        <span class="pill">Dur top only · title bottom</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div>NIPC &nbsp;//&nbsp; New International Picture Company</div>
+    <div>Audition · 2026</div>
+  </footer>
+
+  <script>
+    var ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    var ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+    var theme = localStorage.getItem('nipc.reel.theme') || 'dark';
+    function applyTheme() {
+      document.documentElement.classList.toggle('light', theme === 'light');
+      document.getElementById('t-theme').innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+    }
+    document.getElementById('t-theme').addEventListener('click', function(){
+      theme = theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('nipc.reel.theme', theme);
+      applyTheme();
+    });
+    applyTheme();
+  </script>
+</body>
+</html>
