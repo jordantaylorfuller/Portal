@@ -575,7 +575,33 @@
     }
     .empty-title { font-size: 16px; margin-bottom: 12px; }
     .empty-msg { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
-    .loader { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-faint); }
+    /* Loading bar — matches the landing page (red fill, soft track, 40% width). */
+    .loader-text {
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+    .loader-bar {
+      width: 40%; max-width: 280px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .loader-bar::after {
+      content: '';
+      position: absolute; top: 0; left: 0; height: 100%;
+      width: 30%;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: loader-bar-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes loader-bar-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(333%); }
+    }
 
     /* Hide views by default; body class enables one */
     body[data-view="list"]   .view-cf,    body[data-view="list"]   .view-stack,
@@ -618,7 +644,10 @@
   </header>
 
   <main id="main">
-    <div class="loader">Loading.</div>
+    <div class="loader">
+      <div class="loader-text">Loading</div>
+      <div class="loader-bar"></div>
+    </div>
   </main>
 
   <button class="sched-fab" id="sched-fab" title="Schedule a call" aria-label="Schedule a call">
