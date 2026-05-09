@@ -855,32 +855,60 @@
       pointer-events: auto;
     }
 
-    .session-message {
+    /* ── Unified loader (progress bar) ── */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 64px 0;
+    }
+
+    .loader-text {
       font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      font-weight: 400;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: rgb(40, 36, 36);
+      margin-bottom: 14px;
+      opacity: 0.55;
     }
 
-    .dot-pulse {
-      display: inline-block;
-      width: 2em;
-      text-align: left;
+    .loader-bar {
+      width: 40%;
+      max-width: 280px;
+      height: 4px;
+      background: color-mix(in srgb, currentColor 14%, transparent);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
     }
 
-    .dot-pulse::after {
+    .loader-bar::after {
       content: '';
-      animation: dotPulse 1.5s steps(4, end) infinite;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 30%;
+      background: rgb(220, 40, 40);
+      border-radius: 2px;
+      animation: loader-bar-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
 
-    @keyframes dotPulse {
-      0%  { content: ''; }
-      25% { content: '.'; }
-      50% { content: '..'; }
-      75% { content: '...'; }
+    .loader.loader--error .loader-bar { display: none; }
+
+    @keyframes loader-bar-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(333%); }
     }
+
+    /* Session-waiting overlay sits on a cream background */
+    .session-waiting .loader { color: rgb(40, 36, 36); }
+    /* Delivery room sits on a dark background */
+    .delivery-room .loader { color: rgba(255, 255, 255, 0.7); }
 
     /* ── Session Video Player ── */
     .session-video {
@@ -1625,16 +1653,6 @@
       padding: 64px 0;
     }
 
-    .delivery-loading {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 300;
-      color: rgba(255, 255, 255, 0.25);
-      letter-spacing: 0.05em;
-      text-align: center;
-      padding: 64px 0;
-    }
-
     @keyframes deliveryItemIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -2307,7 +2325,10 @@
       </div>
     </div>
     <div class="session-waiting">
-      <div class="session-message">Connecting to session<span class="dot-pulse"></span></div>
+      <div class="loader">
+        <div class="loader-text session-message">Connecting to session</div>
+        <div class="loader-bar"></div>
+      </div>
     </div>
     <div class="prev-sessions" id="prev-sessions">
       <button class="prev-sessions-toggle" id="prev-sessions-toggle">Previous Sessions</button>
@@ -3228,7 +3249,7 @@
         return;
       }
 
-      deliveryGroupsContainer.innerHTML = '<div class="delivery-loading">Loading...</div>';
+      deliveryGroupsContainer.innerHTML = '<div class="loader"><div class="loader-text">Loading</div><div class="loader-bar"></div></div>';
 
       try {
         var resp = await apiCall('/api/projects/' + currentProject.id + '/deliveries');
@@ -3415,27 +3436,12 @@
 
     sessionBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      hideRoomElements();
-      roomSelection.classList.add('buttons-faded');
-      loginScreen.classList.add('session-entering');
-      backLink.classList.add('dark');
-
-      // Prime video on user gesture so iOS allows playback after countdown
-      videoEl.muted = true;
-      videoEl.play().then(function() {
-        videoEl.pause();
-        videoEl.currentTime = 0;
-      }).catch(function() {});
-
-      setTimeout(function() {
-        sessionWaiting.classList.add('visible');
-        // Skip countdown -- join Daily room directly
-        joinDailySession();
-      }, 700);
+      window.open('https://app.louper.io/room/s-mc/811gbc9c9', '_blank', 'noopener');
     });
 
     async function joinDailySession() {
-      sessionMessage.innerHTML = 'Connecting to session<span class="dot-pulse"></span>';
+      sessionMessage.textContent = 'Connecting to session';
+      sessionMessage.parentElement.classList.remove('loader--error');
       connectionStatusEl.textContent = '';
 
       try {
@@ -3451,6 +3457,7 @@
 
         if (result.error) {
           sessionMessage.textContent = result.error;
+          sessionMessage.parentElement.classList.add('loader--error');
           return;
         }
 
@@ -3511,6 +3518,7 @@
       } catch (err) {
         console.error('Failed to join Daily session:', err);
         sessionMessage.textContent = 'Connection failed';
+        sessionMessage.parentElement.classList.add('loader--error');
       }
     }
 
