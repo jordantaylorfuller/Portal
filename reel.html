@@ -59,6 +59,11 @@
       display: flex; align-items: center; justify-content: space-between;
       z-index: 50;
       pointer-events: none;
+      background: var(--bg);
+      background-color: color-mix(in srgb, var(--bg) 78%, transparent);
+      -webkit-backdrop-filter: saturate(160%) blur(12px);
+      backdrop-filter: saturate(160%) blur(12px);
+      border-bottom: 1px solid var(--border);
     }
     .t-mark, .t-actions { pointer-events: auto; }
     .t-mark {
@@ -70,23 +75,25 @@
     .t-mark:hover { opacity: 0.7; }
     .t-mark .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 10px; vertical-align: middle; }
     .t-actions { display: flex; align-items: center; gap: 8px; }
-    .t-tabs { display: flex; }
+    .t-tabs { display: flex; gap: 4px; }
     .t-tab {
       position: relative;
-      padding: 6px 14px;
-      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-      background: transparent; border: 1px solid var(--border);
-      color: var(--text-dim);
-      transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+      width: 32px; height: 28px;
+      padding: 0;
+      background: transparent; border: none;
+      color: var(--text-faint);
+      display: flex; align-items: center; justify-content: center;
+      transition: color 150ms ease;
     }
-    .t-tab + .t-tab { margin-left: -1px; }
-    .t-tab:hover { color: var(--text); z-index: 1; }
-    .t-tab.active {
-      z-index: 2;
-      color: var(--text);
-      background: var(--hover-tint);
-      border-color: var(--text-faint);
+    .t-tab:hover { color: var(--text); }
+    .t-tab.active { color: var(--text); }
+    .t-tab.active::after {
+      content: '';
+      position: absolute; left: 8px; right: 8px; bottom: 2px;
+      height: 1px;
+      background: var(--accent);
     }
+    .t-tab svg { width: 14px; height: 14px; display: block; }
     .t-theme {
       width: 32px; height: 32px;
       border: none;
@@ -139,12 +146,35 @@
       padding: 0;
       display: flex; align-items: baseline; justify-content: space-between;
     }
-    .meta-title { font-size: 14px; transition: opacity 250ms ease; }
+    .meta-title {
+      font-size: 14px;
+      line-height: 1.4;
+      min-height: calc(14px * 1.4 * 2);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: opacity 200ms ease;
+      flex: 1 1 auto;
+      padding-right: 12px;
+    }
     .meta-title.fade { opacity: 0; }
+    .meta-pos { align-self: flex-start; padding-top: 2px; }
     .meta-pos {
       font-variant-numeric: tabular-nums;
       font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
       color: var(--text-faint);
+    }
+
+    /* Top meta strip — duration above player, right-aligned */
+    .meta-top {
+      width: var(--reel-w);
+      margin: 0 auto 14px;
+      display: flex; justify-content: flex-end;
+      font-variant-numeric: tabular-nums;
+      font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+      color: var(--text-faint);
+      min-height: 14px;
     }
 
     /* ── List view ── */
@@ -301,12 +331,22 @@
       padding: 0;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 240px;
-      grid-template-rows: auto;
+      grid-template-rows: auto 1fr;
       align-items: start;
-      gap: 24px;
+      gap: 0 24px;
+    }
+    .stk-meta-top {
+      grid-column: 1; grid-row: 1;
+      display: flex; justify-content: flex-end;
+      font-variant-numeric: tabular-nums;
+      font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 14px;
+      min-height: 14px;
     }
     .stk-featured {
       position: relative;
+      grid-column: 1; grid-row: 2;
       width: 100%;
       aspect-ratio: 16/9;
       transition: filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -323,6 +363,7 @@
     }
     .stk-thumbs {
       position: relative;
+      grid-column: 2; grid-row: 2;
       display: flex; flex-direction: column; gap: 10px;
       overflow-y: auto;
       scrollbar-width: thin;
@@ -353,6 +394,79 @@
     .stk-wrap.shifting .stk-featured,
     .stk-wrap.shifting .stk-thumb { filter: blur(6px); }
 
+    /* ── Mobile: shrink reel width to viewport, reflow stack view vertically ── */
+    @media (max-width: 720px) {
+      :root { --reel-w: calc(100vw - 32px); }
+      .t-bar { padding: 18px 16px; }
+      .h-row { padding: 72px 0 12px; }
+      .h-eyebrow { margin-bottom: 8px; }
+      .h-title { font-size: 30px; }
+      body[data-view="cf"] .h-row { padding-bottom: 8px; }
+      .cf-stage {
+        height: calc((100vw - 32px) * 9 / 16 + 28px);
+        min-height: 0;
+        touch-action: pan-y;
+      }
+      body[data-view="cf"] .meta { margin-top: 12px; }
+      .cf-nav { gap: 16px; margin-top: 14px; }
+      .stk-wrap {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto;
+        gap: 14px;
+      }
+      .stk-meta-top { grid-column: 1; grid-row: 1; margin-bottom: 0; }
+      .stk-featured { grid-column: 1; grid-row: 2; }
+      .stk-thumbs   { grid-column: 1; grid-row: 3; }
+      .stk-thumbs {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-right: 0;
+        margin-right: 0;
+        height: auto !important;
+        gap: 8px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .stk-thumb {
+        flex: 0 0 46%;
+        scroll-snap-align: start;
+      }
+      .footer { margin-top: 48px; padding: 24px 0 40px; }
+      /* Cover / stack views are single-screen on mobile — no vertical scroll, content centered, footer pinned */
+      html:has(body[data-view="cf"]),
+      html:has(body[data-view="stack"]) {
+        overflow: hidden;
+        height: 100dvh;
+      }
+      body[data-view="cf"],
+      body[data-view="stack"] {
+        overflow: hidden;
+        height: 100dvh;
+      }
+      body[data-view="cf"] #main,
+      body[data-view="stack"] #main {
+        display: flex;
+        flex-direction: column;
+        min-height: 100dvh;
+      }
+      body[data-view="cf"] .h-row,
+      body[data-view="stack"] .h-row {
+        margin: auto auto 0;
+        padding: 0 0 12px;
+      }
+      body[data-view="cf"] #stage-area,
+      body[data-view="stack"] #stage-area { flex: 0 0 auto; }
+      body[data-view="cf"] .footer,
+      body[data-view="stack"] .footer {
+        margin: auto auto 0;
+        padding: 14px 0 22px;
+      }
+      .footer-loc { display: none; }
+      /* Experiment: minimalist mobile — no custom play glyph on poster or during playback */
+      .play-glyph { display: none; }
+    }
+
     /* ── Footer ── */
     .footer {
       width: var(--reel-w);
@@ -380,8 +494,18 @@
     .sched-fab.open { color: var(--text); border-color: var(--text-faint); transform: rotate(45deg); }
     .sched-fab svg { width: 18px; height: 18px; transition: transform 250ms ease; }
 
+    /* Inline scheduler trigger — desktop hidden, shown in footer on mobile */
+    .sched-fab-inline {
+      display: none;
+      background: none; border: none; padding: 0;
+      color: inherit; cursor: pointer; line-height: 0;
+      transition: color 200ms ease;
+    }
+    .sched-fab-inline:hover { color: var(--text); }
+    .sched-fab-inline svg { width: 13px; height: 13px; vertical-align: middle; }
+    .footer-end { display: flex; align-items: center; gap: 10px; }
     .sched-overlay {
-      position: fixed; right: 24px; bottom: 78px; z-index: 60;
+      position: fixed; right: 24px; bottom: 78px; z-index: 200;
       width: 340px; max-width: calc(100vw - 48px);
       background: var(--bg);
       border: 1px solid var(--border);
@@ -393,6 +517,17 @@
       transition: opacity 250ms ease, transform 250ms ease;
     }
     .sched-overlay.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    @media (max-width: 720px) {
+      .sched-fab { display: none; }
+      .sched-fab-inline { display: inline-flex; align-items: center; }
+      .sched-overlay {
+        right: 16px; bottom: 64px; left: 16px;
+        width: auto; max-width: none;
+        max-height: calc(100dvh - 80px);
+        overflow-y: auto;
+      }
+    }
 
     .sched-head {
       display: flex; align-items: baseline; justify-content: space-between;
@@ -512,9 +647,28 @@
     <a class="t-mark" href="/home"><span class="dot"></span>NIPC</a>
     <div class="t-actions">
       <div class="t-tabs" id="t-tabs">
-        <button class="t-tab" data-view="list">List</button>
-        <button class="t-tab" data-view="cf">Cover</button>
-        <button class="t-tab" data-view="stack">Stack</button>
+        <button class="t-tab" data-view="list" aria-label="List view" title="List">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square">
+            <rect x="4" y="5" width="16" height="3.2" rx="0.4"/>
+            <rect x="4" y="10.4" width="16" height="3.2" rx="0.4"/>
+            <rect x="4" y="15.8" width="16" height="3.2" rx="0.4"/>
+          </svg>
+        </button>
+        <button class="t-tab" data-view="cf" aria-label="Cover view" title="Cover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square">
+            <rect x="2.5" y="7" width="7.5" height="10" rx="0.4" opacity="0.55"/>
+            <rect x="14" y="7" width="7.5" height="10" rx="0.4" opacity="0.55"/>
+            <rect x="8" y="5" width="8" height="14" rx="0.4"/>
+          </svg>
+        </button>
+        <button class="t-tab" data-view="stack" aria-label="Stack view" title="Stack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="square">
+            <rect x="3" y="5" width="13" height="14" rx="0.4"/>
+            <rect x="18" y="5" width="3" height="3.6" rx="0.3"/>
+            <rect x="18" y="10.2" width="3" height="3.6" rx="0.3"/>
+            <rect x="18" y="15.4" width="3" height="3.6" rx="0.3"/>
+          </svg>
+        </button>
       </div>
       <button class="t-theme" id="t-theme" aria-label="Toggle theme"></button>
     </div>
@@ -632,7 +786,20 @@
       }
 
       html += '<div id="stage-area"></div>';
-      html += '<footer class="footer"><div>NIPC &nbsp;//&nbsp; New International Picture Company</div><div>New York</div></footer>';
+      html += '<footer class="footer">' +
+        '<div>NIPC &nbsp;//&nbsp; New International Picture Company</div>' +
+        '<div class="footer-end">' +
+          '<span class="footer-loc">New York</span>' +
+          '<button class="sched-fab-inline" id="sched-inline" type="button" aria-label="Schedule a call">' +
+            '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<rect x="2" y="3" width="12" height="11" rx="1.5"/>' +
+              '<line x1="2" y1="6.5" x2="14" y2="6.5"/>' +
+              '<line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/>' +
+              '<line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/>' +
+            '</svg>' +
+          '</button>' +
+        '</div>' +
+      '</footer>';
 
       document.getElementById('main').innerHTML = html;
 
@@ -707,7 +874,8 @@
 
     // ── Cover Flow view ──
     function renderCoverFlow() {
-      var html = '<div class="cf-stage view-cf" id="cf-stage">';
+      var html = '<div class="meta-top view-cf" id="cf-meta-top"></div>';
+      html += '<div class="cf-stage view-cf" id="cf-stage">';
       html += '  <div class="cf-floor"></div>';
       assets.forEach(function(a, i){
         html += '<div class="cf-card" data-i="' + i + '" style="background-image:url(' + posterFor(a) + ')">';
@@ -737,7 +905,11 @@
       stage.querySelectorAll('.cf-card').forEach(function(card){
         card.addEventListener('click', function(){
           var i = Number(card.dataset.i);
-          if (i !== current) cfGoTo(i);
+          if (i !== current) { cfGoTo(i); return; }
+          // Tap on active card → mount + play (or toggle pause if already mounted)
+          if (!muxEl) cfPlayActive();
+          else if (muxEl.paused) muxEl.play();
+          else muxEl.pause();
         });
       });
       document.querySelectorAll('#cf-dots .cf-dot').forEach(function(d){
@@ -747,7 +919,6 @@
       document.getElementById('cf-next').addEventListener('click', function(){ cfGoTo(current + 1); });
 
       cfLayout();
-      cfMountActive();
       cfUpdateMeta();
     }
 
@@ -790,32 +961,46 @@
       cleanupMode();
       current = i;
       cfLayout();
+      // Update meta mid-transition so title fade-in matches card settle.
+      setTimeout(function(){ cfUpdateMeta(); }, 300);
       setTimeout(function(){
         stage.classList.remove('shifting');
-        cfMountActive();
-        cfUpdateMeta();
         if (titleEl) titleEl.classList.remove('fade');
         transitioning = false;
       }, 700);
     }
 
-    function cfMountActive() {
+    function cfPlayActive() {
       var card = document.querySelector('#cf-stage .cf-card[data-i="' + current + '"]');
-      if (!card) return;
-      muxEl = makeMux(assets[current].mux_playback_id);
+      if (!card || muxEl) return;
+      var a = assets[current];
+      muxEl = makeMux(a.mux_playback_id);
+      // Poster + autoplay set BEFORE DOM attach so the first paint shows the
+      // poster (no black flash) and playback starts as soon as the player is
+      // ready — no second-tap needed.
+      muxEl.setAttribute('poster', posterFor(a));
+      muxEl.setAttribute('autoplay', '');
+      muxEl.setAttribute('preload', 'auto');
       card.appendChild(muxEl);
       attachGlyph(muxEl, card.querySelector('.play-glyph'));
+      // iOS Safari requires the play() call to happen inside the user-gesture
+      // stack to keep the unmuted-autoplay credit. Call once now, retry on
+      // canplay if the player wasn't ready yet.
+      var attemptPlay = function(){
+        try { var p = muxEl.play(); if (p && p.catch) p.catch(function(){}); } catch(e){}
+      };
+      attemptPlay();
+      muxEl.addEventListener('canplay', attemptPlay, { once: true });
     }
 
     function cfUpdateMeta() {
       var a = assets[current];
       var titleEl = document.getElementById('cf-meta-title');
       var posEl = document.getElementById('cf-meta-pos');
+      var topEl = document.getElementById('cf-meta-top');
       if (titleEl) titleEl.textContent = a.title || '';
-      if (posEl) {
-        var dur = fmtDuration(a.duration_seconds);
-        posEl.textContent = (current + 1) + ' / ' + assets.length + (dur ? '  ·  ' + dur : '');
-      }
+      if (posEl) posEl.textContent = (current + 1) + ' / ' + assets.length;
+      if (topEl) topEl.textContent = fmtDuration(a.duration_seconds);
     }
 
     // Cover Flow keyboard + wheel (bound globally, ignored when not active)
@@ -842,9 +1027,28 @@
       wheelTimer = setTimeout(function(){ wheelAccum = 0; }, 200);
     }, { passive: true });
 
+    // Touch swipe for cover-flow nav (mobile)
+    var touchStartX = 0, touchStartY = 0, touchActive = false;
+    window.addEventListener('touchstart', function(e){
+      if (view !== 'cf' || e.touches.length !== 1) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchActive = true;
+    }, { passive: true });
+    window.addEventListener('touchend', function(e){
+      if (!touchActive) return;
+      touchActive = false;
+      if (view !== 'cf' || transitioning) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      var dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      cfGoTo(current + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
     // ── Stack view ──
     function renderStack() {
       var html = '<div class="stk-wrap view-stack" id="stk-wrap">';
+      html += '  <div class="stk-meta-top" id="stk-meta-top"></div>';
       html += '  <div class="stk-featured" id="stk-featured">';
       html += '    <div class="stk-card" id="stk-card"></div>';
       html += '    <div class="play-glyph" id="stk-glyph"></div>';
@@ -919,11 +1123,10 @@
       var a = assets[current];
       var titleEl = document.getElementById('stk-meta-title');
       var posEl = document.getElementById('stk-meta-pos');
+      var topEl = document.getElementById('stk-meta-top');
       if (titleEl) titleEl.textContent = a.title || '';
-      if (posEl) {
-        var dur = fmtDuration(a.duration_seconds);
-        posEl.textContent = (current + 1) + ' / ' + assets.length + (dur ? '  ·  ' + dur : '');
-      }
+      if (posEl) posEl.textContent = (current + 1) + ' / ' + assets.length;
+      if (topEl) topEl.textContent = fmtDuration(a.duration_seconds);
     }
 
     // ── Shared ──
@@ -1137,13 +1340,16 @@
         renderMonth();
       });
 
-      fab.addEventListener('click', function(){
+      function toggleScheduler() {
         var open = overlay.classList.toggle('open');
         fab.classList.toggle('open', open);
         if (open) renderMonth();
-      });
+      }
+      fab.addEventListener('click', toggleScheduler);
 
       document.addEventListener('click', function(e){
+        // Inline footer trigger is rendered async by load() — delegate here.
+        if (e.target.closest('#sched-inline')) { toggleScheduler(); return; }
         if (!overlay.classList.contains('open')) return;
         if (overlay.contains(e.target) || fab.contains(e.target)) return;
         overlay.classList.remove('open');
