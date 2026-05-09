@@ -916,13 +916,14 @@
       var preUpdated = !!(titleEl && titleEl.textContent === (assets[i].title || ''));
       if (titleEl && !preUpdated) {
         titleEl.classList.add('fade');
-        // Swap text + start fade-in as soon as the 200ms fade-out completes,
-        // so the title fades in DURING the card animation (which runs ~750ms),
-        // not after it. Fully visible by ~t=400ms; cards settle by ~t=750ms.
+        // Wait through the 200ms fade-out, dwell briefly while cards travel,
+        // then swap text + start fade-in at t=450ms. Title fully visible by
+        // ~t=650ms; cards settle by ~t=750ms — title arrives just before
+        // they land.
         setTimeout(function(){
           cfUpdateMeta();
           titleEl.classList.remove('fade');
-        }, 200);
+        }, 450);
       }
       cleanupMode();
       current = i;
