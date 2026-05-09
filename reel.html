@@ -866,7 +866,12 @@
     function initCoverFlow() {
       var stage = document.getElementById('cf-stage');
       stage.querySelectorAll('.cf-card').forEach(function(card){
-        card.addEventListener('click', function(){
+        card.addEventListener('click', function(e){
+          // mux-player handles its own clicks (play button, scrubber, volume,
+          // fullscreen). Don't bubble through and toggle play/pause again —
+          // that's what was making playback advance one frame and immediately
+          // pause when the user clicked the player's play button.
+          if (e.target && e.target.closest && e.target.closest('mux-player')) return;
           var i = Number(card.dataset.i);
           if (i !== current) { cfGoTo(i); return; }
           // Tap on active card → mount + play (or toggle pause if already mounted)
