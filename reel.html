@@ -1016,6 +1016,30 @@
       }
       enterFs();
     }
+    function adjustPlaybackRate(delta) {
+      if (!muxEl) return;
+      var current = muxEl.playbackRate || 1;
+      var next = Math.round((current + delta) * 4) / 4;  // 0.25 step grid
+      next = Math.max(0.25, Math.min(4, next));
+      muxEl.playbackRate = next;
+    }
+    // Capture-phase listener so we beat mux-player's own J/K/L bindings
+    // (which would otherwise seek ±10s on J/L and toggle on K).
+    window.addEventListener('keydown', function(e){
+      if (isTypingTarget(e.target)) return;
+      if (view !== 'cf' && view !== 'stack') return;
+      var k = e.key && e.key.toLowerCase();
+      if (k === 'j') {
+        e.preventDefault(); e.stopPropagation();
+        adjustPlaybackRate(-0.25);
+      } else if (k === 'l') {
+        e.preventDefault(); e.stopPropagation();
+        adjustPlaybackRate(0.25);
+      } else if (k === 'k') {
+        e.preventDefault(); e.stopPropagation();
+        togglePlayActive();
+      }
+    }, true);
     var wheelTimer = null, wheelAccum = 0;
     window.addEventListener('keydown', function(e){
       if (isTypingTarget(e.target)) return;
