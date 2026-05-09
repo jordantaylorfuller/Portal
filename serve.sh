@@ -61,6 +61,11 @@ else
   PORT=$RESULT
 fi
 
+if [ ! -f "$WT_PATH/.vercel/project.json" ]; then
+  echo "Workspace is not linked to Vercel. Run ./setup.sh first."
+  exit 1
+fi
+
 echo "──────────────────────────────────"
 echo "  Branch:  $BRANCH"
 echo "  Port:    $PORT"

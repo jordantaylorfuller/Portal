@@ -32,7 +32,7 @@ fi
 echo ""
 
 # 1. Git LFS -- pull binary assets
-echo "[1/3] Git LFS..."
+echo "[1/5] Git LFS..."
 if command -v git-lfs &>/dev/null; then
   git lfs install --local >/dev/null 2>&1
   git lfs pull
@@ -43,7 +43,7 @@ fi
 echo ""
 
 # 2. live-server -- ensure it's available globally
-echo "[2/3] live-server..."
+echo "[2/5] live-server..."
 if command -v live-server &>/dev/null; then
   echo "  Already installed."
 else
@@ -53,8 +53,22 @@ else
 fi
 echo ""
 
-# 3. Verify all required files exist
-echo "[3/3] Checking project files..."
+# 3. npm install -- API functions need their dependencies (e.g. @supabase/supabase-js)
+echo "[3/5] npm install..."
+(cd "$WT_ROOT" && npm install --no-audit --no-fund)
+echo ""
+
+# 4. Vercel link -- each worktree needs its own .vercel/ (gitignored)
+echo "[4/5] Vercel link..."
+if [ -f "$WT_ROOT/.vercel/project.json" ]; then
+  echo "  Already linked."
+else
+  npx vercel link --yes --project portal --scope jordantaylorfullers-projects --cwd "$WT_ROOT"
+fi
+echo ""
+
+# 5. Verify all required files exist
+echo "[5/5] Checking project files..."
 MISSING=0
 for f in index.html video.mp4 serve.sh; do
   if [ -f "$WT_ROOT/$f" ]; then

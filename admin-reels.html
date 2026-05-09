@@ -229,6 +229,43 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Loading bar — matches the landing page (red fill, soft track, 40% width). */
+    .loader {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+      text-align: center;
+    }
+    .loader-text {
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 14px;
+    }
+    .loader-bar {
+      width: 40%; max-width: 280px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .loader-bar::after {
+      content: '';
+      position: absolute; top: 0; left: 0; height: 100%;
+      width: 30%;
+      background: rgb(220, 40, 40);
+      border-radius: 2px;
+      animation: loader-bar-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes loader-bar-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(333%); }
+    }
+
     .assets { display: flex; flex-direction: column; gap: 1px; background: rgba(255,255,255,0.05); margin-top: 18px; }
     .asset {
       display: grid;
@@ -468,7 +505,7 @@
     async function renderList() {
       $back.style.display = 'none';
       if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
-      $main.innerHTML = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div><div class="loader">Loading.</div>';
+      $main.innerHTML = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div><div class="loader"><div class="loader-text">Loading</div><div class="loader-bar"></div></div>';
 
       var data;
       try { data = await api('/api/reels/list'); } catch (e) { return $main.innerHTML = '<div class="gate-msg">' + escapeHtml(e.message) + '</div>'; }
@@ -541,7 +578,7 @@
     async function renderEditor(reelId) {
       $back.style.display = 'inline-block';
       if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
-      $main.innerHTML = '<div class="loader">Loading.</div>';
+      $main.innerHTML = '<div class="loader"><div class="loader-text">Loading</div><div class="loader-bar"></div></div>';
 
       var listData;
       try { listData = await api('/api/reels/list'); } catch (e) { return toast('Error: ' + e.message); }
