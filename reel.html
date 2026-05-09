@@ -914,16 +914,21 @@
       // Skip the fade in that case so the title doesn't pointlessly fade out
       // and back in to the same text.
       var preUpdated = !!(titleEl && titleEl.textContent === (assets[i].title || ''));
-      if (titleEl && !preUpdated) titleEl.classList.add('fade');
+      if (titleEl && !preUpdated) {
+        titleEl.classList.add('fade');
+        // Swap text + start fade-in as soon as the 200ms fade-out completes,
+        // so the title fades in DURING the card animation (which runs ~750ms),
+        // not after it. Fully visible by ~t=400ms; cards settle by ~t=750ms.
+        setTimeout(function(){
+          cfUpdateMeta();
+          titleEl.classList.remove('fade');
+        }, 200);
+      }
       cleanupMode();
       current = i;
       cfLayout();
-      if (!preUpdated) {
-        setTimeout(function(){ cfUpdateMeta(); }, 300);
-      }
       setTimeout(function(){
         stage.classList.remove('shifting');
-        if (titleEl && !preUpdated) titleEl.classList.remove('fade');
         transitioning = false;
       }, 700);
     }
