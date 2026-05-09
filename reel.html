@@ -1000,8 +1000,9 @@
     // play/pause handler doesn't also fire.
     var dragState = null;
     var dragMetaTarget = -1;          // index whose meta is currently shown during drag
-    var DRAG_THRESHOLD = 50;          // px past which we navigate ±1
+    var DRAG_THRESHOLD = 50;          // px past which release navigates ±1
     var DRAG_SLOP = 5;                // px before we commit to a horizontal drag
+    var TITLE_PREVIEW_VW = 0.30;      // viewport-width fraction (= 30vw) — geometric midpoint between adjacent cards
     function endDrag(ds, navDir) {
       var stage = ds.stage;
       // Match the cf-card transition (750ms ease-out-quart) so stage and cards
@@ -1037,11 +1038,13 @@
       dragState.lastDx = dx;
       dragState.stage.style.transition = 'none';
       dragState.stage.style.transform = 'translate3d(' + dx + 'px, 0, 0)';
-      // Live meta preview: once the drag passes the navigation threshold,
-      // swap the title to the would-land-on card so the user sees the
-      // destination before committing. Reverts if they drag back.
+      // Live meta preview: swap the title once the drag crosses the geometric
+      // midpoint between adjacent cards (~30vw — half the 60vw inter-card
+      // spacing). Far enough that the next card visually dominates; not so
+      // early that a tiny drag swaps the title.
+      var titleThreshold = window.innerWidth * TITLE_PREVIEW_VW;
       var target = current;
-      if (Math.abs(dx) >= DRAG_THRESHOLD) {
+      if (Math.abs(dx) >= titleThreshold) {
         target = Math.max(0, Math.min(assets.length - 1, current + (dx < 0 ? 1 : -1)));
       }
       if (target !== dragMetaTarget) {
