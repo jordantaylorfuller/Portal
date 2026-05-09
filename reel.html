@@ -1241,7 +1241,18 @@
     }
 
     function attachGlyph(playerEl, glyphEl) {
-      if (!playerEl || !glyphEl) return;
+      if (!playerEl) return;
+      // Exclusive playback: pause every other mux-player on the page when
+      // this one starts. mux-player's play event doesn't bubble across the
+      // shadow boundary, so we attach the listener on each player directly.
+      playerEl.addEventListener('play', function(){
+        document.querySelectorAll('mux-player').forEach(function(p){
+          if (p !== playerEl && p.pause && !p.paused) {
+            try { p.pause(); } catch (e) {}
+          }
+        });
+      });
+      if (!glyphEl) return;
       playerEl.addEventListener('play', function(){ glyphEl.classList.add('hidden'); });
       playerEl.addEventListener('pause', function(){ glyphEl.classList.remove('hidden'); });
       playerEl.addEventListener('ended', function(){ glyphEl.classList.remove('hidden'); });
