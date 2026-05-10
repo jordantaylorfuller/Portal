@@ -682,13 +682,6 @@
                 </div>
               </div>
             </div>
-            <div class="divgrid-5">
-              <div class="divcol-span-4-3">
-                <div class="ptext-2xs-5">
-                  <div class="new-international-picture-company-is-a-post-production-studio-specializing-in-editorial-motion-graph">NEW INTERNATIONAL PICTURE COMPANY—IS A POST-PRODUCTION STUDIO SPECIALIZING IN EDITORIAL, MOTION GRAPHICS, AND COLOR GRADING FOR BRANDS, AGENCIES, AND ENTERTAINMENT STUDIOS.</div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -888,9 +881,6 @@
                 <a href="https://www.instagram.com/nipc.tv" class="text-12">INSTAGRAM</a>
               </div>
               <div class="atext-terminal-sm">
-                <a href="https://vimeo.com/user255452264" class="text-12">Vimeo</a>
-              </div>
-              <div class="atext-terminal-sm">
                 <a href="https://www.linkedin.com/company/nipc-tv/" class="text-12">LinkedIn</a>
               </div>
             </div>
@@ -1037,6 +1027,11 @@
     let player = null;
     let mounted = false;
 
+    function revealPlayer() {
+      if (!mounted || !posterImg) return;
+      posterImg.style.opacity = "0";
+    }
+
     async function mount() {
       if (mounted) return;
       mounted = true;
@@ -1059,14 +1054,27 @@
       player.style.zIndex = "0";
       player.style.setProperty("--controls", "none");
       player.style.setProperty("--media-object-fit", "cover");
+      // Keep the poster visible until the player actually has frames to show.
+      // Hiding it the instant the element mounts leaves a gap where the page
+      // background bleeds through the transparent shell — reads as a white flash.
+      player.addEventListener("playing", revealPlayer, { once: true });
+      player.addEventListener("loadeddata", revealPlayer, { once: true });
       shell.appendChild(player);
-      if (posterImg) posterImg.style.opacity = "0";
     }
 
     function unmount() {
       mounted = false;
       if (player) { player.remove(); player = null; }
-      if (posterImg) posterImg.style.opacity = "1";
+      if (posterImg) {
+        // Snap back to visible — a transitioned fade-in here is the flash itself.
+        const prevTransition = posterImg.style.transition;
+        posterImg.style.transition = "none";
+        posterImg.style.opacity = "1";
+        // Force a reflow so the style change isn't batched with the next frame's
+        // re-enabled transition.
+        void posterImg.offsetHeight;
+        posterImg.style.transition = prevTransition;
+      }
     }
 
     shell.addEventListener("mouseenter", mount);
@@ -1143,6 +1151,38 @@ body.theme-light{
   transform: translateX(0px);
 }
 
+/* Column dividers in the hero grid are rendered as right-borders on each column
+   child. The Webflow export sets align-items:flex-start on the row + height:100%
+   on the child — but with the row's height being auto, those children resolve to
+   their content height, leaving the dividers visibly short. Stretch every column
+   to fill its row so the dividers run the full height. */
+.divrelative-2 > .divgrid,
+.divrelative-2 > .divgrid-3 {
+  align-items: stretch;
+}
+.divrelative-2 > .divgrid > *:not(._w-switch),
+.divrelative-2 > .divgrid-3 > * {
+  align-self: stretch;
+  height: auto;
+}
+/* CLIENTS / theme-toggle cell — stretch the column to full row height,
+   keep the toggle in normal flow at the bottom (so the cell stays the
+   toggle's width), and absolute-position the CLIENTS link at vertical
+   center so the text reads as centered in the cell. */
+.divrelative-2 .divcol-span-2-1._w-switch {
+  align-self: stretch;
+  height: auto;
+  margin-top: 0;
+  position: relative;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.divrelative-2 .divcol-span-2-1._w-switch > .top-clients-link {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+}
+
 /* Compress every section so the full page (hero + editor index + contact footer)
    lives inside a single browser viewport. The Webflow export pinned the top hero
    to 100vh and the description row to a fixed 280px, both of which we override. */
@@ -1154,21 +1194,30 @@ body.theme-light{
   height: auto;
   min-height: 0;
 }
-.divrelative-2 .divgrid-5 {
-  height: auto;
-  padding: 0;
+/* Sticky-footer pattern: the Webflow markup makes .footerborder-t a sibling
+   of .mainrelative inside .divrelative, but never grows the middle section
+   to absorb extra viewport space. On tall viewports the content was shorter
+   than the window, leaving a gap of body+grid background visible below the
+   footer. Force the page wrapper to at least viewport height and let the
+   editor-index region flex-grow to push the footer to the bottom. */
+.divrelative {
+  min-height: 100vh;
 }
-.divrelative-2 .divgrid-5 .divcol-span-4-3 {
-  height: auto;
-  padding: 14px;
+.divrelative > .mainrelative.preview-area {
+  flex: 1 0 auto;
 }
-
 /* Top-left logo mark — replaces the old "STUDIO / New International Picture
    Company" text block. Two image variants are stacked in markup; CSS reveals
    the one that contrasts with the active theme. */
 [class*="divcol-"]:has(> .home-logo-mark) {
-  padding-top: 5px;
+  padding-top: 14px;
   padding-bottom: 5px;
+}
+/* SEASON 2026 cell — Webflow ships .divhidden with align-items:center which
+   vertically centers the text in the row. Top-align it so it matches the
+   logo, EDITORS COLLECTIVE, and reel-category cells in this row. */
+.divrelative-2 .divhidden {
+  align-items: flex-start;
 }
 /* The source PNG has ~40% transparent padding above and below the wordmark.
    We render the image at 4.8x scale (so the text bounds ≈ 86px), then crop

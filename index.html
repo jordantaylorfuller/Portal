@@ -3,6 +3,9 @@
 <head>
   <meta name="robots" content="noindex, nofollow"/>
   <meta charset="utf-8"/>
+  <!-- All relative URLs resolve to site root so /clients/* deep-links don't
+       collide with the SPA rewrite (e.g. video.mp4, images/favicon.png). -->
+  <base href="/"/>
   <title>NIPC | New International Picture Company - Carla Luffe, Post-Production Studio NYC</title>
   <meta content="New International Picture Company (NIPC), led by editor Carla Luffe, is a post-production studio in New York specializing in editorial, color grading, and motion graphics for brands, agencies, and entertainment studios." name="description"/>
   <meta content="NIPC | New International Picture Company - Coming Soon" property="og:title"/>
@@ -72,6 +75,10 @@
   }
   </script>
   <style>
+    /* Opt-in to cross-document View Transitions on supporting browsers
+       (Chrome/Edge/Safari TP). Falls back to instant navigation elsewhere. */
+    @view-transition { navigation: auto; }
+
     * {
       margin: 0;
       padding: 0;
@@ -862,7 +869,9 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 64px 0;
+      min-height: 100%;
+      box-sizing: border-box;
+      padding: 32px 0;
     }
 
     .loader-text {
@@ -1537,6 +1546,19 @@
 
     .delivery-download:active {
       background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .delivery-sent {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: transparent;
     }
 
     /* Info button */
@@ -2476,7 +2498,6 @@
       <button class="delivery-upload" id="delivery-upload">
         Need to send us a file? <span class="delivery-upload-arrow">&rarr;</span>
       </button>
-      <input type="file" id="delivery-upload-input" style="display:none;" multiple/>
     </div>
     <div id="delivery-tooltip" class="delivery-tooltip-popup"></div>
   </div>
@@ -2545,17 +2566,17 @@
     const reviewBtn = roomBtns[0];
     const sessionBtn = roomBtns[1];
 
-    // Deep-link: skip to room selection if returning from a sub-page
-    if (new URLSearchParams(window.location.search).get('room') === 'select') {
-      landingPage.classList.add('slid');
-      loginForm.classList.add('faded');
-      roomSelection.classList.add('visible');
-      history.replaceState(null, '', window.location.pathname);
-    }
     const sessionWaiting = document.querySelector('.session-waiting');
     const sessionMessage = document.querySelector('.session-message');
     const sessionVideo = document.querySelector('.session-video');
 	    const videoEl = document.getElementById('session-video');
+
+    // Delivery room lookups need to be available to the Router/goTo functions
+    // below, including the synchronous pre-snap that runs before later var
+    // assignments would otherwise execute.
+    var deliveryBtn = document.querySelectorAll('.room-btn')[2];
+    var deliveryRoom = document.querySelector('.delivery-room');
+    var deliveryBackBtn = document.querySelector('.delivery-back');
 
 	    // Stagger entrance for room selection elements
 	    var dashboardBar = document.getElementById('dashboard-bar');
@@ -2602,6 +2623,268 @@
 	      loginBtn.style.opacity = '';
 	      loginBtn.disabled = false;
 	    }
+
+	    // ── URL Router ──
+	    // History API + popstate gives the in-portal flow shareable URLs and
+	    // back/forward support. Visual state still lives in CSS classes; the
+	    // router just synchronises them with location.pathname.
+	    const Router = {
+	      go: function(path, opts) {
+	        if (location.pathname === path) {
+	          applyRouteState(path, opts);
+	          return;
+	        }
+	        history.pushState({ path: path }, '', path);
+	        applyRouteState(path, opts);
+	      },
+	      replace: function(path, opts) {
+	        history.replaceState({ path: path }, '', path);
+	        applyRouteState(path, opts);
+	      }
+	    };
+
+	    function applyRouteState(path, opts) {
+	      opts = opts || {};
+	      switch (path) {
+	        case '/clients':                return goToLogin(opts);
+	        case '/clients/check-email':    return goToCheckEmail(opts);
+	        case '/clients/welcome':        return goToWelcome(opts);
+	        case '/clients/rooms':          return goToRooms(opts);
+	        case '/clients/delivery':       return goToDelivery(opts);
+	        default:                        return goToLanding(opts);
+	      }
+	    }
+
+	    function snapState(fn) {
+	      var lp = landingPage.style.transition;
+	      var ls = loginScreen.style.transition;
+	      landingPage.style.transition = 'none';
+	      loginScreen.style.transition = 'none';
+	      fn();
+	      void landingPage.offsetHeight;
+	      setTimeout(function() {
+	        landingPage.style.transition = lp;
+	        loginScreen.style.transition = ls;
+	      }, 50);
+	    }
+
+	    function goToLanding(opts) {
+	      function apply() {
+	        deliveryRoom.classList.remove('visible');
+	        loginScreen.classList.remove('delivery-entering', 'review-entering', 'session-entering');
+	        backLink.classList.remove('dark');
+	        hideRoomElements();
+	        roomSelection.classList.remove('visible', 'buttons-faded');
+	        resetLoginStates();
+	        landingPage.classList.remove('slid');
+	      }
+	      if (opts.skipAnimation) {
+	        snapState(apply);
+	      } else {
+	        apply();
+	        fadeScrubberAudio('in', 0.7);
+	      }
+	    }
+
+	    function goToLogin(opts) {
+	      function apply() {
+	        deliveryRoom.classList.remove('visible');
+	        loginScreen.classList.remove('delivery-entering', 'review-entering', 'session-entering');
+	        backLink.classList.remove('dark');
+	        hideRoomElements();
+	        roomSelection.classList.remove('visible', 'buttons-faded');
+	        resetLoginStates();
+	        landingPage.classList.add('slid');
+	      }
+	      if (opts.skipAnimation) {
+	        snapState(apply);
+	      } else {
+	        if (!landingPage.classList.contains('slid')) {
+	          fadeScrubberAudio('out', 0.7);
+	        }
+	        apply();
+	      }
+	    }
+
+	    // Clear any room-overlay state left over from a prior snap to
+	    // /clients/delivery or /clients/sessions (e.g. when the IIFE later
+	    // redirects an authed deep-link to /clients/welcome or
+	    // /clients/check-email). Called inside snapState so the background
+	    // colour transition is bypassed.
+	    function clearOverlayState() {
+	      deliveryRoom.classList.remove('visible');
+	      loginScreen.classList.remove('delivery-entering', 'review-entering', 'session-entering');
+	      backLink.classList.remove('dark');
+	      hideRoomElements();
+	      roomSelection.classList.remove('visible', 'buttons-faded');
+	    }
+
+	    function goToCheckEmail(opts) {
+	      if (opts.skipAnimation) {
+	        snapState(function() {
+	          clearOverlayState();
+	          landingPage.classList.add('slid');
+	          clearLoginStateTimeout();
+	          namePrompt.classList.remove('visible');
+	          loginForm.classList.add('faded');
+	          checkEmailState.classList.add('visible');
+	        });
+	      } else {
+	        hideRoomElements();
+	        roomSelection.classList.remove('visible', 'buttons-faded');
+	        if (!landingPage.classList.contains('slid')) {
+	          fadeScrubberAudio('out', 0.7);
+	          landingPage.classList.add('slid');
+	        }
+	        showCheckEmailState();
+	      }
+	    }
+
+	    function goToWelcome(opts) {
+	      if (opts.skipAnimation) {
+	        snapState(function() {
+	          clearOverlayState();
+	          landingPage.classList.add('slid');
+	          clearLoginStateTimeout();
+	          checkEmailState.classList.remove('visible');
+	          loginForm.classList.add('faded');
+	          namePrompt.classList.add('visible');
+	        });
+	      } else {
+	        hideRoomElements();
+	        roomSelection.classList.remove('visible', 'buttons-faded');
+	        if (!landingPage.classList.contains('slid')) {
+	          fadeScrubberAudio('out', 0.7);
+	          landingPage.classList.add('slid');
+	        }
+	        showNamePromptState();
+	      }
+	    }
+
+	    function goToRooms(opts) {
+	      if (opts.skipAnimation) {
+	        snapState(function() {
+	          landingPage.classList.add('slid');
+	          clearLoginStateTimeout();
+	          checkEmailState.classList.remove('visible');
+	          namePrompt.classList.remove('visible');
+	          loginForm.classList.add('faded');
+	          deliveryRoom.classList.remove('visible');
+	          loginScreen.classList.remove('delivery-entering', 'session-entering', 'review-entering');
+	          backLink.classList.remove('dark');
+	          roomSelection.classList.remove('buttons-faded');
+	          roomSelection.classList.add('visible');
+	          roomWelcomeTitle.classList.add('visible');
+	          roomWelcomeSub.classList.add('visible');
+	          for (var i = 0; i < roomBtns.length; i++) roomBtns[i].classList.add('visible');
+	          dashboardBar.classList.add('visible');
+	        });
+	        // skipFetch defers API calls (countdown polling) until the auth
+	        // IIFE confirms the session — otherwise a stale localStorage token
+	        // would trigger a 401 → location.reload() loop on first paint.
+	        if (!opts.skipFetch) startDashboardCountdown();
+	        return;
+	      }
+
+	      // Animated: exit delivery if currently shown
+	      if (loginScreen.classList.contains('delivery-entering') ||
+	          deliveryRoom.classList.contains('visible')) {
+	        deliveryRoom.classList.remove('visible');
+	        setTimeout(function() {
+	          loginScreen.classList.remove('delivery-entering');
+	          backLink.classList.remove('dark');
+	          setTimeout(function() {
+	            roomSelection.classList.remove('buttons-faded');
+	            staggerRoomEntrance();
+	          }, 200);
+	        }, 800);
+	        return;
+	      }
+
+	      // Animated: exit session room if currently shown
+	      if (loginScreen.classList.contains('session-entering')) {
+	        setTimeout(function() {
+	          loginScreen.classList.remove('session-entering');
+	          backLink.classList.remove('dark');
+	          setTimeout(function() {
+	            roomSelection.classList.remove('buttons-faded');
+	            staggerRoomEntrance();
+	          }, 300);
+	        }, 700);
+	        return;
+	      }
+
+	      // From login states or landing
+	      if (!landingPage.classList.contains('slid')) {
+	        fadeScrubberAudio('out', 0.7);
+	      }
+	      landingPage.classList.add('slid');
+	      clearLoginStateTimeout();
+	      checkEmailState.classList.remove('visible');
+	      namePrompt.classList.remove('visible');
+	      loginForm.classList.add('faded');
+	      roomSelection.classList.add('visible');
+	      if (!roomWelcomeTitle.classList.contains('visible')) {
+	        setTimeout(staggerRoomEntrance, 400);
+	      }
+	    }
+
+	    function goToDelivery(opts) {
+	      if (opts.skipAnimation) {
+	        snapState(function() {
+	          landingPage.classList.add('slid');
+	          clearLoginStateTimeout();
+	          checkEmailState.classList.remove('visible');
+	          namePrompt.classList.remove('visible');
+	          loginForm.classList.add('faded');
+	          roomSelection.classList.add('visible', 'buttons-faded');
+	          hideRoomElements();
+	          loginScreen.classList.add('delivery-entering');
+	          deliveryRoom.classList.add('visible');
+	        });
+	        // skipFetch defers loadDeliveries until auth is confirmed.
+	        if (!opts.skipFetch) loadDeliveries();
+	        return;
+	      }
+	      hideRoomElements();
+	      roomSelection.classList.add('buttons-faded');
+	      loginScreen.classList.add('delivery-entering');
+	      loadDeliveries();
+	      setTimeout(function() {
+	        deliveryRoom.classList.add('visible');
+	      }, 700);
+	    }
+
+	    window.addEventListener('popstate', function() {
+	      applyRouteState(location.pathname, {});
+	    });
+
+	    // Synchronously snap to the URL's visual state on first paint so
+	    // /clients/* deep-links (e.g. returning from /review-queue.html) don't
+	    // flash the landing page while the async auth IIFE awaits
+	    // getSession()/auth/me. We make an optimistic guess from the persisted
+	    // Supabase token in localStorage; the IIFE refines later (e.g. updates
+	    // the URL to /clients for unauthed deep-links). Only the visual state
+	    // is touched here — URL updates stay in the IIFE so it sees the
+	    // user's original requested path.
+	    (function() {
+	      var path = location.pathname;
+	      if (path.indexOf('/clients') !== 0) return;
+	      var hasSession = false;
+	      try {
+	        for (var i = 0; i < localStorage.length; i++) {
+	          var k = localStorage.key(i);
+	          if (k && /^sb-.*-auth-token$/.test(k) && localStorage.getItem(k)) {
+	            hasSession = true;
+	            break;
+	          }
+	        }
+	      } catch (e) { /* localStorage blocked: fall through to login */ }
+	      // skipFetch: true so the snap doesn't fire authenticated API calls
+	      // before the auth IIFE has verified the session — a stale token
+	      // would otherwise 401 → reload in a loop.
+	      applyRouteState(hasSession ? path : '/clients', { skipAnimation: true, skipFetch: true });
+	    })();
 
 	    // Parse "2:00 PM" style time string into hours/minutes
 	    function parseSessionTime(timeStr) {
@@ -2975,7 +3258,9 @@
       backLink.classList.add('dark');
 
       setTimeout(function() {
-        window.location.href = 'review-queue.html';
+        // Absolute path: under /clients/* the rewrite would otherwise
+        // re-resolve a relative URL through to /index.html.
+        window.location.href = '/review-queue.html';
       }, 800);
     });
 
@@ -3000,24 +3285,15 @@
     var waitingSecondsRemaining = 0;
     var SESSION_WAIT_SECONDS = 6;
 
-    // If returning from review room, jump straight to room selection
-    if (window.location.hash === '#rooms') {
-      landingPage.classList.add('slid');
-      landingPage.style.transition = 'none';
-      loginForm.classList.add('faded');
-      roomSelection.classList.add('visible');
-      history.replaceState(null, '', window.location.pathname);
-      setTimeout(function() {
-        landingPage.style.transition = '';
-        roomSelection.classList.remove('buttons-faded');
-        staggerRoomEntrance();
-      }, 100);
-    }
-
     portalLink.addEventListener('click', function(e) {
       e.preventDefault();
-      fadeScrubberAudio('out', 0.7);
-      landingPage.classList.add('slid');
+      // If pre-authenticated, the dashboard is already pre-staged behind the
+      // landing page — skip straight to /clients/rooms. Otherwise show login.
+      if (_preAuthed && roomSelection.classList.contains('visible')) {
+        Router.go('/clients/rooms');
+      } else {
+        Router.go('/clients');
+      }
     });
 
     // Ramp every master gain we patched into the AudioContext(s). 'in' goes to 1, 'out' goes to 0.
@@ -3069,7 +3345,7 @@
 	          method: 'POST',
 	          body: JSON.stringify({ email: email })
 	        });
-	        showCheckEmailState();
+	        Router.go('/clients/check-email');
 	      } catch (err) {
 	        loginBtn.style.opacity = '';
 	        loginBtn.disabled = false;
@@ -3082,17 +3358,18 @@
         var me = await apiCall('/api/auth/me');
 
 	        if (me.needsProfile) {
-	          showNamePromptState();
+	          Router.go('/clients/welcome');
 	          return;
 	        }
 
-        showDashboard(me);
+        populateDashboard(me);
+        Router.go('/clients/rooms');
       } catch (err) {
         console.error('Failed to load auth state:', err);
       }
     }
 
-	    function showDashboard(me) {
+	    function populateDashboard(me) {
 	      document.getElementById('dev-login').style.display = 'none';
 	      roomWelcomeTitle.textContent = 'Welcome Back, ' + me.displayName + '.';
 	      if (me.projects && me.projects.length > 0) {
@@ -3107,12 +3384,6 @@
 	      }
 	      // Update notification badges
 	      updateRoomBadges(me.unseen || { review: 2, delivery: 1 });
-	      clearLoginStateTimeout();
-	      checkEmailState.classList.remove('visible');
-	      namePrompt.classList.remove('visible');
-	      loginForm.classList.add('faded');
-	      roomSelection.classList.add('visible');
-	      setTimeout(staggerRoomEntrance, 400);
 	    }
 
     namePromptForm.addEventListener('submit', async function(e) {
@@ -3131,7 +3402,8 @@
           body: JSON.stringify({ firstName: firstName, lastName: lastName })
         });
         var me = await apiCall('/api/auth/me');
-        showDashboard(me);
+        populateDashboard(me);
+        Router.go('/clients/rooms');
       } catch (err) {
         console.error('Failed to save profile:', err);
         btn.disabled = false;
@@ -3173,29 +3445,65 @@
     }
 
     // Check for existing session on page load — pre-stage the dashboard
-    // so clicking "Clients" never flashes the login form.
-    // Register onAuthStateChange AFTER the check so a restored session
-    // doesn't auto-slide past the landing page.
+    // so clicking "Clients" never flashes the login form. Then sync the
+    // visible UI state with location.pathname (the Router source of truth).
     var _preAuthed = false;
     (async function() {
+      var path = location.pathname;
       var result = await supabaseClient.auth.getSession();
-      if (result.data.session) {
+      var session = result.data.session;
+
+      if (session) {
         _preAuthed = true;
-        // Pre-stage: hide login form, load dashboard behind the landing page
-        loginForm.classList.add('faded');
-        await loadAuthenticatedState();
+        try {
+          var me = await apiCall('/api/auth/me');
+          if (me.needsProfile) {
+            Router.replace('/clients/welcome', { skipAnimation: true });
+          } else {
+            populateDashboard(me);
+            if (path === '/' || path === '/index.html') {
+              // Pre-stage rooms behind the landing page; user clicks Clients
+              // to see them slide in.
+              loginForm.classList.add('faded');
+              roomSelection.classList.add('visible');
+              roomWelcomeTitle.classList.add('visible');
+              roomWelcomeSub.classList.add('visible');
+              for (var i = 0; i < roomBtns.length; i++) {
+                roomBtns[i].classList.add('visible');
+              }
+              dashboardBar.classList.add('visible');
+              startDashboardCountdown();
+            } else if (path === '/clients/delivery') {
+              Router.replace('/clients/delivery', { skipAnimation: true });
+            } else if (path === '/clients/rooms' ||
+                       path === '/clients' ||
+                       path === '/clients/check-email' ||
+                       path === '/clients/welcome') {
+              // Authed user lands on any /clients/* path → snap to rooms.
+              Router.replace('/clients/rooms', { skipAnimation: true });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to load auth state:', err);
+          // Fall back to URL-driven snap if auth lookup fails so the visual
+          // state still matches location.pathname.
+          if (path !== '/' && path !== '/index.html' && path.indexOf('/clients') === 0) {
+            Router.replace(path, { skipAnimation: true });
+          }
+        }
+      } else {
+        // Unauthenticated. /clients/* deep-links snap to /clients (login).
+        if (path !== '/' && path !== '/index.html' && path.indexOf('/clients') === 0) {
+          Router.replace('/clients', { skipAnimation: true });
+        }
       }
 
-      // Now listen for NEW sign-ins (magic-link callback, dev-login, etc.)
+      // Listen for NEW sign-ins (magic-link callback, dev-login, etc.).
       // _preAuthed prevents a restored session from auto-sliding past the landing page.
       supabaseClient.auth.onAuthStateChange(function(event, session) {
         if (event === 'SIGNED_IN' && session && !_preAuthed) {
-          history.replaceState(null, '', location.pathname);
-          landingPage.classList.add('slid');
           loadAuthenticatedState();
         }
-        // Once any sign-in event is handled, clear the flag so future
-        // sign-ins (after sign-out) work normally.
         if (event === 'SIGNED_OUT') _preAuthed = false;
       });
     })();
@@ -3237,10 +3545,8 @@
 	      projectSwitcher.classList.remove('open');
 	    });
 
-    // Delivery Room
-    var deliveryBtn = document.querySelectorAll('.room-btn')[2];
-    var deliveryRoom = document.querySelector('.delivery-room');
-    var deliveryBackBtn = document.querySelector('.delivery-back');
+    // Delivery Room — deliveryBtn/Room/BackBtn are declared earlier so the
+    // Router pre-snap can reference them.
     var deliveryGroupsContainer = document.getElementById('delivery-groups');
 
     async function loadDeliveries() {
@@ -3282,7 +3588,11 @@
             if (a.specs) html += '<div class="delivery-specs">' + escapeHtml(a.specs) + '</div>';
             html += '</div>';
             if (a.file_size) html += '<div class="delivery-size">' + escapeHtml(a.file_size) + '</div>';
-            html += '<button class="delivery-download">Download</button>';
+            if (a.direction === 'client_to_studio') {
+              html += '<span class="delivery-sent">Sent</span>';
+            } else {
+              html += '<button class="delivery-download">Download</button>';
+            }
             html += '<button class="delivery-info-btn" aria-label="File info"';
             html += ' data-uploaded="' + (uploadDate ? uploadDate + ' at ' + uploadTime : '') + '"';
             html += ' data-uploader="Carla Luffe">';
@@ -3331,29 +3641,14 @@
 
     deliveryBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      hideRoomElements();
-      roomSelection.classList.add('buttons-faded');
-      loginScreen.classList.add('delivery-entering');
-
-      loadDeliveries();
-
-      setTimeout(function() {
-        deliveryRoom.classList.add('visible');
-      }, 700);
+      Router.go('/clients/delivery');
     });
 
     deliveryBackBtn.addEventListener('click', function() {
-      deliveryRoom.classList.remove('visible');
-
-      // Wait for delivery room fade-out, then transition background and UI
-      setTimeout(function() {
-        loginScreen.classList.remove('delivery-entering');
-
-        setTimeout(function() {
-          roomSelection.classList.remove('buttons-faded');
-          staggerRoomEntrance();
-        }, 200);
-      }, 800);
+      // Always push /clients/rooms — calling history.back() is unsafe when
+      // /clients/delivery was entered via direct link/reload (no prior
+      // /clients/rooms entry in the session history).
+      Router.go('/clients/rooms');
     });
 
     // Download: open URL in new tab (external delivery links) or trigger download
@@ -3421,11 +3716,27 @@
       }
     });
 
-    // Native browser file upload
+    // Client-to-studio upload. Today this just opens our shared MASV Portal in a new tab
+    // (placeholder until webhook API access is granted, at which point we'll switch to an
+    // embedded modal that round-trips uploads back into the deliveries list).
+    var NIPC_CONFIG = { masvPortalUrl: 'https://nipcsteamportal9780196849.portal.massive.io/' };
+    fetch('/api/config').then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(c) { if (c && c.masvPortalUrl) NIPC_CONFIG.masvPortalUrl = c.masvPortalUrl; })
+      .catch(function() {});
+
     var uploadBtn = document.getElementById('delivery-upload');
-    var uploadInput = document.getElementById('delivery-upload-input');
     uploadBtn.addEventListener('click', function() {
-      uploadInput.click();
+      if (!currentProject || !currentProject.id) {
+        console.warn('Upload click ignored: no current project');
+        return;
+      }
+      // Append project_id so the MASV Portal's custom form pre-fills it (and so we have
+      // a paper trail in the URL even if pre-fill syntax differs from MASV's expectation).
+      // The form field is also marked required, so worst case the client enters it manually.
+      var base = NIPC_CONFIG.masvPortalUrl;
+      var sep = base.indexOf('?') === -1 ? '?' : '&';
+      var url = base + sep + 'project_id=' + encodeURIComponent(currentProject.id);
+      window.open(url, '_blank', 'noopener');
     });
 
     // ── Daily.co Call Object ──
@@ -3815,45 +4126,24 @@
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
 
-      // If in session (waiting or active), return to room selection
+      // In session: leave the Daily call, then route back to rooms.
       if (loginScreen.classList.contains('session-entering')) {
         sessionWaiting.classList.remove('visible');
         sessionVideo.classList.remove('visible', 'fit-aspect', 'mouse-active', 'daily-live');
         leaveDailySession();
-
-        setTimeout(function() {
-          loginScreen.classList.remove('session-entering');
-          backLink.classList.remove('dark');
-          setTimeout(function() {
-            roomSelection.classList.remove('buttons-faded');
-            staggerRoomEntrance();
-          }, 300);
-        }, 700);
+        Router.go('/clients/rooms');
         return;
       }
 
-      // If in delivery room, return to room selection
+      // In delivery: route back to rooms (uses goToRooms exit animation).
       if (loginScreen.classList.contains('delivery-entering')) {
-        deliveryRoom.classList.remove('visible');
-        setTimeout(function() {
-          loginScreen.classList.remove('delivery-entering');
-          setTimeout(function() {
-            roomSelection.classList.remove('buttons-faded');
-            staggerRoomEntrance();
-          }, 200);
-        }, 800);
+        Router.go('/clients/rooms');
         return;
       }
 
-	      // Default: return to landing page
-	      if (roomSelection.classList.contains('visible')) {
-	        hideRoomElements();
-	        roomSelection.classList.remove('visible');
-	        resetLoginStates();
-	      }
-	      landingPage.classList.remove('slid');
-	      fadeScrubberAudio('in', 0.7);
-	    });
+      // Default: return to landing page.
+      Router.go('/');
+    });
 
     // Session back button
     var sessionBackBtn = document.querySelector('.session-back');
@@ -3863,16 +4153,7 @@
       sessionWaiting.classList.remove('visible');
 
       await leaveDailySession();
-
-      setTimeout(function() {
-        loginScreen.classList.remove('session-entering');
-        backLink.classList.remove('dark');
-
-        setTimeout(function() {
-          roomSelection.classList.remove('buttons-faded');
-          staggerRoomEntrance();
-        }, 200);
-      }, 800);
+      Router.go('/clients/rooms');
     });
 
     // Aspect ratio toggle
