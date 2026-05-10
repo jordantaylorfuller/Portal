@@ -50,6 +50,27 @@
     }
     .topbar-link:hover { color: #fff; }
 
+    .admin-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: #0d0d0d;
+    }
+    .admin-tab {
+      padding: 14px 22px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 150ms, border-color 150ms;
+    }
+    .admin-tab:hover { color: rgba(255,255,255,0.75); }
+    .admin-tab.active { color: #fff; border-bottom-color: rgb(220, 40, 40); }
+
     .container { max-width: 980px; margin: 0 auto; padding: 48px 32px 80px; }
 
     .page-title {
@@ -381,12 +402,17 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-mark"><span class="dot"></span>NIPC // Reels Admin</div>
+    <div class="topbar-mark"><span class="dot"></span>NIPC // Admin</div>
     <div class="topbar-actions">
       <button class="topbar-link" id="back-link" style="display:none">&larr; Back to list</button>
       <button class="topbar-link" id="signout">Sign out</button>
     </div>
   </header>
+
+  <nav class="admin-tabs">
+    <a href="/admin-frameio.html" class="admin-tab">Frame.io</a>
+    <a href="/admin-reels.html" class="admin-tab active">Reels</a>
+  </nav>
 
   <main class="container" id="main"></main>
   <div class="toast" id="toast"></div>
