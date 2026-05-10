@@ -1,24 +1,11 @@
-const { getAuthUser } = require('../../../lib/auth');
+const { requireProjectAccess } = require('../../../lib/auth');
 const { adminClient } = require('../../../lib/supabase');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const auth = await getAuthUser(req);
-  if (!auth) return res.status(401).json({ error: 'Unauthorized' });
-
   const { projectId } = req.query;
-
-  const { data: membership } = await adminClient
-    .from('project_members')
-    .select('role')
-    .eq('project_id', projectId)
-    .eq('user_id', auth.id)
-    .single();
-
-  if (!membership) {
-    return res.status(403).json({ error: 'No access to this project' });
-  }
+  if (!(await requireProjectAccess(req, res, projectId))) return;
 
   const { data: assets, error } = await adminClient
     .from('delivery_assets')
