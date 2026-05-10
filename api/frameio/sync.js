@@ -117,51 +117,60 @@ async function upsertReviewAsset({ portalProjectId, accountId, frameioProjectId,
     .eq('frameio_asset_id', fileId)
     .maybeSingle();
 
-  // Ensure share exists; reuse cached one if present.
-  let shareId = existing && existing.frameio_share_id;
-  let reviewUrl = existing && existing.frameio_review_url;
-  if (!shareId || !reviewUrl) {
-    try {
-      const share = await fio.createShare(accountId, frameioProjectId, {
-        name: title, type: 'review'
-      });
-      if (share && share.id) {
-        shareId = share.id;
-        await fio.addAssetToShare(accountId, share.id, [fileId]);
-        // Re-fetch to get short_url (may not be on the create response).
-        const fresh = await fio.getShare(accountId, share.id);
-        reviewUrl = (fresh && fresh.short_url) || share.short_url || null;
-      }
-    } catch (err) {
-      console.error('createShare failed for', fileId, err.message);
-    }
-  }
-
-  const row = {
+  // Step 1: ensure the review_assets row exists. Do this BEFORE creating a
+  // Frame.io Share so an insert failure can't leave orphan Shares behind.
+  const baseRow = {
     project_id: portalProjectId,
     title,
     version,
     status,
     frameio_asset_id: fileId,
-    frameio_share_id: shareId || null,
-    frameio_review_url: reviewUrl || null,
     frameio_thumb_url: thumbUrl || null,
     frameio_status_raw: statusRaw || null,
     frameio_synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 
+  let rowId;
+  let result;
   if (existing) {
     const { error } = await adminClient
-      .from('review_assets').update(row).eq('id', existing.id);
+      .from('review_assets').update(baseRow).eq('id', existing.id);
     if (error) throw new Error(error.message);
-    return { updated: true };
+    rowId = existing.id;
+    result = { updated: true };
   } else {
-    const { error } = await adminClient
-      .from('review_assets').insert(row);
+    const { data: inserted, error } = await adminClient
+      .from('review_assets').insert(baseRow).select('id').single();
     if (error) throw new Error(error.message);
-    return { created: true };
+    rowId = inserted.id;
+    result = { created: true };
   }
+
+  // Step 2: ensure a Share exists for this row. Best-effort — if it fails,
+  // the row is still tracked and the next sync will retry.
+  const needsShare = !(existing && existing.frameio_share_id && existing.frameio_review_url);
+  if (needsShare) {
+    try {
+      const share = await fio.createShare(accountId, frameioProjectId, {
+        name: title, type: 'review'
+      });
+      if (share && share.id) {
+        await fio.addAssetToShare(accountId, share.id, [fileId]);
+        const fresh = await fio.getShare(accountId, share.id);
+        const reviewUrl = (fresh && fresh.short_url) || share.short_url || null;
+        await adminClient.from('review_assets').update({
+          frameio_share_id: share.id,
+          frameio_review_url: reviewUrl,
+          updated_at: new Date().toISOString()
+        }).eq('id', rowId);
+      }
+    } catch (err) {
+      console.error('createShare failed for', fileId, err.message);
+    }
+  }
+
+  return result;
 }
 
 function parseVersion(file) {
