@@ -13,29 +13,13 @@ module.exports = async function handler(req, res) {
     .eq('id', auth.id)
     .single();
 
-  let { data: memberships } = await adminClient
+  const { data: memberships } = await adminClient
     .from('project_members')
     .select('project_id, role, projects(id, name, status)')
     .eq('user_id', auth.id);
 
-  // Auto-assign Portal project to any authenticated user who lacks it
-  const PORTAL_PROJECT_ID = 'd3e1d805-ec33-4a8b-bdc4-106d8aba6be0';
-  const hasPortal = (memberships || []).some(m => m.project_id === PORTAL_PROJECT_ID);
-  if (!hasPortal) {
-    await adminClient.from('project_members').upsert({
-      user_id: auth.id,
-      project_id: PORTAL_PROJECT_ID,
-      role: 'viewer'
-    }, { onConflict: 'user_id,project_id' });
-    // Re-fetch memberships with the new row
-    ({ data: memberships } = await adminClient
-      .from('project_members')
-      .select('project_id, role, projects(id, name, status)')
-      .eq('user_id', auth.id));
-  }
-
   const projects = (memberships || [])
-    .filter(m => m.projects)
+    .filter(m => m.projects && m.projects.status !== 'archived')
     .map(m => ({
       id: m.projects.id,
       name: m.projects.name,

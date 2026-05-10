@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta charset="utf-8"/>
+  <title>NIPC | Frame.io Admin</title>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      background: #0d0d0d; color: #fff;
+      font-family: 'DM Mono', monospace;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    select { font: inherit; color: inherit; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 8px 10px; }
+
+    .topbar {
+      padding: 22px 32px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .topbar-mark { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+    .topbar-mark .dot { display: inline-block; width:6px; height:6px; border-radius:50%; background: rgb(220,40,40); margin-right:10px; vertical-align:middle; }
+    .topbar-actions { display: flex; gap: 16px; align-items: center; }
+    .topbar-link { background: none; border: none; padding: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 150ms; }
+    .topbar-link:hover { color: #fff; }
+
+    .admin-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: #0d0d0d;
+    }
+    .admin-tab {
+      padding: 14px 22px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 150ms, border-color 150ms;
+    }
+    .admin-tab:hover { color: rgba(255,255,255,0.75); }
+    .admin-tab.active { color: #fff; border-bottom-color: rgb(220, 40, 40); }
+
+    .signout-bottom {
+      position: fixed;
+      bottom: 22px;
+      right: 32px;
+      background: none;
+      border: none;
+      padding: 8px 12px;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
+      transition: color 150ms;
+      cursor: pointer;
+    }
+    .signout-bottom:hover { color: #fff; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 48px 32px 80px; }
+    .page-title { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+    .page-sub { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 36px; }
+
+    .card { background: #131313; border: 1px solid rgba(255,255,255,0.06); padding: 24px 26px; margin-bottom: 18px; }
+    .card h2 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+    .card .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .card .row label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    .card .meta { font-size: 12px; color: rgba(255,255,255,0.7); }
+    .card .meta strong { color: #fff; }
+
+    .btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff;
+      padding: 9px 16px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      transition: background 150ms, border-color 150ms;
+    }
+    .btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+    .btn-primary { background: rgb(220,40,40); border-color: rgb(220,40,40); }
+    .btn-primary:hover { background: rgb(200,30,30); }
+
+    .pill {
+      display: inline-block; padding: 3px 10px; font-size: 9px; letter-spacing: 0.16em;
+      text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); border-radius: 999px;
+    }
+    .pill.ok { color: rgb(120,220,120); border-color: rgba(120,220,120,0.4); }
+    .pill.warn { color: rgb(255,200,80); border-color: rgba(255,200,80,0.4); }
+    .pill.err { color: rgb(255,100,100); border-color: rgba(255,100,100,0.4); }
+
+    .alert { padding: 12px 16px; margin-bottom: 18px; font-size: 12px; border: 1px solid; }
+    .alert.ok  { color: rgb(120,220,120); border-color: rgba(120,220,120,0.4); background: rgba(120,220,120,0.05); }
+    .alert.err { color: rgb(255,100,100); border-color: rgba(255,100,100,0.4); background: rgba(255,100,100,0.05); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 14px; text-align: left; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    th { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+    td.muted { color: rgba(255,255,255,0.4); }
+
+    .empty { color: rgba(255,255,255,0.4); text-align: center; padding: 36px 0; font-size: 12px; }
+    .login { max-width: 380px; margin: 80px auto; text-align: center; }
+    .login input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #fff; font: inherit; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-mark"><span class="dot"></span>NIPC | Admin</div>
+    <div class="topbar-actions">
+      <a href="/" class="topbar-link">Clients</a>
+    </div>
+  </div>
+  <button class="signout-bottom" id="signOutBtn" style="display:none">Sign Out</button>
+
+  <nav class="admin-tabs">
+    <a href="/admin-frameio.html" class="admin-tab active">Frame.io</a>
+    <a href="/admin-reels.html" class="admin-tab">Reels</a>
+  </nav>
+
+  <div class="container" id="root">
+    <div class="page-title">Frame.io</div>
+    <div class="page-sub">Source of truth for projects</div>
+    <div id="loading" class="empty">Loading…</div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let session = null;
+    let state = {
+      connected: false,
+      account: null,
+      workspaces: [],
+      projects: [],
+      portalProjects: []
+    };
+
+    async function api(path, opts = {}) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) throw new Error('Not signed in');
+      const headers = Object.assign({ Authorization: 'Bearer ' + session.access_token }, opts.headers || {});
+      if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+      const res = await fetch(path, { method: opts.method || 'GET', headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || ('HTTP ' + res.status));
+      return json;
+    }
+
+    async function ensureAdmin() {
+      const { data: { session: s } } = await sb.auth.getSession();
+      if (!s) {
+        renderLogin();
+        return false;
+      }
+      session = s;
+      const { data: profile } = await sb.from('user_profiles').select('role').eq('id', s.user.id).maybeSingle();
+      if (!profile || profile.role !== 'admin') {
+        document.getElementById('root').innerHTML = '<div class="alert err">Admin only. Signed in as ' + s.user.email + '.</div>';
+        document.getElementById('signOutBtn').style.display = '';
+        return false;
+      }
+      document.getElementById('signOutBtn').style.display = '';
+      return true;
+    }
+
+    function renderLogin() {
+      document.getElementById('root').innerHTML = `
+        <div class="login">
+          <div class="page-title">Sign in</div>
+          <div class="page-sub">Admin access required</div>
+          <form id="loginForm">
+            <input id="email" type="email" placeholder="Email" required/>
+            <button class="btn btn-primary" type="submit" style="width:100%">Send Magic Link</button>
+          </form>
+          <div id="loginMsg" class="alert" style="display:none; margin-top:18px;"></div>
+        </div>
+      `;
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const msg = document.getElementById('loginMsg');
+        msg.style.display = 'none';
+        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+        msg.style.display = '';
+        if (error) { msg.className = 'alert err'; msg.textContent = error.message; }
+        else       { msg.className = 'alert ok';  msg.textContent = 'Check your email for a sign-in link.'; }
+      });
+    }
+
+    async function loadConnection() {
+      try {
+        const me = await api('/api/frameio/admin/me');
+        state.connected = !!me.connected;
+        state.account = me;
+      } catch (err) {
+        state.connected = false;
+        state.account = { error: err.message };
+      }
+    }
+
+    async function loadMappings() {
+      const r = await api('/api/frameio/admin/mappings');
+      state.portalProjects = r.projects || [];
+    }
+
+    async function startOAuth() {
+      const r = await api('/api/frameio/auth/start');
+      window.location.href = r.authorize_url;
+    }
+
+    async function runProjectsSync() {
+      return api('/api/frameio/sync-projects', { method: 'POST' });
+    }
+
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function renderConnectionCard() {
+      if (state.connected) {
+        return `
+          <div class="card">
+            <h2>Connection</h2>
+            <div class="row">
+              <span class="pill ok">Connected</span>
+              <span class="meta">Signed in as <strong>${escapeHtml(state.account.email)}</strong></span>
+              <span class="meta" style="opacity:0.5">Account ${escapeHtml(state.account.account_id || '')}</span>
+              <button class="btn" id="reconnectBtn" style="margin-left:auto">Re-authorize</button>
+            </div>
+          </div>
+        `;
+      }
+      const errMsg = state.account && state.account.error ? state.account.error : 'Not connected';
+      return `
+        <div class="card">
+          <h2>Connection</h2>
+          <div class="row">
+            <span class="pill warn">${escapeHtml(errMsg)}</span>
+            <button class="btn btn-primary" id="connectBtn" style="margin-left:auto">Connect Frame.io</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProjectsList() {
+      if (!state.connected) return '';
+      const projects = state.portalProjects || [];
+
+      const headerActions = `
+        <div class="row" style="margin-bottom: 14px; gap:8px; align-items:center;">
+          <span class="meta" style="opacity:0.6">${projects.length} project${projects.length === 1 ? '' : 's'}</span>
+          <button class="btn btn-primary" id="syncProjectsBtn" style="margin-left:auto">Sync projects from Frame.io</button>
+        </div>
+      `;
+
+      if (projects.length === 0) {
+        return `
+          <div class="card">
+            <h2>Projects</h2>
+            ${headerActions}
+            <div class="empty">No projects yet — click "Sync projects from Frame.io" to import.</div>
+          </div>
+        `;
+      }
+
+      const rows = projects.map(p => {
+        const linked = !!p.frameio_project_id;
+        const archived = p.status === 'archived';
+        const visible = !!p.is_visible_to_clients;
+        const statusPill = archived
+          ? `<span class="pill" style="color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.15)">Archived</span>`
+          : (linked ? `<span class="pill ok">Active</span>` : `<span class="pill warn">Unlinked</span>`);
+        const visPill = visible
+          ? `<span class="pill ok" style="margin-left:6px">Public</span>`
+          : `<span class="pill" style="margin-left:6px;color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.15)">Internal</span>`;
+        const syncBtn = (linked && !archived)
+          ? `<button class="btn" data-sync="${escapeHtml(p.id)}" style="padding:4px 10px;font-size:10px">Sync now</button>`
+          : '';
+        return `
+          <tr data-portal-project-id="${escapeHtml(p.id)}">
+            <td>
+              <strong>${escapeHtml(p.name || '—')}</strong>
+              ${ p.frameio_project_name && p.frameio_project_name !== p.name
+                ? `<div class="muted" style="font-size:10px;margin-top:2px">${escapeHtml(p.frameio_project_name)}</div>`
+                : ''
+              }
+            </td>
+            <td>${statusPill}${visPill}</td>
+            <td><div class="muted" style="font-size:10px">${escapeHtml(p.frameio_project_id || '—')}</div></td>
+            <td>${syncBtn}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="card">
+          <h2>Projects</h2>
+          ${headerActions}
+          <table>
+            <thead>
+              <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function bindRowHandlers() {
+      const syncProjectsBtn = document.getElementById('syncProjectsBtn');
+      if (syncProjectsBtn) {
+        syncProjectsBtn.addEventListener('click', async () => {
+          const orig = syncProjectsBtn.textContent;
+          syncProjectsBtn.disabled = true;
+          syncProjectsBtn.textContent = 'Syncing…';
+          try {
+            const r = await runProjectsSync();
+            syncProjectsBtn.textContent = `${r.created || 0} new, ${r.updated || 0} updated`;
+            await loadMappings();
+            setTimeout(() => { syncProjectsBtn.textContent = orig; syncProjectsBtn.disabled = false; render(); }, 1500);
+          } catch (err) {
+            syncProjectsBtn.textContent = 'Failed';
+            alert('Project sync failed: ' + err.message);
+            setTimeout(() => { syncProjectsBtn.textContent = orig; syncProjectsBtn.disabled = false; }, 3000);
+          }
+        });
+      }
+
+      document.querySelectorAll('[data-sync]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-sync');
+          const orig = btn.textContent;
+          btn.disabled = true; btn.textContent = 'Syncing…';
+          try {
+            const r = await api('/api/frameio/sync?project=' + encodeURIComponent(id), { method: 'POST' });
+            btn.textContent = `Synced ${r.synced || 0} (+${r.created || 0} new)`;
+            setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
+          } catch (err) {
+            btn.textContent = 'Failed';
+            alert('Sync failed: ' + err.message);
+            setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+          }
+        });
+      });
+    }
+
+    function readUrlFlash() {
+      const p = new URLSearchParams(window.location.search);
+      const success = p.get('success');
+      const error = p.get('error');
+      const email = p.get('email');
+      if (!success && !error) return '';
+      // Clean URL.
+      window.history.replaceState({}, '', window.location.pathname);
+      if (error) return `<div class="alert err">Frame.io connection failed: ${escapeHtml(error)}</div>`;
+      return `<div class="alert ok">Connected to Frame.io${email ? ' as ' + escapeHtml(email) : ''}.</div>`;
+    }
+
+    function render() {
+      const flash = readUrlFlash();
+      document.getElementById('root').innerHTML = `
+        <div class="page-title">Frame.io</div>
+        <div class="page-sub">Source of truth for projects</div>
+        ${flash}
+        ${renderConnectionCard()}
+        ${renderProjectsList()}
+      `;
+      const c = document.getElementById('connectBtn');
+      const r = document.getElementById('reconnectBtn');
+      if (c) c.addEventListener('click', startOAuth);
+      if (r) r.addEventListener('click', startOAuth);
+      bindRowHandlers();
+    }
+
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.reload();
+    });
+
+    (async function main() {
+      if (!(await ensureAdmin())) return;
+      await loadConnection();
+      if (state.connected) {
+        await loadMappings();
+      }
+      render();
+    })().catch(err => {
+      document.getElementById('root').innerHTML = '<div class="alert err">' + escapeHtml(err.message) + '</div>';
+    });
+  </script>
+</body>
+</html>

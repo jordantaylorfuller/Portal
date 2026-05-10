@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     const { data: assets, error } = await adminClient
       .from('review_assets')
-      .select('id, title, version, status, video_url, thumb_time, created_at, updated_at')
+      .select('id, title, version, status, video_url, thumb_time, notes_count, frameio_asset_id, frameio_review_url, frameio_thumb_url, created_at, updated_at')
       .eq('project_id', projectId)
       .order('created_at', { ascending: false });
 
@@ -51,7 +51,10 @@ module.exports = async function handler(req, res) {
         status: a.status,
         video_url: a.video_url,
         thumb_time: a.thumb_time,
-        notes: commentCounts[a.id] || 0,
+        notes: a.notes_count != null ? a.notes_count : (commentCounts[a.id] || 0),
+        frameio_asset_id: a.frameio_asset_id || null,
+        frameio_review_url: a.frameio_review_url || null,
+        frameio_thumb_url: a.frameio_thumb_url || null,
         date: new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         created_at: a.created_at
       };
@@ -66,6 +69,21 @@ module.exports = async function handler(req, res) {
     var validStatuses = ['needs_review', 'in_review', 'approved', 'archived'];
     if (!assetId || !validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid assetId or status' });
+    }
+
+    // Frame.io-linked rows are read-only mirrors. Status changes must
+    // happen in Frame.io; the next webhook/sync will reflect them here.
+    const { data: assetRow } = await adminClient
+      .from('review_assets')
+      .select('frameio_asset_id')
+      .eq('id', assetId)
+      .eq('project_id', projectId)
+      .maybeSingle();
+    if (assetRow && assetRow.frameio_asset_id) {
+      return res.status(409).json({
+        error: 'Status is managed in Frame.io',
+        frameio_managed: true
+      });
     }
 
     const { error } = await adminClient
