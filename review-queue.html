@@ -535,6 +535,7 @@
 
       var data = await res.json();
       assets = data.assets.map(function(a) {
+        var frameioUrl = a.frameio_review_url || null;
         return {
           id: a.id,
           title: a.title,
@@ -542,7 +543,10 @@
           version: a.version,
           notes: a.notes,
           status: a.status,
-          url: 'review-mux.html?asset=' + a.id + '&project=' + currentProjectId,
+          url: frameioUrl || ('review-mux.html?asset=' + a.id + '&project=' + currentProjectId),
+          frameioUrl: frameioUrl,
+          frameioAssetId: a.frameio_asset_id || null,
+          frameioThumbUrl: a.frameio_thumb_url || null,
           thumbTime: a.thumb_time || 0
         };
       });
@@ -616,11 +620,46 @@
 
       var dlSvg = '<svg viewBox="0 0 12 12" fill="none" stroke="rgb(40,36,36)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.5v7"/><path d="M3 6.5l3 3 3-3"/><path d="M2 10.5h8"/></svg>';
 
+      var thumbHtml = asset.frameioThumbUrl
+        ? '<img src="' + asset.frameioThumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
+        : '<video src="video.mp4#t=' + asset.thumbTime + '" muted preload="metadata"></video>';
+
+      var linkAttrs = asset.frameioUrl
+        ? ' target="_blank" rel="noopener" data-external="1"'
+        : '';
+
+      // Frame.io-linked rows: status is read-only mirror. Render as a
+      // non-interactive button with a tooltip; no dropdown.
+      var statusBlock;
+      if (asset.frameioAssetId) {
+        statusBlock =
+          '<div class="status-btn-wrap" data-frameio="1" title="Status is managed in Frame.io">' +
+            '<button class="status-btn" data-id="' + asset.id + '" disabled style="cursor:default;opacity:0.85">' +
+              '<span class="status-dot ' + asset.status + '"></span>' +
+              '<span>' + statusLabels[asset.status] + '</span>' +
+            '</button>' +
+          '</div>';
+      } else {
+        statusBlock =
+          '<div class="status-btn-wrap">' +
+            '<button class="status-btn" data-id="' + asset.id + '">' +
+              '<span class="status-dot ' + asset.status + '"></span>' +
+              '<span>' + statusLabels[asset.status] + '</span>' +
+            '</button>' +
+            '<div class="status-dropdown" data-id="' + asset.id + '">' +
+              allStatuses.map(function(s) {
+                return '<div class="status-option' + (s === asset.status ? ' current' : '') + '" data-status="' + s + '" data-id="' + asset.id + '">' +
+                  '<span class="status-dot ' + s + '"></span>' +
+                  '<span>' + statusLabels[s] + '</span>' +
+                '</div>';
+              }).join('') +
+            '</div>' +
+          '</div>';
+      }
+
       row.innerHTML =
-        '<a href="' + asset.url + '" class="asset-link">' +
-          '<div class="asset-thumb">' +
-            '<video src="video.mp4#t=' + asset.thumbTime + '" muted preload="metadata"></video>' +
-          '</div>' +
+        '<a href="' + asset.url + '" class="asset-link"' + linkAttrs + '>' +
+          '<div class="asset-thumb">' + thumbHtml + '</div>' +
           '<div class="asset-info">' +
             '<div class="asset-title">' + asset.title + '</div>' +
             '<div class="asset-meta">' +
@@ -632,20 +671,7 @@
             '</div>' +
           '</div>' +
         '</a>' +
-        '<div class="status-btn-wrap">' +
-          '<button class="status-btn" data-id="' + asset.id + '">' +
-            '<span class="status-dot ' + asset.status + '"></span>' +
-            '<span>' + statusLabels[asset.status] + '</span>' +
-          '</button>' +
-          '<div class="status-dropdown" data-id="' + asset.id + '">' +
-            allStatuses.map(function(s) {
-              return '<div class="status-option' + (s === asset.status ? ' current' : '') + '" data-status="' + s + '" data-id="' + asset.id + '">' +
-                '<span class="status-dot ' + s + '"></span>' +
-                '<span>' + statusLabels[s] + '</span>' +
-              '</div>';
-            }).join('') +
-          '</div>' +
-        '</div>' +
+        statusBlock +
         '<button class="download-btn" data-id="' + asset.id + '" title="Download">' + dlSvg + '</button>';
 
       return row;
@@ -1008,10 +1034,12 @@
       }, 500);
     });
 
-    // Asset links: fade out, then navigate to review player
+    // Asset links: fade out, then navigate to review player. External
+    // (Frame.io) links open in a new tab — let the browser handle them.
     document.addEventListener('click', function(e) {
       var link = e.target.closest('.asset-link');
       if (!link) return;
+      if (link.getAttribute('data-external') === '1') return; // new-tab nav
       e.preventDefault();
       var href = link.getAttribute('href');
       pageContent.classList.remove('visible');

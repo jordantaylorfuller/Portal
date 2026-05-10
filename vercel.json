@@ -35,6 +35,7 @@
     }
   ],
   "crons": [
-    { "path": "/api/reels/sync-all", "schedule": "* * * * *" }
+    { "path": "/api/reels/sync-all", "schedule": "* * * * *" },
+    { "path": "/api/frameio/sync-all", "schedule": "*/5 * * * *" }
   ]
 }
