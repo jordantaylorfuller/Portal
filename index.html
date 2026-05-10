@@ -3352,6 +3352,26 @@
       }
     });
 
+    // Persistent invite URL (?invite=<email>) — non-expiring entry point.
+    // Triggers a fresh magic-link send so the invitee can sign in on first
+    // click, on the second click, or any time after that.
+    (function handleInviteParam() {
+      var urlParams = new URLSearchParams(window.location.search);
+      var inviteEmail = urlParams.get('invite');
+      if (!inviteEmail || !inviteEmail.includes('@')) return;
+      // Strip the params so a page refresh doesn't trigger another email.
+      var clean = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', clean);
+      apiCall('/api/auth/magic-link', {
+        method: 'POST',
+        body: JSON.stringify({ email: inviteEmail })
+      }).catch(function (err) {
+        console.error('Invite magic-link send failed:', err);
+      }).finally(function () {
+        Router.go('/clients/check-email');
+      });
+    })();
+
     // ── Auth State & Session Check ──
     async function loadAuthenticatedState() {
       try {
@@ -3413,12 +3433,19 @@
 
     function renderProjectSwitcher(active, archived, role) {
       var dropdown = document.getElementById('project-dropdown');
+      // Admin-set display names flow through here unescaped if interpolated raw,
+      // so all project-supplied values must be HTML-escaped before reaching innerHTML.
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+          return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+        });
+      }
       var html = '';
       if (active.length) {
         html += '<div class="project-dropdown-section"><div class="project-dropdown-label">Active</div>';
         active.forEach(function(p, i) {
-          html += '<button class="project-dropdown-item' + (i === 0 ? ' active' : '') + '" data-project="' + p.name + '" data-status="active" data-id="' + p.id + '">';
-          html += '<span class="project-dropdown-dot active"></span>' + p.name + '</button>';
+          html += '<button class="project-dropdown-item' + (i === 0 ? ' active' : '') + '" data-project="' + esc(p.name) + '" data-status="active" data-id="' + esc(p.id) + '">';
+          html += '<span class="project-dropdown-dot active"></span>' + esc(p.name) + '</button>';
         });
         html += '</div>';
       }
@@ -3426,8 +3453,8 @@
         html += '<div class="project-dropdown-divider"></div>';
         html += '<div class="project-dropdown-section"><div class="project-dropdown-label">Archive</div>';
         archived.forEach(function(p) {
-          html += '<button class="project-dropdown-item" data-project="' + p.name + '" data-status="archived" data-id="' + p.id + '">';
-          html += '<span class="project-dropdown-dot archived"></span>' + p.name + '</button>';
+          html += '<button class="project-dropdown-item" data-project="' + esc(p.name) + '" data-status="archived" data-id="' + esc(p.id) + '">';
+          html += '<span class="project-dropdown-dot archived"></span>' + esc(p.name) + '</button>';
         });
         html += '</div>';
       }

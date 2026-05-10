@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     const { data, error } = await adminClient
       .from('projects')
-      .select('id, name, frameio_project_name, status, is_visible_to_clients, frameio_account_id, frameio_workspace_id, frameio_project_id, frameio_root_folder_id, frameio_archived_at')
+      .select('id, name, display_name, members_count, frameio_project_name, status, is_visible_to_clients, frameio_account_id, frameio_workspace_id, frameio_project_id, frameio_root_folder_id, frameio_archived_at')
       .order('frameio_project_name', { ascending: false, nullsFirst: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ projects: data || [] });
