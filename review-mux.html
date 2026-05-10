@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mux/mux-player@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    @view-transition { navigation: auto; }
     * {
       margin: 0;
       padding: 0;
@@ -1185,7 +1186,7 @@
       );
       var result = await sb.auth.getSession();
       if (!result.data.session) {
-        window.location.href = 'index.html';
+        window.location.href = '/clients';
         return;
       }
       authToken = result.data.session.access_token;
