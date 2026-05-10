@@ -8,6 +8,7 @@
 
 const { adminClient } = require('../../lib/supabase');
 const { syncOne } = require('./sync');
+const { discoverAndUpsertProjects } = require('./sync-projects');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -21,10 +22,21 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // Step 1: discover/refresh projects from Frame.io.
+  let discovery = null;
+  try {
+    discovery = await discoverAndUpsertProjects();
+  } catch (err) {
+    console.error('sync-all discovery failed:', err.message);
+    discovery = { error: err.message };
+  }
+
+  // Step 2: per-project file sync for every active linked project.
   const { data: projects, error } = await adminClient
     .from('projects')
     .select('id, name')
-    .not('frameio_project_id', 'is', null);
+    .not('frameio_project_id', 'is', null)
+    .neq('status', 'archived');
   if (error) return res.status(500).json({ error: error.message });
 
   const report = [];
@@ -37,5 +49,10 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  return res.json({ ok: true, count: (projects || []).length, report });
+  return res.json({
+    ok: true,
+    discovery,
+    count: (projects || []).length,
+    report
+  });
 };
