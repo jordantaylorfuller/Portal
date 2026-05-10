@@ -108,6 +108,73 @@
     .empty { color: rgba(255,255,255,0.4); text-align: center; padding: 36px 0; font-size: 12px; }
     .login { max-width: 380px; margin: 80px auto; text-align: center; }
     .login input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #fff; font: inherit; margin-bottom: 12px; }
+
+    .btn-icon {
+      background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+      width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; transition: color 150ms, border-color 150ms, background 150ms;
+    }
+    .btn-icon:hover { color: #fff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+
+    .panel-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none; transition: opacity 180ms;
+      z-index: 50;
+    }
+    .panel-backdrop.open { opacity: 1; pointer-events: auto; }
+    .panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 480px; max-width: 100vw;
+      background: #131313; border-left: 1px solid rgba(255,255,255,0.08);
+      transform: translateX(100%); transition: transform 220ms cubic-bezier(.2,.7,.2,1);
+      z-index: 60; display: flex; flex-direction: column;
+    }
+    .panel.open { transform: translateX(0); }
+    .panel-header { padding: 22px 26px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: flex-start; gap: 12px; }
+    .panel-header .panel-title-group { flex: 1; min-width: 0; }
+    .panel-header h3 { font-size: 16px; font-weight: 500; margin: 0; overflow: hidden; text-overflow: ellipsis; }
+    .panel-header .panel-sub { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 4px; }
+    .panel-close { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 20px; padding: 4px 8px; cursor: pointer; transition: color 150ms; }
+    .panel-close:hover { color: #fff; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 22px 26px 26px; }
+    .panel-section { margin-bottom: 28px; }
+    .panel-section h4 { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 10px; }
+    .panel-section .help { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 6px; line-height: 1.5; }
+
+    .field-row { display: flex; gap: 8px; align-items: center; }
+    .field-input { flex: 1; padding: 9px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #fff; font: inherit; font-size: 12px; }
+    .field-input:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+
+    .segmented { display: inline-flex; border: 1px solid rgba(255,255,255,0.12); padding: 2px; }
+    .segmented button { background: transparent; border: none; padding: 7px 14px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); cursor: pointer; transition: background 150ms, color 150ms; }
+    .segmented button.active { background: rgba(255,255,255,0.1); color: #fff; }
+    .segmented button:hover:not(.active) { color: #fff; }
+
+    .toggle { position: relative; width: 38px; height: 22px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; cursor: pointer; transition: background 150ms, border-color 150ms; }
+    .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: rgba(255,255,255,0.9); border-radius: 50%; transition: transform 150ms; }
+    .toggle.on { background: rgb(220,40,40); border-color: rgb(220,40,40); }
+    .toggle.on::after { transform: translateX(16px); }
+
+    .member-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+    .member-row:last-child { border-bottom: 0; }
+    .member-row .member-email { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,0.85); }
+    .member-row .member-name { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .member-row .pill { font-size: 8px; padding: 2px 8px; }
+    .btn-remove { background: none; border: none; color: rgba(255,100,100,0.6); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; padding: 4px 6px; transition: color 150ms; }
+    .btn-remove:hover { color: rgb(255,100,100); }
+
+    .frameio-ref { font-size: 10px; color: rgba(255,255,255,0.4); line-height: 1.7; word-break: break-all; }
+    .frameio-ref strong { color: rgba(255,255,255,0.7); font-weight: 400; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1a1a1a; border: 1px solid rgba(255,255,255,0.12); color: #fff;
+      padding: 12px 20px; font-size: 12px; opacity: 0; pointer-events: none;
+      transition: opacity 200ms, transform 200ms; z-index: 100; max-width: 480px;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: rgba(255,100,100,0.4); color: rgb(255,180,180); }
+
+    .members-count { font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -129,6 +196,10 @@
     <div class="page-sub">Source of truth for projects</div>
     <div id="loading" class="empty">Loading…</div>
   </div>
+
+  <div class="panel-backdrop" id="panelBackdrop"></div>
+  <aside class="panel" id="settingsPanel" role="dialog" aria-modal="true" aria-hidden="true"></aside>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     const SUPABASE_URL = 'https://qnaqxnrbsvushgfwnjnd.supabase.co';
@@ -223,6 +294,8 @@
 
     function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+    const GEAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+
     function renderConnectionCard() {
       if (state.connected) {
         return `
@@ -274,6 +347,9 @@
         const linked = !!p.frameio_project_id;
         const archived = p.status === 'archived';
         const visible = !!p.is_visible_to_clients;
+        const label = p.display_name || p.name || '—';
+        const showOriginal = p.frameio_project_name && p.frameio_project_name !== label;
+        const memberCount = typeof p.members_count === 'number' ? p.members_count : 0;
         const statusPill = archived
           ? `<span class="pill" style="color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.15)">Archived</span>`
           : (linked ? `<span class="pill ok">Active</span>` : `<span class="pill warn">Unlinked</span>`);
@@ -286,8 +362,9 @@
         return `
           <tr data-portal-project-id="${escapeHtml(p.id)}">
             <td>
-              <strong>${escapeHtml(p.name || '—')}</strong>
-              ${ p.frameio_project_name && p.frameio_project_name !== p.name
+              <strong>${escapeHtml(label)}</strong>
+              <span class="members-count">${memberCount} member${memberCount === 1 ? '' : 's'}</span>
+              ${ showOriginal
                 ? `<div class="muted" style="font-size:10px;margin-top:2px">${escapeHtml(p.frameio_project_name)}</div>`
                 : ''
               }
@@ -295,6 +372,9 @@
             <td>${statusPill}${visPill}</td>
             <td><div class="muted" style="font-size:10px">${escapeHtml(p.frameio_project_id || '—')}</div></td>
             <td>${syncBtn}</td>
+            <td style="text-align:right">
+              <button class="btn-icon" data-settings="${escapeHtml(p.id)}" title="Project settings" aria-label="Settings">${GEAR_SVG}</button>
+            </td>
           </tr>
         `;
       }).join('');
@@ -305,7 +385,7 @@
           ${headerActions}
           <table>
             <thead>
-              <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th></tr>
+              <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th><th></th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
@@ -349,7 +429,259 @@
           }
         });
       });
+
+      document.querySelectorAll('[data-settings]').forEach(btn => {
+        btn.addEventListener('click', () => openSettingsPanel(btn.getAttribute('data-settings')));
+      });
     }
+
+    // ----- Settings panel ----------------------------------------------------
+    let panelState = { projectId: null, project: null, members: [] };
+
+    let toastTimer = null;
+    function toast(message, type) {
+      const el = document.getElementById('toast');
+      el.textContent = message;
+      el.className = 'toast show' + (type === 'err' ? ' err' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = 'toast'; }, 3200);
+    }
+
+    async function openSettingsPanel(projectId) {
+      const backdrop = document.getElementById('panelBackdrop');
+      const panel = document.getElementById('settingsPanel');
+      panel.innerHTML = '<div class="panel-body"><div class="empty">Loading…</div></div>';
+      panel.classList.add('open');
+      panel.setAttribute('aria-hidden', 'false');
+      backdrop.classList.add('open');
+      panelState = { projectId, project: null, members: [] };
+
+      try {
+        const [projectResp, membersResp] = await Promise.all([
+          api('/api/projects/' + encodeURIComponent(projectId)),
+          api('/api/projects/' + encodeURIComponent(projectId) + '/members')
+        ]);
+        panelState.project = projectResp.project;
+        panelState.members = membersResp.members || [];
+        renderSettingsPanel();
+      } catch (err) {
+        panel.innerHTML = `<div class="panel-body"><div class="alert err">${escapeHtml(err.message)}</div></div>`;
+      }
+    }
+
+    function closeSettingsPanel() {
+      document.getElementById('settingsPanel').classList.remove('open');
+      document.getElementById('settingsPanel').setAttribute('aria-hidden', 'true');
+      document.getElementById('panelBackdrop').classList.remove('open');
+    }
+
+    function renderSettingsPanel() {
+      const p = panelState.project;
+      if (!p) return;
+      const label = p.display_name || p.name || '—';
+      const original = p.frameio_project_name && p.frameio_project_name !== label ? p.frameio_project_name : '';
+
+      const membersHtml = panelState.members.length === 0
+        ? `<div class="empty" style="padding:14px 0">No members yet.</div>`
+        : panelState.members.map(m => `
+            <div class="member-row">
+              <div style="flex:1;min-width:0">
+                <div class="member-email">${escapeHtml(m.email || m.user_id)}</div>
+                ${m.display_name ? `<div class="member-name">${escapeHtml(m.display_name)}</div>` : ''}
+              </div>
+              <span class="pill">${escapeHtml(m.role || 'viewer')}</span>
+              <button class="btn-remove" data-remove-member="${escapeHtml(m.user_id)}">Remove</button>
+            </div>
+          `).join('');
+
+      const visOn = !!p.is_visible_to_clients;
+      const isActive = (p.status || 'active') !== 'archived';
+
+      document.getElementById('settingsPanel').innerHTML = `
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h3>${escapeHtml(label)}</h3>
+            ${original ? `<div class="panel-sub">${escapeHtml(original)}</div>` : '<div class="panel-sub">Project settings</div>'}
+          </div>
+          <button class="panel-close" id="panelCloseBtn" aria-label="Close">×</button>
+        </div>
+        <div class="panel-body">
+
+          <div class="panel-section">
+            <h4>Display name</h4>
+            <div class="field-row">
+              <input id="dn-input" class="field-input" type="text" value="${escapeHtml(p.display_name || '')}" placeholder="${escapeHtml(p.name || '')}"/>
+              <button class="btn" id="dn-save">Save</button>
+            </div>
+            <div class="help">Shown in the portal instead of the Frame.io name. Leave blank to use “${escapeHtml(p.name || '')}”.</div>
+          </div>
+
+          <div class="panel-section">
+            <h4>Visibility</h4>
+            <div class="field-row">
+              <div class="toggle ${visOn ? 'on' : ''}" id="vis-toggle" role="switch" aria-checked="${visOn}" tabindex="0"></div>
+              <span class="meta" style="font-size:12px">${visOn ? 'Public — invited clients can see it' : 'Internal — hidden from clients'}</span>
+            </div>
+            <div class="help">Members still need to be invited below. Visibility is a separate gate.</div>
+          </div>
+
+          <div class="panel-section">
+            <h4>Status</h4>
+            <div class="segmented" id="status-seg" role="tablist">
+              <button data-status="active" class="${isActive ? 'active' : ''}">Active</button>
+              <button data-status="archived" class="${!isActive ? 'active' : ''}">Archived</button>
+            </div>
+            <div class="help">Archived projects disappear from every client's home and the sync cron skips them.</div>
+          </div>
+
+          <div class="panel-section">
+            <h4>Members <span class="members-count">${panelState.members.length}</span></h4>
+            <div id="members-list">${membersHtml}</div>
+            <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+              <input id="invite-email" class="field-input" type="email" placeholder="client@example.com" style="flex:1"/>
+              <select id="invite-role" class="field-input" style="flex:0 0 110px">
+                <option value="viewer">Viewer</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button class="btn btn-primary" id="invite-btn">Send invite</button>
+            </div>
+            <div class="help">Sends a branded invitation email with a persistent portal link. Clicking it issues a fresh sign-in link every time, so invitations never expire.</div>
+          </div>
+
+          <div class="panel-section">
+            <h4>Frame.io reference</h4>
+            <div class="frameio-ref">
+              <div><strong>Project ID:</strong> ${escapeHtml(p.frameio_project_id || '—')}</div>
+              <div><strong>Workspace:</strong> ${escapeHtml(p.frameio_workspace_id || '—')}</div>
+              <div><strong>Root folder:</strong> ${escapeHtml(p.frameio_root_folder_id || '—')}</div>
+              ${p.frameio_archived_at ? `<div><strong>Archived at:</strong> ${escapeHtml(p.frameio_archived_at)}</div>` : ''}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      bindPanelHandlers();
+    }
+
+    function bindPanelHandlers() {
+      document.getElementById('panelCloseBtn').addEventListener('click', closeSettingsPanel);
+
+      // Display name save
+      document.getElementById('dn-save').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const value = document.getElementById('dn-input').value.trim();
+        await patchProjectAndReflect({ display_name: value || null }, btn, 'Display name saved');
+      });
+
+      // Visibility toggle
+      const visToggle = document.getElementById('vis-toggle');
+      const flipVis = async () => {
+        const next = !panelState.project.is_visible_to_clients;
+        visToggle.classList.toggle('on', next);
+        await patchProjectAndReflect({ is_visible_to_clients: next }, null, next ? 'Project is now public' : 'Project hidden from clients');
+      };
+      visToggle.addEventListener('click', flipVis);
+      visToggle.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipVis(); } });
+
+      // Status segmented
+      document.querySelectorAll('#status-seg [data-status]').forEach(b => {
+        b.addEventListener('click', async () => {
+          const next = b.getAttribute('data-status');
+          if (next === (panelState.project.status || 'active')) return;
+          document.querySelectorAll('#status-seg [data-status]').forEach(x => x.classList.toggle('active', x === b));
+          await patchProjectAndReflect({ status: next }, null, next === 'archived' ? 'Project archived' : 'Project restored');
+        });
+      });
+
+      // Invite
+      document.getElementById('invite-btn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const emailInput = document.getElementById('invite-email');
+        const roleInput = document.getElementById('invite-role');
+        const email = emailInput.value.trim();
+        if (!email || !email.includes('@')) { toast('Enter a valid email', 'err'); return; }
+        const origText = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Sending…';
+        try {
+          const r = await api('/api/projects/' + encodeURIComponent(panelState.projectId) + '/members', {
+            method: 'POST',
+            body: { email, role: roleInput.value }
+          });
+          emailInput.value = '';
+          const msg = r.invited
+            ? `Invitation sent to ${email}`
+            : (r.email_sent ? `${email} added — sign-in link emailed` : `${email} added — already had an account`);
+          toast(msg);
+          // Refresh members + project (members_count) and re-render.
+          const [projectResp, membersResp] = await Promise.all([
+            api('/api/projects/' + encodeURIComponent(panelState.projectId)),
+            api('/api/projects/' + encodeURIComponent(panelState.projectId) + '/members')
+          ]);
+          panelState.project = projectResp.project;
+          panelState.members = membersResp.members || [];
+          renderSettingsPanel();
+          // Also refresh the list behind the panel so members_count is current.
+          loadMappings().then(render).catch(() => {});
+        } catch (err) {
+          toast(err.message, 'err');
+        } finally {
+          btn.disabled = false; btn.textContent = origText;
+        }
+      });
+
+      // Remove
+      document.querySelectorAll('[data-remove-member]').forEach(b => {
+        b.addEventListener('click', async () => {
+          const userId = b.getAttribute('data-remove-member');
+          const row = b.closest('.member-row');
+          const emailText = row && row.querySelector('.member-email') ? row.querySelector('.member-email').textContent : userId;
+          if (!confirm('Remove ' + emailText + ' from this project?')) return;
+          b.disabled = true; b.textContent = 'Removing…';
+          try {
+            await api('/api/projects/' + encodeURIComponent(panelState.projectId) + '/members?user=' + encodeURIComponent(userId), { method: 'DELETE' });
+            toast('Member removed');
+            panelState.members = panelState.members.filter(m => m.user_id !== userId);
+            // Refresh project for members_count.
+            const projectResp = await api('/api/projects/' + encodeURIComponent(panelState.projectId));
+            panelState.project = projectResp.project;
+            renderSettingsPanel();
+            loadMappings().then(render).catch(() => {});
+          } catch (err) {
+            toast(err.message, 'err');
+            b.disabled = false; b.textContent = 'Remove';
+          }
+        });
+      });
+    }
+
+    async function patchProjectAndReflect(patch, btn, successMsg) {
+      const origText = btn ? btn.textContent : null;
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+      try {
+        const r = await api('/api/projects/' + encodeURIComponent(panelState.projectId), {
+          method: 'PATCH',
+          body: patch
+        });
+        panelState.project = r.project;
+        toast(successMsg);
+        renderSettingsPanel();
+        // Refresh the project list behind the panel so the row reflects new state.
+        loadMappings().then(render).catch(() => {});
+      } catch (err) {
+        toast(err.message, 'err');
+        if (btn) { btn.disabled = false; btn.textContent = origText; }
+        // Revert any optimistic UI by re-rendering from server-truth state.
+        renderSettingsPanel();
+      }
+    }
+
+    document.getElementById('panelBackdrop').addEventListener('click', closeSettingsPanel);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('settingsPanel').classList.contains('open')) {
+        closeSettingsPanel();
+      }
+    });
 
     function readUrlFlash() {
       const p = new URLSearchParams(window.location.search);

@@ -1,4 +1,5 @@
 const { adminClient } = require('../../lib/supabase');
+const { resolveFrontendOrigin } = require('../../lib/origin');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -8,7 +9,7 @@ module.exports = async function handler(req, res) {
 
   console.log('Sending magic link to:', email);
 
-  const frontendOrigin = process.env.FRONTEND_ORIGIN || `https://${req.headers.host}`;
+  const frontendOrigin = resolveFrontendOrigin(req);
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'magiclink',
