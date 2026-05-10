@@ -79,11 +79,16 @@ CREATE POLICY "Service role full access sessions"
   ON sessions FOR ALL
   USING (auth.jwt() ->> 'role' = 'service_role');
 
--- Delivery assets (synced from Asana tasks with Delivery URL custom field)
+-- Delivery assets:
+--   direction='studio_to_client' rows are synced from Asana tasks with a Delivery URL custom field.
+--   direction='client_to_studio' rows are written by the MASV webhook on package.finalized.
 CREATE TABLE IF NOT EXISTS delivery_assets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   asana_task_gid TEXT UNIQUE,
+  masv_package_id TEXT UNIQUE,
+  uploader_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  direction TEXT NOT NULL DEFAULT 'studio_to_client',
   title TEXT NOT NULL,
   url TEXT NOT NULL,
   file_type TEXT,
