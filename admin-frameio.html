@@ -84,7 +84,7 @@
 
   <div class="container" id="root">
     <div class="page-title">Frame.io</div>
-    <div class="page-sub">Connect &amp; map projects</div>
+    <div class="page-sub">Source of truth for projects</div>
     <div id="loading" class="empty">Loading…</div>
   </div>
 
@@ -165,22 +165,6 @@
       }
     }
 
-    async function loadWorkspaces() {
-      if (!state.connected) return;
-      try {
-        const r = await api('/api/frameio/admin/workspaces');
-        state.workspaces = r.workspaces || [];
-      } catch (err) {
-        state.workspaces = [];
-        state.workspacesError = err.message;
-      }
-    }
-
-    async function loadProjectsFor(wsId) {
-      const r = await api('/api/frameio/admin/projects?workspace_id=' + encodeURIComponent(wsId));
-      return r.projects || [];
-    }
-
     async function loadMappings() {
       const r = await api('/api/frameio/admin/mappings');
       state.portalProjects = r.projects || [];
@@ -191,27 +175,8 @@
       window.location.href = r.authorize_url;
     }
 
-    async function saveMapping(portalProjectId, frameioWorkspaceId, frameioProject) {
-      await api('/api/frameio/admin/mappings', {
-        method: 'POST',
-        body: {
-          project_id: portalProjectId,
-          frameio_account_id: state.account.account_id,
-          frameio_workspace_id: frameioWorkspaceId,
-          frameio_project_id: frameioProject.id,
-          frameio_root_folder_id: frameioProject.root_folder_id || null
-        }
-      });
-    }
-
-    async function unmap(portalProjectId) {
-      if (!confirm('Unlink this Frame.io project mapping?')) return;
-      await api('/api/frameio/admin/mappings', {
-        method: 'DELETE',
-        body: { project_id: portalProjectId }
-      });
-      await loadMappings();
-      render();
+    async function runProjectsSync() {
+      return api('/api/frameio/sync-projects', { method: 'POST' });
     }
 
     function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -242,42 +207,63 @@
       `;
     }
 
-    function renderMappingsTable() {
+    function renderProjectsList() {
       if (!state.connected) return '';
-      if (!state.portalProjects || state.portalProjects.length === 0) {
-        return `<div class="card"><h2>Project mappings</h2><div class="empty">No portal projects yet.</div></div>`;
-      }
-      const wsOptions = state.workspaces.map(w => `<option value="${escapeHtml(w.id)}">${escapeHtml(w.name)}</option>`).join('');
-      const rows = state.portalProjects.map(pp => {
-        const linked = !!pp.frameio_project_id;
+      const projects = state.portalProjects || [];
+
+      const headerActions = `
+        <div class="row" style="margin-bottom: 14px; gap:8px; align-items:center;">
+          <span class="meta" style="opacity:0.6">${projects.length} project${projects.length === 1 ? '' : 's'}</span>
+          <button class="btn btn-primary" id="syncProjectsBtn" style="margin-left:auto">Sync projects from Frame.io</button>
+        </div>
+      `;
+
+      if (projects.length === 0) {
         return `
-          <tr data-portal-project-id="${escapeHtml(pp.id)}">
-            <td><strong>${escapeHtml(pp.name)}</strong><div class="muted" style="font-size:10px">${escapeHtml(pp.id)}</div></td>
+          <div class="card">
+            <h2>Projects</h2>
+            ${headerActions}
+            <div class="empty">No projects yet — click "Sync projects from Frame.io" to import.</div>
+          </div>
+        `;
+      }
+
+      const rows = projects.map(p => {
+        const linked = !!p.frameio_project_id;
+        const archived = p.status === 'archived';
+        const visible = !!p.is_visible_to_clients;
+        const statusPill = archived
+          ? `<span class="pill" style="color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.15)">Archived</span>`
+          : (linked ? `<span class="pill ok">Active</span>` : `<span class="pill warn">Unlinked</span>`);
+        const visPill = visible
+          ? `<span class="pill ok" style="margin-left:6px">Public</span>`
+          : `<span class="pill" style="margin-left:6px;color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.15)">Internal</span>`;
+        const syncBtn = (linked && !archived)
+          ? `<button class="btn" data-sync="${escapeHtml(p.id)}" style="padding:4px 10px;font-size:10px">Sync now</button>`
+          : '';
+        return `
+          <tr data-portal-project-id="${escapeHtml(p.id)}">
             <td>
-              <select class="ws-select" ${linked ? 'disabled' : ''}>
-                <option value="">— pick workspace —</option>
-                ${wsOptions}
-              </select>
-            </td>
-            <td><select class="proj-select" ${linked ? 'disabled' : ''} disabled><option>—</option></select></td>
-            <td>
-              ${ linked
-                ? `<span class="pill ok">Linked</span>
-                   <button class="btn" data-sync="${escapeHtml(pp.id)}" style="margin-left:8px;padding:4px 10px;font-size:10px">Sync now</button>
-                   <button class="btn-quiet" data-unmap="${escapeHtml(pp.id)}" style="margin-left:4px;background:none;border:none;color:rgba(255,255,255,0.4);font-size:10px;letter-spacing:0.14em;text-transform:uppercase">Unlink</button>
-                   <div class="muted" style="font-size:10px;margin-top:4px">${escapeHtml(pp.frameio_project_id)}</div>`
-                : `<button class="btn link-btn" disabled>Link</button>`
+              <strong>${escapeHtml(p.name || '—')}</strong>
+              ${ p.frameio_project_name && p.frameio_project_name !== p.name
+                ? `<div class="muted" style="font-size:10px;margin-top:2px">${escapeHtml(p.frameio_project_name)}</div>`
+                : ''
               }
             </td>
+            <td>${statusPill}${visPill}</td>
+            <td><div class="muted" style="font-size:10px">${escapeHtml(p.frameio_project_id || '—')}</div></td>
+            <td>${syncBtn}</td>
           </tr>
         `;
       }).join('');
+
       return `
         <div class="card">
-          <h2>Project mappings</h2>
+          <h2>Projects</h2>
+          ${headerActions}
           <table>
             <thead>
-              <tr><th>Portal project</th><th>Frame.io workspace</th><th>Frame.io project</th><th></th></tr>
+              <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
@@ -286,52 +272,24 @@
     }
 
     function bindRowHandlers() {
-      document.querySelectorAll('tr[data-portal-project-id]').forEach(tr => {
-        const portalId = tr.getAttribute('data-portal-project-id');
-        const wsSel = tr.querySelector('.ws-select');
-        const projSel = tr.querySelector('.proj-select');
-        const linkBtn = tr.querySelector('.link-btn');
-        if (!wsSel || !projSel) return;
-
-        wsSel.addEventListener('change', async () => {
-          const wsId = wsSel.value;
-          projSel.innerHTML = '<option>Loading…</option>';
-          projSel.disabled = true;
-          if (!wsId) { projSel.innerHTML = '<option>—</option>'; return; }
+      const syncProjectsBtn = document.getElementById('syncProjectsBtn');
+      if (syncProjectsBtn) {
+        syncProjectsBtn.addEventListener('click', async () => {
+          const orig = syncProjectsBtn.textContent;
+          syncProjectsBtn.disabled = true;
+          syncProjectsBtn.textContent = 'Syncing…';
           try {
-            const projects = await loadProjectsFor(wsId);
-            projSel.innerHTML = '<option value="">— pick project —</option>' +
-              projects.map(p => `<option value="${escapeHtml(p.id)}" data-root="${escapeHtml(p.root_folder_id || '')}">${escapeHtml(p.name)}</option>`).join('');
-            projSel.disabled = false;
+            const r = await runProjectsSync();
+            syncProjectsBtn.textContent = `${r.created || 0} new, ${r.updated || 0} updated`;
+            await loadMappings();
+            setTimeout(() => { syncProjectsBtn.textContent = orig; syncProjectsBtn.disabled = false; render(); }, 1500);
           } catch (err) {
-            projSel.innerHTML = '<option>Error: ' + escapeHtml(err.message) + '</option>';
+            syncProjectsBtn.textContent = 'Failed';
+            alert('Project sync failed: ' + err.message);
+            setTimeout(() => { syncProjectsBtn.textContent = orig; syncProjectsBtn.disabled = false; }, 3000);
           }
         });
-
-        projSel.addEventListener('change', () => {
-          if (linkBtn) linkBtn.disabled = !projSel.value;
-        });
-
-        if (linkBtn) {
-          linkBtn.addEventListener('click', async () => {
-            const opt = projSel.options[projSel.selectedIndex];
-            const frameioProject = { id: projSel.value, root_folder_id: opt.getAttribute('data-root') || null };
-            linkBtn.disabled = true; linkBtn.textContent = 'Linking…';
-            try {
-              await saveMapping(portalId, wsSel.value, frameioProject);
-              await loadMappings();
-              render();
-            } catch (err) {
-              alert('Link failed: ' + err.message);
-              linkBtn.disabled = false; linkBtn.textContent = 'Link';
-            }
-          });
-        }
-      });
-
-      document.querySelectorAll('[data-unmap]').forEach(btn => {
-        btn.addEventListener('click', () => unmap(btn.getAttribute('data-unmap')));
-      });
+      }
 
       document.querySelectorAll('[data-sync]').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -367,10 +325,10 @@
       const flash = readUrlFlash();
       document.getElementById('root').innerHTML = `
         <div class="page-title">Frame.io</div>
-        <div class="page-sub">Connect &amp; map projects</div>
+        <div class="page-sub">Source of truth for projects</div>
         ${flash}
         ${renderConnectionCard()}
-        ${renderMappingsTable()}
+        ${renderProjectsList()}
       `;
       const c = document.getElementById('connectBtn');
       const r = document.getElementById('reconnectBtn');
@@ -388,7 +346,6 @@
       if (!(await ensureAdmin())) return;
       await loadConnection();
       if (state.connected) {
-        await loadWorkspaces();
         await loadMappings();
       }
       render();

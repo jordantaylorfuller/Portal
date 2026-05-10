@@ -42,6 +42,22 @@ module.exports.config = { api: { bodyParser: false } };
 async function dispatch(type, resourceId, event) {
   if (!type || !resourceId) return;
 
+  // Project lifecycle → keep portal projects in sync.
+  if (type === 'project.created' || type === 'project.updated') {
+    await onProjectUpsert(resourceId);
+    return;
+  }
+  if (type === 'project.deleted') {
+    await adminClient.from('projects')
+      .update({
+        status: 'archived',
+        is_visible_to_clients: false,
+        frameio_archived_at: new Date().toISOString()
+      })
+      .eq('frameio_project_id', resourceId);
+    return;
+  }
+
   // File / metadata events → status mirror.
   if (type === 'metadata.value.updated' || type === 'file.updated') {
     await onFileMaybeChanged(resourceId, event);
@@ -82,6 +98,47 @@ async function dispatch(type, resourceId, event) {
       .update({ frameio_review_url: null, frameio_share_id: null, updated_at: new Date().toISOString() })
       .eq('frameio_share_id', resourceId);
     return;
+  }
+}
+
+async function onProjectUpsert(projectId) {
+  const me = await fio.getMe().catch(() => null);
+  const accountId = me && me.account_id;
+  if (!accountId) return;
+  const project = await fio.getProject(accountId, projectId).catch(err => {
+    console.error('webhook getProject failed for', projectId, err.message);
+    return null;
+  });
+  if (!project) return;
+
+  const frameioName = project.name || '';
+  const stripped = fio.stripProjectPrefix(frameioName);
+  const rootFolderId = project.root_folder_id || (project.root_folder && project.root_folder.id) || null;
+
+  const { data: existing } = await adminClient
+    .from('projects')
+    .select('id')
+    .eq('frameio_project_id', projectId)
+    .maybeSingle();
+
+  if (existing) {
+    await adminClient.from('projects').update({
+      name: stripped,
+      frameio_project_name: frameioName,
+      frameio_account_id: accountId,
+      frameio_root_folder_id: rootFolderId,
+      frameio_archived_at: null
+    }).eq('id', existing.id);
+  } else {
+    await adminClient.from('projects').insert({
+      name: stripped,
+      status: 'active',
+      is_visible_to_clients: false,
+      frameio_project_name: frameioName,
+      frameio_account_id: accountId,
+      frameio_project_id: projectId,
+      frameio_root_folder_id: rootFolderId
+    });
   }
 }
 
