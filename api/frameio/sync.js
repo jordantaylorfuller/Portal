@@ -147,21 +147,20 @@ async function upsertReviewAsset({ portalProjectId, accountId, frameioProjectId,
     result = { created: true };
   }
 
-  // Step 2: ensure a Share exists for this row. Best-effort — if it fails,
-  // the row is still tracked and the next sync will retry.
+  // Step 2: ensure a Share exists for this row. v4 lets us create-with-assets
+  // in one call; short_url is in the response.
   const needsShare = !(existing && existing.frameio_share_id && existing.frameio_review_url);
   if (needsShare) {
     try {
       const share = await fio.createShare(accountId, frameioProjectId, {
-        name: title, type: 'review'
+        name: title,
+        assetIds: [fileId],
+        access: 'public'
       });
       if (share && share.id) {
-        await fio.addAssetToShare(accountId, share.id, [fileId]);
-        const fresh = await fio.getShare(accountId, share.id);
-        const reviewUrl = (fresh && fresh.short_url) || share.short_url || null;
         await adminClient.from('review_assets').update({
           frameio_share_id: share.id,
-          frameio_review_url: reviewUrl,
+          frameio_review_url: share.short_url || null,
           updated_at: new Date().toISOString()
         }).eq('id', rowId);
       }
