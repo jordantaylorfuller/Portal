@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
     .eq('user_id', auth.id);
 
   const projects = (memberships || [])
-    .filter(m => m.projects)
+    .filter(m => m.projects && m.projects.status !== 'archived')
     .map(m => ({
       id: m.projects.id,
       name: m.projects.name,
