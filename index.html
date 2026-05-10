@@ -869,7 +869,9 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 64px 0;
+      min-height: 100%;
+      box-sizing: border-box;
+      padding: 32px 0;
     }
 
     .loader-text {
@@ -1544,6 +1546,19 @@
 
     .delivery-download:active {
       background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .delivery-sent {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: transparent;
     }
 
     /* Info button */
@@ -2483,7 +2498,6 @@
       <button class="delivery-upload" id="delivery-upload">
         Need to send us a file? <span class="delivery-upload-arrow">&rarr;</span>
       </button>
-      <input type="file" id="delivery-upload-input" style="display:none;" multiple/>
     </div>
     <div id="delivery-tooltip" class="delivery-tooltip-popup"></div>
   </div>
@@ -3574,7 +3588,11 @@
             if (a.specs) html += '<div class="delivery-specs">' + escapeHtml(a.specs) + '</div>';
             html += '</div>';
             if (a.file_size) html += '<div class="delivery-size">' + escapeHtml(a.file_size) + '</div>';
-            html += '<button class="delivery-download">Download</button>';
+            if (a.direction === 'client_to_studio') {
+              html += '<span class="delivery-sent">Sent</span>';
+            } else {
+              html += '<button class="delivery-download">Download</button>';
+            }
             html += '<button class="delivery-info-btn" aria-label="File info"';
             html += ' data-uploaded="' + (uploadDate ? uploadDate + ' at ' + uploadTime : '') + '"';
             html += ' data-uploader="Carla Luffe">';
@@ -3698,11 +3716,27 @@
       }
     });
 
-    // Native browser file upload
+    // Client-to-studio upload. Today this just opens our shared MASV Portal in a new tab
+    // (placeholder until webhook API access is granted, at which point we'll switch to an
+    // embedded modal that round-trips uploads back into the deliveries list).
+    var NIPC_CONFIG = { masvPortalUrl: 'https://nipcsteamportal9780196849.portal.massive.io/' };
+    fetch('/api/config').then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(c) { if (c && c.masvPortalUrl) NIPC_CONFIG.masvPortalUrl = c.masvPortalUrl; })
+      .catch(function() {});
+
     var uploadBtn = document.getElementById('delivery-upload');
-    var uploadInput = document.getElementById('delivery-upload-input');
     uploadBtn.addEventListener('click', function() {
-      uploadInput.click();
+      if (!currentProject || !currentProject.id) {
+        console.warn('Upload click ignored: no current project');
+        return;
+      }
+      // Append project_id so the MASV Portal's custom form pre-fills it (and so we have
+      // a paper trail in the URL even if pre-fill syntax differs from MASV's expectation).
+      // The form field is also marked required, so worst case the client enters it manually.
+      var base = NIPC_CONFIG.masvPortalUrl;
+      var sep = base.indexOf('?') === -1 ? '?' : '&';
+      var url = base + sep + 'project_id=' + encodeURIComponent(currentProject.id);
+      window.open(url, '_blank', 'noopener');
     });
 
     // ── Daily.co Call Object ──

@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
   const { data: assets, error } = await adminClient
     .from('delivery_assets')
-    .select('id, title, url, file_type, file_size, specs, group_name, status, created_at')
+    .select('id, title, url, file_type, file_size, specs, group_name, status, direction, created_at')
     .eq('project_id', projectId)
     .order('group_name')
     .order('created_at', { ascending: true });
