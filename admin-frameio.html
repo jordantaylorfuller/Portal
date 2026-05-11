@@ -267,8 +267,22 @@
         return false;
       }
       session = s;
-      const { data: profile } = await sb.from('user_profiles').select('role').eq('id', s.user.id).maybeSingle();
-      if (!profile || profile.role !== 'admin') {
+      // Defer the admin decision to /api/auth/me so we share the same rule
+      // as the server (lib/admin.js: any @nipc.tv email counts as admin in
+      // addition to user_profiles.role='admin'). A direct user_profiles.role
+      // check here misses staff who don't have a profile row yet — the
+      // /api/auth/me call also self-heals the profile row on first hit.
+      let isAdmin = false;
+      try {
+        const r = await fetch('/api/auth/me', {
+          headers: { Authorization: 'Bearer ' + s.access_token }
+        });
+        if (r.ok) {
+          const me = await r.json();
+          isAdmin = !!me.isAdmin;
+        }
+      } catch (e) { /* fall through */ }
+      if (!isAdmin) {
         document.getElementById('root').innerHTML = '<div class="alert err">Admin only. Signed in as ' + s.user.email + '.</div>';
         document.getElementById('signOutBtn').style.display = '';
         return false;

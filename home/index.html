@@ -60,12 +60,9 @@
 /* First-paint critical CSS. Anything that affects above-the-fold layout MUST
    live in <head> — rules in the body's inline <style> aren't applied until
    the parser reaches them ~1500 lines in, by which point the browser has
-   already painted the page in a wrong intermediate state. Sources of the
-   visible flashes this guards against:
-     1. body without theme-light class → .body in nipc.webflow.css falls back
-        to dark surface-base, page paints dark before flipping to cream.
-     2. .home-logo-img has no display:none rule yet → both Light + Dark logo
-        PNGs render stacked at full 175px height before only one is selected. */
+   already painted the page in a wrong intermediate state. Guarding against:
+   body without theme-light class → .body in nipc.webflow.css falls back to
+   dark surface-base, page paints dark before flipping to cream. */
 body.theme-light{
   --surface-base: #f3f0ed;
   --surface-elevated: #e9e6e2;
@@ -76,9 +73,6 @@ body.theme-light{
   --border-subtle: #d1ccc7;
   --border-bg-subtle: rgba(209, 204, 199, 0.5);
 }
-.home-logo-img { display: none; }
-body.theme-light .home-logo-light { display: block; }
-body:not(.theme-light) .home-logo-dark { display: block; }
 /* Hide the .w-dyn-empty "No items found." placeholder when the editor list
    has been pre-rendered at build time. Without this rule it would briefly
    show under the populated rows until cms-inject runs and sets display:none. */
@@ -89,6 +83,26 @@ body:not(.theme-light) .home-logo-dark { display: block; }
 .work_slider_cms_item.swiper-slide{
   height: auto !important;
 }
+/* .divaspect-video ships with both aspect-ratio:16/9 AND height:100%. Inside
+   the slide's flex column the shell stretches to the leftover vertical space
+   (~192px regardless of slide width), which only looks 16:9 at 1-col widths
+   where 100%-leftover happens to match 16/9 of the slide width. At 2 / 3
+   slides-per-view the shell becomes squarish. Forcing height:auto lets
+   aspect-ratio compute height from width at every breakpoint.
+
+   .divspace-y-2 ships hard-coded to height:295.5px (baked from Figma). That
+   leaves a 3-5px margin below the last metadata line at mobile/tablet, so any
+   2-line wrap or font-rendering shift clips "VISIT VIDEO" off the bottom.
+   Letting it auto-size lets the slide grow to its natural content height. */
+.work_slider_cms_item .divaspect-video,
+.work_slider_cms_item .work-card-gif.vimeo-shell {
+  height: auto !important;
+  flex: 0 0 auto !important;
+}
+.work_slider_cms_item .divspace-y-2 {
+  height: auto !important;
+  padding-bottom: 16px;
+}
 /* TEST SOME CUSTOMZIED FONT FOR LOGO*/
 .example {
   font-family: "rocinante-titling-variable",sans-serif;
@@ -96,11 +110,50 @@ body:not(.theme-light) .home-logo-dark { display: block; }
 }
 /* Theme tokens for body.theme-light live in <head> (see the inline <style>
    up there). Keep this block free of first-paint-affecting rules. */
-.switch{
+/* Theme toggle. Webflow's export ships an empty .switch-button colored with
+   --nipc-logo and a Lottie sun/moon animation that only plays when the IX2
+   page-data interactions are present. Without IX2, only the bare colored
+   square showed and nothing animated. We keep the brand-red square and
+   swap in inline sun/moon SVGs that crossfade as the square slides between
+   the left (light / .is-on) and right (dark) tracks. The container is 6rem
+   wide and the button is 2rem, so the slide distance is 4rem. We pin the
+   square color to --text-accent (red in both themes) rather than
+   --nipc-logo (which resolves to white in the dark-mode :root). */
+.switch {
   cursor: pointer;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
 }
-.switch .switch-button{
-  transition: transform 200ms ease;
+.switch .switch-button {
+  background-color: var(--text-accent, #dc2828);
+  transform: translateX(0);
+  transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.switch:not(.is-on) .switch-button {
+  transform: translateX(4rem);
+}
+.switch .theme-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  opacity: 0;
+  transform: rotate(-30deg) scale(0.85);
+  transition: opacity 220ms ease, transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.switch.is-on .theme-icon-sun,
+.switch:not(.is-on) .theme-icon-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch .switch-button,
+  .switch .theme-icon { transition: none; }
 }
 /* Editor row hover: red accent fade.
    Closed rows tint to the brand red on hover; open rows stay calm. */
@@ -114,11 +167,6 @@ body:not(.theme-light) .home-logo-dark { display: block; }
 .editor-dropdown:not(.w--open) .dropdown-toggle:hover .text-13,
 .editor-dropdown:not(.w--open) .dropdown-toggle:hover .text-14 {
   color: inherit;
-}
-
-/* 这个位移你按你的开关宽度微调：比如 18px / 20px / 22px */
-.switch.is-on .switch-button{
-  transform: translateX(0px);
 }
 
 /* Column dividers in the hero grid are rendered as right-borders on each column
@@ -164,17 +212,43 @@ body:not(.theme-light) .home-logo-dark { display: block; }
   height: auto;
   min-height: 0;
 }
-/* Sticky-footer pattern: the Webflow markup makes .footerborder-t a sibling
-   of .mainrelative inside .divrelative, but never grows the middle section
-   to absorb extra viewport space. On tall viewports the content was shorter
-   than the window, leaving a gap of body+grid background visible below the
-   footer. Force the page wrapper to at least viewport height and let the
-   editor-index region flex-grow to push the footer to the bottom. */
-.divrelative {
-  min-height: 100vh;
+/* Desktop only: lock the page wrapper to exactly the viewport height so the
+   footer sits anchored at the bottom and doesn't move when an editor row
+   expands — the editor-index region scrolls internally instead of growing
+   the page. `min-height: 0` lets the flex preview-area shrink to give the
+   footer its space; flex-shrink:0 + overflow:visible on the inner section
+   keeps it at its own content height (the webflow rule overflow:hidden on
+   .sectionrelative-2 otherwise zeroes its flex min-size and the totals row
+   + expanded panel get clipped instead of scrolling).
+
+   Restricted to ≥992px because below that the hero column stacks vertically
+   and the natural page is already several screens tall — forcing 100vh
+   would crush the hero to 0 and hide most of the page. Tablet/mobile keep
+   the natural growing-page behavior. */
+@media (min-width: 992px) {
+  .divrelative {
+    height: 100vh;
+  }
+  .divrelative > .mainrelative.preview-area {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .divrelative > .mainrelative.preview-area > .sectionrelative-2 {
+    flex-shrink: 0;
+    overflow: visible;
+  }
 }
-.divrelative > .mainrelative.preview-area {
-  flex: 1 0 auto;
+/* Below 992 keep the original sticky-footer pattern: page grows to at least
+   viewport height, preview-area flex-grows to push the footer to the bottom
+   on tall windows, content can extend below the fold naturally. */
+@media (max-width: 991px) {
+  .divrelative {
+    min-height: 100vh;
+  }
+  .divrelative > .mainrelative.preview-area {
+    flex: 1 0 auto;
+  }
 }
 /* Top-left logo mark — replaces the old "STUDIO / New International Picture
    Company" text block. Two image variants are stacked in markup; CSS reveals
@@ -183,35 +257,102 @@ body:not(.theme-light) .home-logo-dark { display: block; }
   padding-top: 14px;
   padding-bottom: 5px;
 }
+/* At 480-767px the 1/6-grid column is only ~80-128px wide; the default 14px
+   side padding leaves too little room for "INTERNATIONAL". Tighten the
+   horizontal padding so the 4-line stack fits without bleeding into the
+   adjacent SEASON cell. */
+@media screen and (max-width: 767px) {
+  [class*="divcol-"]:has(> .home-logo-mark) {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
 /* SEASON 2026 cell — Webflow ships .divhidden with align-items:center which
    vertically centers the text in the row. Top-align it so it matches the
-   logo, EDITORS COLLECTIVE, and reel-category cells in this row. */
+   logo, EDITORS COLLECTIVE, and reel-category cells in this row. Also pin
+   justify-content to flex-start so the label stays left-aligned at every
+   breakpoint (webflow's media queries flip it to flex-end at 991/767px,
+   which made SEASON 2026 jump between left/right depending on viewport). */
 .divrelative-2 .divhidden {
+  justify-content: flex-start;
   align-items: flex-start;
 }
-/* The source PNG has ~40% transparent padding above and below the wordmark.
-   We render the image at 4.8x scale (so the text bounds ≈ 86px), then crop
-   the surrounding whitespace with overflow:hidden on a 86px-tall wrapper. */
+/* Wordmark — rendered as text instead of an image so it reflows from a
+   2-line to 3-line to 4-line stack as its column narrows. Container queries
+   drive both the line count and the font size from the actual column width,
+   which lets us handle the awkward 480–767px viewport range (where the
+   1/6-grid column is only ~80–128px) without touching the surrounding grid.
+   Width thresholds are derived from monospace metrics (~0.6 × fs per cell):
+   "NEW INTERNATIONAL" (17 cells) needs ~10.2 × fs, "PICTURE COMPANY" (15)
+   needs ~9, "INTERNATIONAL" alone (13) needs ~7.8. */
 .home-logo-mark {
   display: block;
-  position: relative;
   width: 100%;
-  height: 36px;
-  overflow: hidden;
+  font-family: var(--_nipc_figma_v1---font-family--font-1, "DM Mono", monospace);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.08;
+  color: var(--text-primary);
   text-decoration: none;
+  container-type: inline-size;
 }
-.home-logo-img {
-  /* display rules (none + theme-aware show) live in <head> to prevent the
-     pre-paint flash where both logo variants render at full height. */
-  position: absolute;
-  top: 50%;
-  /* Source PNG is 1920x1221, text bbox starts at x=266. At our render
-     height the proportional left padding to crop is ~36px. */
-  left: -36px;
-  transform: translateY(-50%);
-  height: 175px;
-  width: auto;
-  max-width: none;
+.home-logo-line {
+  display: block;
+  font-size: clamp(12px, 8.6cqi, 20px);
+}
+.home-logo-word {
+  display: inline;
+}
+.home-logo-word + .home-logo-word::before {
+  content: " ";
+  white-space: pre;
+}
+/* 3-line: NEW / INTERNATIONAL / PICTURE COMPANY. Kicks in once the column
+   is too narrow for "NEW INTERNATIONAL" at the 2-line scale. */
+@container (max-width: 165px) {
+  .home-logo-line:first-child .home-logo-word + .home-logo-word {
+    display: block;
+  }
+  .home-logo-line:first-child .home-logo-word + .home-logo-word::before {
+    content: none;
+  }
+  .home-logo-line {
+    font-size: clamp(11px, 10.2cqi, 18px);
+  }
+}
+/* 4-line: every word on its own row. */
+@container (max-width: 125px) {
+  .home-logo-word {
+    display: block;
+  }
+  .home-logo-word + .home-logo-word::before {
+    content: none;
+  }
+  .home-logo-line {
+    font-size: clamp(8px, 11.8cqi, 18px);
+  }
+}
+
+/* Mobile-only swap: at ≤479px the wordmark relocates from .divcol-span-2-3
+   (where it sits below the hero stats on desktop) into the top-left
+   .divcol-span-4 cell, and POST-PRODUCTION / STUDIO swaps the other way.
+   The two cells live in different parent grids (.divgrid vs .divgrid-3),
+   so CSS `order` can't reorder them; we duplicate both pieces of content
+   in markup and toggle visibility instead. */
+.home-show-on-mobile { display: none; }
+@media (max-width: 479px) {
+  .home-hide-on-mobile { display: none !important; }
+  .home-show-on-mobile { display: revert; }
+}
+/* Stacked variant of the wordmark used in the mobile top-left cell. Each
+   word ships in its own .home-logo-line so the layout is always 4-line
+   regardless of container width — bypasses the container queries that
+   would otherwise hand back 2- or 3-line at typical mobile cell widths
+   (~160px content). Font scales with the cell width via cqi, capped so
+   "INTERNATIONAL" (~13 mono cells) fits the cell's content box. */
+.home-logo-mark--stacked .home-logo-line {
+  font-size: clamp(13px, 11.8cqi, 22px);
 }
 
 /* Floating editor preview — wired up to follow the cursor when an editor row
@@ -268,33 +409,8 @@ a.category-link {
 a.category-link:hover { opacity: 0.6; }
 
 .category-disabled {
-  position: relative;
-  display: inline-block;
+  color: var(--text-secondary, #786d6d);
   cursor: default;
-}
-.category-disabled::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 6px);
-  padding: 4px 8px;
-  background: rgba(28, 25, 25, 0.92);
-  color: #fff;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  line-height: 1.4;
-  white-space: nowrap;
-  border-radius: 2px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 160ms ease;
-  z-index: 10;
-}
-.category-disabled:hover::after,
-.category-disabled:focus-visible::after {
-  opacity: 1;
 }
 
 ._w-switch .top-clients-link {
@@ -318,6 +434,13 @@ a.category-link:hover { opacity: 0.6; }
 ._1920w-default {
   position: relative;
   z-index: 1;
+  /* Clip the decorative `.grid` background. It's position:fixed with width:110%
+     and -10px margin (Webflow's design intent — leaks past the left/right
+     edges). Because we set will-change:transform here for the slide-out, this
+     wrapper becomes the containing block for fixed descendants, so the grid
+     bleed leaks into the document scroll. clip keeps fixed positioning
+     working but contains the overflow. */
+  overflow-x: clip;
   transition: transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
   box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4), 8px 0 20px rgba(0, 0, 0, 0.2);
@@ -371,6 +494,7 @@ body.is-sliding-out .clients-preview { visibility: visible; }
 .clients-preview-heading {
   font-size: 13px;
   font-weight: 300;
+  line-height: normal;
   letter-spacing: 0.02em;
   color: #fff;
   margin: 0 0 32px;
@@ -417,6 +541,15 @@ body.is-sliding-out .clients-preview { visibility: visible; }
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+}
+/* Tablet + mobile: footer column gets full width and the right-aligned label
+   + form drift far from the INSTAGRAM/LINKEDIN cluster that anchors the same
+   footer cell. Pin to flex-start so the newsletter reads as a continuation
+   of that group. */
+@media (max-width: 991px) {
+  .newsletter {
+    align-items: flex-start;
+  }
 }
 .newsletter-label {
   color: var(--text-secondary, #737373);
@@ -1029,12 +1162,24 @@ body.is-sliding-out .clients-preview { visibility: visible; }
           <div class="divrelative-2">
             <div class="divgrid">
               <div class="divcol-span-4">
-                <div class="ptext-2xs">
+                <!-- Desktop: POST-PRODUCTION / STUDIO label block. On mobile
+                     this swaps with the wordmark cell in .divgrid-3 below. -->
+                <div class="ptext-2xs home-hide-on-mobile">
                   <div class="text">POST-PRODUCTION</div>
                   <div class="ptext-2xs-4">
                     <div class="text-4">STUDIO</div>
                   </div>
                 </div>
+                <!-- Mobile-only: small STUDIO label + 4-line wordmark stack. -->
+                <div class="ptext-2xs home-show-on-mobile">
+                  <div class="text">STUDIO</div>
+                </div>
+                <a class="home-logo-mark home-logo-mark--stacked home-show-on-mobile" href="/home" aria-label="NIPC — New International Picture Company">
+                  <span class="home-logo-line"><span class="home-logo-word">NEW</span></span>
+                  <span class="home-logo-line"><span class="home-logo-word">INTERNATIONAL</span></span>
+                  <span class="home-logo-line"><span class="home-logo-word">PICTURE</span></span>
+                  <span class="home-logo-line"><span class="home-logo-word">COMPANY</span></span>
+                </a>
               </div>
               <div class="divcol-span-2-1">
                 <div class="ptext-2xs-2">
@@ -1060,19 +1205,47 @@ body.is-sliding-out .clients-preview { visibility: visible; }
               </div>
               <div class="divcol-span-2-1 _w-switch">
                 <a class="top-clients-link" href="/clients">CLIENTS</a>
-                <div id="toggleStyleButton" data-border-color="--dark-mode-font-color" data-w-id="d44f9b51-0ad8-b2c6-0b4a-30e987a43b84" class="switch align-center">
-                  <div class="switch-button">
-                    <div data-is-ix2-target="1" class="mode-lottie" data-w-id="d44f9b51-0ad8-b2c6-0b4a-30e987a43b86" data-animation-type="lottie" data-src="https://uploads-ssl.webflow.com/6423d8d821de6a8815a1e600/6423d8d821de6ac7aea1e60f_lf20_cvalozqq.json" data-loop="0" data-direction="1" data-autoplay="0" data-renderer="svg" data-default-duration="0.5338671787890117" data-duration="0" data-loading="eager"></div>
-                  </div>
-                </div>
+                <button id="toggleStyleButton" type="button" class="switch align-center" aria-label="Toggle light mode" aria-pressed="false">
+                  <span class="switch-button" aria-hidden="true">
+                    <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="4"/>
+                      <line x1="12" y1="2.5" x2="12" y2="5"/>
+                      <line x1="12" y1="19" x2="12" y2="21.5"/>
+                      <line x1="2.5" y1="12" x2="5" y2="12"/>
+                      <line x1="19" y1="12" x2="21.5" y2="12"/>
+                      <line x1="5.2" y1="5.2" x2="6.9" y2="6.9"/>
+                      <line x1="17.1" y1="17.1" x2="18.8" y2="18.8"/>
+                      <line x1="5.2" y1="18.8" x2="6.9" y2="17.1"/>
+                      <line x1="17.1" y1="6.9" x2="18.8" y2="5.2"/>
+                    </svg>
+                    <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>
+                    </svg>
+                  </span>
+                </button>
               </div>
             </div>
             <div class="divgrid-3">
               <div class="divcol-span-2-3">
-                <a class="home-logo-mark" href="/home" aria-label="NIPC home">
-                  <img class="home-logo-img home-logo-light" src="/home/images/logos/highres/1920x1221_no-bg/NIPC_Two-line-logo_Light.png" alt="NIPC">
-                  <img class="home-logo-img home-logo-dark" src="/home/images/logos/highres/1920x1221_no-bg/NIPC_Two-line-logo_Dark.png" alt="" aria-hidden="true">
+                <!-- Desktop wordmark. Hidden on mobile (≤479) where the
+                     wordmark moves to the top-left .divcol-span-4 cell and
+                     POST-PRODUCTION / STUDIO surfaces here instead. -->
+                <a class="home-logo-mark home-hide-on-mobile" href="/home" aria-label="NIPC — New International Picture Company">
+                  <span class="home-logo-line">
+                    <span class="home-logo-word">NEW</span><span class="home-logo-word">INTERNATIONAL</span>
+                  </span>
+                  <span class="home-logo-line">
+                    <span class="home-logo-word">PICTURE</span><span class="home-logo-word">COMPANY</span>
+                  </span>
                 </a>
+                <!-- Mobile-only: POST-PRODUCTION / STUDIO that lived in the
+                     top-left cell on desktop. -->
+                <div class="ptext-2xs home-show-on-mobile">
+                  <div class="text">POST-PRODUCTION</div>
+                  <div class="ptext-2xs-4">
+                    <div class="text-4">STUDIO</div>
+                  </div>
+                </div>
               </div>
               <div class="divhidden">
                 <div class="ptext-2xs-5">
@@ -1099,7 +1272,7 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                     <a class="text-7 category-link" href="/reel.html?s=music-video">[M] MUSIC VIDEO</a>
                   </div>
                   <div class="ptext-2xs-4">
-                    <span class="text-7 category-disabled" data-tooltip="Coming soon">[D] DOCUMENTARY</span>
+                    <span class="text-7 category-disabled">[D] DOCUMENTARY</span>
                   </div>
                 </div>
               </div>
@@ -1287,7 +1460,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">APPLE</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f6563ce6-c2e9-4c94-a019-fb2150adc2c6">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1295,7 +1486,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#f6563ce6-c2e9-4c94-a019-fb2150adc2c6</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">BURBERRY</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#f6563ce6-c2e9-4c94-a019-fb2150adc2c6" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="cb61972d-64d0-4d5a-a978-cd8b7ba79a0d">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1303,7 +1512,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#cb61972d-64d0-4d5a-a978-cd8b7ba79a0d</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">CANON RedefineOrdinary ENG</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#cb61972d-64d0-4d5a-a978-cd8b7ba79a0d" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="e5fce17c-d2b8-466d-a244-edefb3fc85e7">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1311,7 +1538,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">COACH Charles</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="1d214279-5865-4112-b004-5b2a216f62f6">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1319,7 +1564,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#1d214279-5865-4112-b004-5b2a216f62f6</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">COACH Elle</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#1d214279-5865-4112-b004-5b2a216f62f6" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="a6cef2f9-9a2d-4a81-ad56-50c89da4589e">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1327,7 +1590,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#a6cef2f9-9a2d-4a81-ad56-50c89da4589e</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">EXPEDIA Lemons</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#a6cef2f9-9a2d-4a81-ad56-50c89da4589e" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1335,7 +1616,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">GOOGLE</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="53569abe-003d-46d1-8a5f-593f06b6fa18">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1343,7 +1642,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#53569abe-003d-46d1-8a5f-593f06b6fa18</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">HAIM Relationships</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#53569abe-003d-46d1-8a5f-593f06b6fa18" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="cbc9054e-f14c-4c69-aa48-cb719b6ffd9a">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1351,7 +1668,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#cbc9054e-f14c-4c69-aa48-cb719b6ffd9a</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">HERMÉS</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#cbc9054e-f14c-4c69-aa48-cb719b6ffd9a" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f2af8115-138b-4bfd-806c-6c95da704b69">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1359,7 +1694,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#f2af8115-138b-4bfd-806c-6c95da704b69</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">LACOSTE</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#f2af8115-138b-4bfd-806c-6c95da704b69" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="143b5824-a71e-429d-a39f-5b43c9e8e339">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1367,7 +1720,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#143b5824-a71e-429d-a39f-5b43c9e8e339</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">META</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#143b5824-a71e-429d-a39f-5b43c9e8e339" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="c7d00cee-e408-4626-b851-61cad2930361">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1375,7 +1746,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">OLGA BASHA</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="98cd8683-1182-473b-a596-8fab8f823ae3">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1383,7 +1772,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#98cd8683-1182-473b-a596-8fab8f823ae3</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">REFORMATION</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#98cd8683-1182-473b-a596-8fab8f823ae3" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="15ecdcde-5b6b-464d-8c47-fda912f5fca0">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1391,7 +1798,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#15ecdcde-5b6b-464d-8c47-fda912f5fca0</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">THE LIFT</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#15ecdcde-5b6b-464d-8c47-fda912f5fca0" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="5d08ac46-1b32-49da-9a40-89a6f06264ed">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1399,7 +1824,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#5d08ac46-1b32-49da-9a40-89a6f06264ed</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">TONAL</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#5d08ac46-1b32-49da-9a40-89a6f06264ed" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f2a07bc0-51a0-41c6-b2d3-50372e596cf6">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1407,7 +1850,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#f2a07bc0-51a0-41c6-b2d3-50372e596cf6</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">UBER</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#f2a07bc0-51a0-41c6-b2d3-50372e596cf6" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="611b7aba-c303-4dc0-ae58-2a7847f2609a">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1415,7 +1876,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#611b7aba-c303-4dc0-ae58-2a7847f2609a</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">VOGUE</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#611b7aba-c303-4dc0-ae58-2a7847f2609a" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="5fe70455-6a01-4101-b141-c9036946d09c">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1423,7 +1902,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#5fe70455-6a01-4101-b141-c9036946d09c</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">VOLVO</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#5fe70455-6a01-4101-b141-c9036946d09c" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f9ad543b-f40c-4835-8eba-6cb039a231b9">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1431,7 +1928,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#f9ad543b-f40c-4835-8eba-6cb039a231b9</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">VW</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#f9ad543b-f40c-4835-8eba-6cb039a231b9" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="678ef582-90d4-4006-a610-ba29f3da8dd8">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1439,25 +1954,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url"></div></div>
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#678ef582-90d4-4006-a610-ba29f3da8dd8</div>
+                                  </div>
                                 </div>
                                 <div data-figma-id="4:6201" class="divspace-y-1">
                                   <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6203" class="brand-film"></p>
+                                    <p data-figma-id="4:6203" class="brand-film">WHATSAPP</p>
                                   </div>
                                   <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6205" class="_2024-2"></p>
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
                                   </div>
                                   <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6207" class="client-agency"></p>
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
                                   </div>
                                   <div data-figma-id="4:6208" class="atext-terminal-sm-2">
-                                    <a href="#" class="visit-video">Visit Video ⇥</a>
+                                    <a href="/reel.html?s=carla-luffe#678ef582-90d4-4006-a610-ba29f3da8dd8" class="visit-video">Visit Video ⇥</a>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
+                            </div></div>
                         </div>
                         <div data-figma-id="4:6187" class="drag-indicator">
                           <p data-figma-id="4:6188" class="drag-indicator-text left">◀︎</p>
@@ -1519,7 +2034,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=josh-lee#6508d726-a28f-4288-a5e6-a1b46a57387b</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">Ripley</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=josh-lee#6508d726-a28f-4288-a5e6-a1b46a57387b" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="0b617920-1cbe-459b-aa06-144c21b4f9ea">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1527,25 +2060,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url"></div></div>
+                                    <div class="vimeo-url">/reel.html?s=josh-lee#0b617920-1cbe-459b-aa06-144c21b4f9ea</div>
+                                  </div>
                                 </div>
                                 <div data-figma-id="4:6201" class="divspace-y-1">
                                   <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6203" class="brand-film"></p>
+                                    <p data-figma-id="4:6203" class="brand-film">The Drama</p>
                                   </div>
                                   <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6205" class="_2024-2"></p>
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
                                   </div>
                                   <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6207" class="client-agency"></p>
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
                                   </div>
                                   <div data-figma-id="4:6208" class="atext-terminal-sm-2">
-                                    <a href="#" class="visit-video">Visit Video ⇥</a>
+                                    <a href="/reel.html?s=josh-lee#0b617920-1cbe-459b-aa06-144c21b4f9ea" class="visit-video">Visit Video ⇥</a>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
+                            </div></div>
                         </div>
                         <div data-figma-id="4:6187" class="drag-indicator">
                           <p data-figma-id="4:6188" class="drag-indicator-text left">◀︎</p>
@@ -1607,7 +2140,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="mR1ZLUyM558PMFaui1gt01UmnfwwBppcIZ8yIxLI7jYE"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=lucian-johnston#1ceb4ada-ade3-4086-8319-655d7d2b2549</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">Beau Is Afraid</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=lucian-johnston#1ceb4ada-ade3-4086-8319-655d7d2b2549" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="cf05c78c-c345-48f0-9f96-0303e66c9f19">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1615,7 +2166,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">Eddington</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="9d37cc4c-34ff-46fe-a126-31d33a38cdcc">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1623,7 +2192,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="6nER6gxpExVkTb8N4YZcAtgkPKg2PWsc13WcY00Tagwg"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=lucian-johnston#9d37cc4c-34ff-46fe-a126-31d33a38cdcc</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">Hereditary</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=lucian-johnston#9d37cc4c-34ff-46fe-a126-31d33a38cdcc" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="abddfb54-ce0d-46c6-9c60-4e5e3aeea76a">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1631,7 +2218,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="0102sZnvznqh48q1wgFVm8hhfRV1v702eiQkMYsyrDYqwU"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">
+                                    <div class="vimeo-url">/reel.html?s=lucian-johnston#abddfb54-ce0d-46c6-9c60-4e5e3aeea76a</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">If I Had Legs I&#39;d Kick You</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=lucian-johnston#abddfb54-ce0d-46c6-9c60-4e5e3aeea76a" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 <div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="18fde76a-f85c-44bf-b981-645cbf1dca53">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
@@ -1639,25 +2244,25 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                 </div>
                                 <div data-figma-id="4:6197" class="divaspect-video">
                                   <div  class="work-card-gif vimeo-shell" data-mux-playback-id="jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url"></div></div>
+                                    <div class="vimeo-url">/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53</div>
+                                  </div>
                                 </div>
                                 <div data-figma-id="4:6201" class="divspace-y-1">
                                   <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6203" class="brand-film"></p>
+                                    <p data-figma-id="4:6203" class="brand-film">Janet Planet</p>
                                   </div>
                                   <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6205" class="_2024-2"></p>
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
                                   </div>
                                   <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6207" class="client-agency"></p>
+                                    <p data-figma-id="4:6207" class="client-agency">Trailer</p>
                                   </div>
                                   <div data-figma-id="4:6208" class="atext-terminal-sm-2">
-                                    <a href="#" class="visit-video">Visit Video ⇥</a>
+                                    <a href="/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53" class="visit-video">Visit Video ⇥</a>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
+                            </div></div>
                         </div>
                         <div data-figma-id="4:6187" class="drag-indicator">
                           <p data-figma-id="4:6188" class="drag-indicator-text left">◀︎</p>
@@ -1958,19 +2563,21 @@ body.is-sliding-out .clients-preview { visibility: visible; }
   if (!toggle) return;
   var body = document.body;
   var STORAGE_KEY = 'nipc_theme'; // localStorage key
-  // ---- 1) 初始：默认 Light；如果用户之前选过 Dark，就恢复 ----
-  var saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'dark') {
-    body.classList.remove('theme-light');
-    toggle.classList.remove('is-on');
-  } else {
-    body.classList.add('theme-light');
-    toggle.classList.add('is-on');
+  function setState(isLight) {
+    body.classList.toggle('theme-light', isLight);
+    toggle.classList.toggle('is-on', isLight);
+    // Keep aria-pressed in sync with the visual state so screen readers
+    // report whether light mode is active. The static markup ships
+    // aria-pressed="false", which would otherwise lie after first paint
+    // (default is light) and after every click.
+    toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
   }
+  // ---- 1) 初始：默认 Light；如果用户之前选过 Dark，就恢复 ----
+  setState(localStorage.getItem(STORAGE_KEY) !== 'dark');
   // ---- 2) 点击切换 ----
   toggle.addEventListener('click', function () {
-    var isLight = body.classList.toggle('theme-light');
-    toggle.classList.toggle('is-on', isLight);
+    var isLight = !body.classList.contains('theme-light');
+    setState(isLight);
     localStorage.setItem(STORAGE_KEY, isLight ? 'light' : 'dark');
   });
 })();

@@ -38,9 +38,27 @@
     list.dataset.cmsPrerendered = 'true';
   }
 
+  // Immediate poster swap from data-mux-playback-id. Every .vimeo-shell ships
+  // with src="placeholder.svg" (the Webflow CMS placeholder), and the live
+  // poster URL only gets stamped in by refreshPostersFromApi after a fetch
+  // round-trip. That left the work cards showing a grey "image" icon for a
+  // few seconds on first load. Mux thumbnails are deterministic from the
+  // playback ID, so we construct the URL synchronously here and start the
+  // image loads before the API call returns. The API call still runs after,
+  // in case a poster has a custom time offset (admin-selected frame) or a
+  // server override (e.g. NIPC logo fallback — commit 2a8de97).
+  applyMuxPostersFromMarkup();
+
   // Runtime poster sync — DB is the single source of truth. Replace any baked
   // poster URLs that have changed since the last works.json regeneration.
-  refreshPostersFromApi(editors).catch(err => console.warn('poster refresh failed', err));
+  // We hold the promise (rather than fire-and-forget) so the auto-expand can
+  // wait for it: the API returns posters with admin-selected `?time=X.Y`
+  // offsets that differ from the default Mux thumbnail we set synchronously,
+  // and opening the panel before that swap completes causes the work card
+  // image to visibly flicker to the custom frame a second later.
+  const postersReady = refreshPostersFromApi(editors).catch(err => {
+    console.warn('poster refresh failed', err);
+  });
 
   const totalEl = document.querySelector('.divflex-5 .text-11');
   if (totalEl && /TOTAL ENTRIES/.test(totalEl.textContent)) {
@@ -51,6 +69,23 @@
   wireEditorPreview(list);
 
   document.dispatchEvent(new CustomEvent('cms:editors-ready'));
+
+  // Auto-expand a random editor on page load. Wait for:
+  //   1) DOMContentLoaded — so the inline swiper script's initAll has run
+  //      and the opened panel's slider measures correctly on first paint.
+  //   2) refreshPostersFromApi — so admin-selected custom poster frames are
+  //      already in place when the panel animates open (no visible flicker).
+  // Both are capped by a max delay so a slow API can't strand the user on
+  // an empty page indefinitely; if the timeout wins we fall back to the
+  // default Mux thumbnails (which are already loaded by applyMuxPosters…).
+  const MAX_WAIT_MS = 1500;
+  const dcl = document.readyState === 'loading'
+    ? new Promise(r => document.addEventListener('DOMContentLoaded', r, { once: true }))
+    : Promise.resolve();
+  const cap = new Promise(r => setTimeout(r, MAX_WAIT_MS));
+  Promise.race([Promise.all([dcl, postersReady]), cap]).then(() => {
+    requestAnimationFrame(() => autoExpandRandomEditor(list));
+  });
 
   // ── Helpers ──
 
@@ -160,6 +195,10 @@
       panel.removeEventListener('transitionend', panel._dropdownEnd);
       panel._dropdownEnd = null;
     }
+    if (panel._dropdownResize) {
+      panel._dropdownResize.disconnect();
+      panel._dropdownResize = null;
+    }
     if (open) {
       panel.style.display = 'block';
       const target = panel.scrollHeight;
@@ -172,11 +211,42 @@
       toggle.setAttribute('aria-expanded', 'true');
       panel.style.height = target + 'px';
       panel.style.opacity = '1';
+      // The inline swiper script runs swiper.update() ~150ms after the click,
+      // and lazy-loaded poster images can resolve at any point during the
+      // animation. Both grow the panel's natural height after we measured
+      // scrollHeight, which on the FIRST open made the animation land on the
+      // wrong (too short) target and snap up when the transition ended.
+      // Watch the panel's content and re-target the inline height live —
+      // CSS transitions are interruptible, so the in-flight animation just
+      // continues smoothly to the new target.
+      const content = panel.firstElementChild;
+      if (content && typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          if (!panel.classList.contains('w--open')) return;
+          const next = panel.scrollHeight;
+          if (Math.abs(parseFloat(panel.style.height) - next) > 0.5) {
+            panel.style.height = next + 'px';
+          }
+        });
+        ro.observe(content);
+        panel._dropdownResize = ro;
+      }
       panel._dropdownEnd = e => {
         if (e.target !== panel || e.propertyName !== 'height') return;
         panel.style.height = '';
         panel.removeEventListener('transitionend', panel._dropdownEnd);
         panel._dropdownEnd = null;
+        // Keep observing briefly after the transition completes — swiper's
+        // 150ms delayed update and late image loads can still arrive after
+        // 360ms on slow networks. Disconnect once things settle.
+        if (panel._dropdownResize) {
+          setTimeout(() => {
+            if (panel._dropdownResize) {
+              panel._dropdownResize.disconnect();
+              panel._dropdownResize = null;
+            }
+          }, 400);
+        }
       };
       panel.addEventListener('transitionend', panel._dropdownEnd);
     } else {
@@ -205,6 +275,31 @@
       };
       panel.addEventListener('transitionend', panel._dropdownEnd);
     }
+  }
+
+  // Pick a random editor and animate it open on page load. sessionStorage
+  // remembers the previous pick so consecutive visits within the same tab
+  // never land on the same editor twice in a row. The expand uses the same
+  // animated setDropdownOpen path as user clicks, so the user sees the row
+  // ease open instead of a hard cut from all-closed to one-open.
+  function autoExpandRandomEditor(list) {
+    const items = list.querySelectorAll('.w-dyn-item');
+    if (items.length < 1) return;
+    const STORAGE_KEY = 'nipc_last_auto_editor';
+    let lastSlug = '';
+    try { lastSlug = sessionStorage.getItem(STORAGE_KEY) || ''; } catch (e) {}
+    const all = Array.from(items);
+    const candidates = all.filter(i => i.dataset.editorSlug && i.dataset.editorSlug !== lastSlug);
+    const pool = candidates.length ? candidates : all;
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    if (chosen.dataset.editorSlug) {
+      try { sessionStorage.setItem(STORAGE_KEY, chosen.dataset.editorSlug); } catch (e) {}
+    }
+    const dropdown = chosen.querySelector('.editor-dropdown');
+    if (!dropdown) return;
+    const toggle = dropdown.querySelector('.w-dropdown-toggle');
+    const panel = dropdown.querySelector('.w-dropdown-list');
+    if (toggle && panel) setDropdownOpen(dropdown, toggle, panel, true);
   }
 
   // Floating cursor preview — fade in editor's looping work preview when their
@@ -270,6 +365,25 @@
         const y = Math.max(8, Math.min(lastY + OFFSET_Y, maxY));
         box.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       });
+    });
+  }
+
+  function applyMuxPostersFromMarkup() {
+    document.querySelectorAll('.vimeo-shell[data-mux-playback-id]').forEach(shell => {
+      const playbackId = shell.dataset.muxPlaybackId;
+      const img = shell.querySelector('.vimeo-poster-img');
+      if (!playbackId || !img) return;
+      // Only swap when the img is still on the Webflow placeholder. If a
+      // build- or runtime-stamped poster is already in place (e.g. a custom
+      // server override), don't overwrite it.
+      if (!img.src || img.src.includes('placeholder')) {
+        img.src = `https://image.mux.com/${playbackId}/thumbnail.jpg?width=640&height=360&fit_mode=preserve`;
+      }
+      // Lazy loading defers requests until near-viewport intersection, which
+      // never triggers for images inside the display:none panels of closed
+      // dropdowns. Switching to eager lets the browser fetch all posters up
+      // front so they're cached when the user opens any row.
+      if (img.loading === 'lazy') img.loading = 'eager';
     });
   }
 
