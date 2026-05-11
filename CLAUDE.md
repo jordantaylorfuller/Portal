@@ -53,3 +53,17 @@ Video must be uploaded as a GitHub Release asset (tag `v1.0`).
 - No package.json or node_modules -- keep it zero-dependency
 - Test changes with `./serve.sh` before committing
 - Large binary assets go through Git LFS
+
+## Known issue: Vercel env vars with trailing newline
+
+When adding/updating a Vercel env var, never pipe a value that ends with a newline. `echo "value"` and copy-paste with a trailing return both store the newline as a real character, which then serializes to a literal `\n` inside the value (e.g. `https://example.com\n`). The local dotenv parser strips it, so dev works; the function runtime keeps it, so prod requests 404 with a "trailing junk" URL.
+
+Confirmed casualties so far: `BREVO_FORM_URL` (newsletter 502), `SUPABASE_URL` (silently malformed — supabase-js normalized it).
+
+When (re)setting an env var:
+
+```bash
+printf '%s' 'value-with-no-trailing-newline' | vercel env add NAME production
+```
+
+Verify with `vercel env pull /tmp/check.env --environment production --yes` and confirm the value ends at the expected character (not `\n"`).
