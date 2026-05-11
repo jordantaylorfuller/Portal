@@ -740,7 +740,12 @@
     };
     var category = CATEGORY_REELS[slug] || null;
 
-    var view = localStorage.getItem('nipc.reel.view') || 'list';
+    // Visit-video clicks land here with a hash like #<asset-id>. Force cover view
+    // for those entries (the user came from a specific video card, so showing
+    // its cover-flow stack is the natural landing). Do NOT persist this to
+    // localStorage so a returning visit that lands without a deep link still
+    // restores the user's last manual choice.
+    var view = deepLinkAssetId ? 'cf' : (localStorage.getItem('nipc.reel.view') || 'list');
     var theme = localStorage.getItem('nipc.reel.theme') || 'light';
     var muxEl = null;
     var transitioning = false;
@@ -994,7 +999,10 @@
     function setView(v, isInitial) {
       if (!isInitial && v === view) return;
       view = v;
-      localStorage.setItem('nipc.reel.view', v);
+      // Only persist when the user actively chose a view via tabs. The initial
+      // render may have forced 'cf' for a deep-link entry; persisting that
+      // would clobber the user's actual preference for the next visit.
+      if (!isInitial) localStorage.setItem('nipc.reel.view', v);
       document.querySelectorAll('.t-tab').forEach(function(t){
         t.classList.toggle('active', t.dataset.view === v);
       });

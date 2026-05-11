@@ -1,6 +1,7 @@
 const { customAlphabet } = require('nanoid');
 const { getAuthUser } = require('../../lib/auth');
 const { adminClient } = require('../../lib/supabase');
+const { isAdmin } = require('../../lib/admin');
 const { presignPut, presignGet, listPrefix, deleteObject } = require('../../lib/storj');
 const { createAssetFromUrl, deleteAsset } = require('../../lib/mux');
 
@@ -63,7 +64,7 @@ async function requireAdmin(req, res) {
     .select('role')
     .eq('id', auth.id)
     .maybeSingle();
-  if (!profile || profile.role !== 'admin') {
+  if (!isAdmin(profile, auth.email)) {
     res.status(403).json({ error: 'Admin role required' });
     return null;
   }

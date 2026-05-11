@@ -209,8 +209,12 @@ function setBindByClass(html, cls, value) {
 }
 
 function setHrefByClass(html, cls, value) {
-  const re = new RegExp(`(<a\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bhref=")([^"]*)(")`);
-  return html.replace(re, (_, lead, _href, tail) => `${lead}${escape(value)}${tail}`);
+  // Find the <a class="...cls..."> tag (either attribute order), then rewrite
+  // its href in-place. The previous single-regex required class to come
+  // before href in source order; Webflow's exports put href first, so the
+  // match silently failed and every visit-video link stayed as `#`.
+  const tagRe = new RegExp(`<a\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*>`);
+  return html.replace(tagRe, (tag) => tag.replace(/\bhref="[^"]*"/, `href="${escape(value)}"`));
 }
 
 function setImgSrcByClass(html, cls, src, alt) {
@@ -295,22 +299,29 @@ function renderEditorRow(template, ed, worksById) {
   html = setBindByClass(html, 'founder-editor-2', ed.role);
   html = setBindByClass(html, 'a-visual-exploration-of-athletic-transformation-through-abstract-motion-and-dynamic-typography-the-p', ed.bio);
 
-  // Inner work slider — extract slide template, then replace the slider's
-  // children with one rendered slide per referenced work.
-  const sliderRe = /<div\b[^>]*\bclass="work_slider_cms_list[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/;
+  // Inner work slider — extract the single slide template inside
+  // .work_slider_cms_list, then replace the list's children with one rendered
+  // slide per referenced work. The match is anchored on the `.drag-indicator`
+  // sibling so we capture the FULL slide (which contains multiple inner
+  // </div></div> pairs around .vimeo-url + .vimeo-shell) instead of stopping
+  // at the first balanced-looking pair and leaving the slide unclosed. An
+  // unclosed slide makes every subsequent slide get nested inside the previous
+  // one, which breaks Swiper layout and tanks the video aspect ratio.
+  // The template's tail is `</slide></list></wrap><drag-indicator>`, so the
+  // sentinel needs *two* </div> before the drag-indicator: one for list close
+  // and one for wrap close. That makes the non-greedy capture stop right
+  // after </slide>, so each rendered slide includes only its own closing
+  // tag instead of also dragging the list-close along (which would make
+  // every slide after the first a sibling of the list, not a child).
+  const sliderRe = /(<div\b[^>]*\bclass="work_slider_cms_list[^"]*"[^>]*>)([\s\S]*?)(<\/div>\s*<\/div>\s*<div\b[^>]*\bclass="drag-indicator)/;
   const sliderMatch = html.match(sliderRe);
   if (sliderMatch) {
-    const slideTemplate = sliderMatch[1].trim();
+    const slideTemplate = sliderMatch[2].trim();
     const refs = (ed.referencingWork || []).map(id => worksById.get(id)).filter(Boolean);
     const slidesHtml = refs.length
       ? refs.map(w => renderWorkSlide(slideTemplate, w)).join('\n')
       : '';
-    html = html.replace(sliderRe, (_match) => {
-      // Reconstruct the wrapper with new children.
-      const openMatch = _match.match(/<div\b[^>]*\bclass="work_slider_cms_list[^"]*"[^>]*>/);
-      const open = openMatch[0];
-      return `${open}${slidesHtml}</div></div>`;
-    });
+    html = html.replace(sliderRe, (_, open, _inner, sentinel) => `${open}${slidesHtml}${sentinel}`);
   }
 
   if (ed.workPreviewLoopingGif) {

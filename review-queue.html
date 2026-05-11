@@ -619,9 +619,14 @@
 
       var dlSvg = '<svg viewBox="0 0 12 12" fill="none" stroke="rgb(40,36,36)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.5v7"/><path d="M3 6.5l3 3 3-3"/><path d="M2 10.5h8"/></svg>';
 
+      // Use Frame.io's thumbnail whenever one is provided — that covers videos,
+      // JPEGs, TIFFs, and anything else Frame.io can preview. Fall back to the
+      // NIPC acronym mark only when there's no thumb URL at all. The acronym
+      // reads at thumbnail size; the four-line wordmark we tried first was
+      // illegible at 120x68.
       var thumbHtml = asset.frameioThumbUrl
         ? '<img src="' + asset.frameioThumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
-        : '<video src="video.mp4#t=' + asset.thumbTime + '" muted preload="metadata"></video>';
+        : '<img src="images/nipc-acronym.png" alt="NIPC" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;background:rgb(243,240,237);"/>';
 
       var linkAttrs = asset.frameioUrl
         ? ' target="_blank" rel="noopener" data-external="1"'

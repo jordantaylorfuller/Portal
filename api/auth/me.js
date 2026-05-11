@@ -1,5 +1,6 @@
 const { getAuthUser } = require('../../lib/auth');
 const { adminClient, createClientForUser } = require('../../lib/supabase');
+const { isAdmin: isAdminUser, isStaffEmail } = require('../../lib/admin');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -7,16 +8,63 @@ module.exports = async function handler(req, res) {
   const auth = await getAuthUser(req);
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { data: profile } = await adminClient
+  let { data: profile } = await adminClient
     .from('user_profiles')
     .select('display_name, initials, role')
     .eq('id', auth.id)
-    .single();
+    .maybeSingle();
 
-  // Use a user-scoped client for the projects join so RLS filters out
-  // Internal projects for non-admins. The "Admins read all projects" and
-  // "Members read visible projects" policies (Phase 1 migration) are the
-  // single source of truth for visibility — service-role queries bypass them.
+  // Self-heal: any signed-in @nipc.tv user is staff. Promote the row so
+  // Supabase RLS policies that check user_profiles.role see them as admin too.
+  if (profile && isStaffEmail(auth.email) && profile.role !== 'admin') {
+    await adminClient
+      .from('user_profiles')
+      .update({ role: 'admin' })
+      .eq('id', auth.id);
+    profile = { ...profile, role: 'admin' };
+  }
+
+  const isAdmin = isAdminUser(profile, auth.email);
+  const projects = isAdmin
+    ? await loadProjectsForAdmin()
+    : await loadProjectsForMember(auth);
+
+  const needsProfile = !profile;
+
+  res.json({
+    email: auth.email,
+    displayName: profile ? profile.display_name : auth.email.split('@')[0],
+    initials: profile ? profile.initials : auth.email.slice(0, 2).toUpperCase(),
+    role: isAdmin ? 'admin' : (profile ? profile.role : 'client'),
+    needsProfile,
+    projects
+  });
+};
+
+// Admins see every active project regardless of project_members rows.
+// Archived projects are hidden here; they're managed in /admin-frameio.html.
+// Unseen counts are zeroed because admins aren't the audience for room badges.
+async function loadProjectsForAdmin() {
+  const { data, error } = await adminClient
+    .from('projects')
+    .select('id, name, display_name, status')
+    .eq('status', 'active')
+    .order('display_name', { ascending: true, nullsFirst: false });
+  if (error) {
+    console.error('admin projects fetch failed:', error.message);
+    return [];
+  }
+  return (data || []).map(p => ({
+    id: p.id,
+    name: p.display_name || p.name,
+    status: 'active',
+    role: 'admin',
+    unseen: { review: 0, delivery: 0 }
+  }));
+}
+
+// Clients see only active projects they're members of, filtered by RLS.
+async function loadProjectsForMember(auth) {
   const userClient = createClientForUser(auth.token);
   const { data: memberships } = await userClient
     .from('project_members')
@@ -24,13 +72,9 @@ module.exports = async function handler(req, res) {
     .eq('user_id', auth.id);
 
   const visibleMemberships = (memberships || [])
-    .filter(m => m.projects && m.projects.status !== 'archived');
+    .filter(m => m.projects && m.projects.status === 'active');
 
   const projectIds = visibleMemberships.map(m => m.projects.id);
-
-  // Per-project unseen counts for the Review and Delivery room badges.
-  // Computed with service-role so we can count rows in a single round trip;
-  // RLS visibility was already enforced on the membership join above.
   const unseenByProject = {};
   for (const id of projectIds) unseenByProject[id] = { review: 0, delivery: 0 };
 
@@ -69,22 +113,11 @@ module.exports = async function handler(req, res) {
     }));
   }
 
-  const projects = visibleMemberships.map(m => ({
+  return visibleMemberships.map(m => ({
     id: m.projects.id,
     name: m.projects.display_name || m.projects.name,
     status: m.projects.status,
     role: m.role,
     unseen: unseenByProject[m.projects.id] || { review: 0, delivery: 0 }
   }));
-
-  const needsProfile = !profile;
-
-  res.json({
-    email: auth.email,
-    displayName: profile ? profile.display_name : auth.email.split('@')[0],
-    initials: profile ? profile.initials : auth.email.slice(0, 2).toUpperCase(),
-    role: profile ? profile.role : 'client',
-    needsProfile,
-    projects
-  });
-};
+}
