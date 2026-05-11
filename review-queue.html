@@ -619,9 +619,17 @@
 
       var dlSvg = '<svg viewBox="0 0 12 12" fill="none" stroke="rgb(40,36,36)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.5v7"/><path d="M3 6.5l3 3 3-3"/><path d="M2 10.5h8"/></svg>';
 
-      var thumbHtml = asset.frameioThumbUrl
+      // Frame.io auto-generates a generic "no preview available" thumbnail for
+      // non-video assets (project files, archives, etc.) — currently a forest
+      // frame from their template video. Show the NIPC logo instead for any
+      // asset whose filename doesn't have a recognized video extension, and
+      // also as the fallback when no thumb URL exists at all.
+      var titleLc = (asset.title || '').toLowerCase();
+      var isVideoFile = /\.(mp4|mov|m4v|webm|mkv|avi|prores|mxf)(\?|$)/.test(titleLc);
+      var logoImg = '<img src="images/nipc-placeholder.png" alt="" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;background:rgb(243,240,237);padding:8px;box-sizing:border-box;"/>';
+      var thumbHtml = (isVideoFile && asset.frameioThumbUrl)
         ? '<img src="' + asset.frameioThumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
-        : '<video src="video.mp4#t=' + asset.thumbTime + '" muted preload="metadata"></video>';
+        : logoImg;
 
       var linkAttrs = asset.frameioUrl
         ? ' target="_blank" rel="noopener" data-external="1"'
