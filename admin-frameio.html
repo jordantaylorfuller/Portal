@@ -279,7 +279,7 @@
         });
         if (r.ok) {
           const me = await r.json();
-          isAdmin = !!me.isAdmin;
+          isAdmin = me.role === 'admin';
         }
       } catch (e) { /* fall through */ }
       if (!isAdmin) {
