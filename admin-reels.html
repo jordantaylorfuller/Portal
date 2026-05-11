@@ -38,7 +38,10 @@
       font-size: 11px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
+      color: inherit;
+      text-decoration: none;
     }
+    .topbar-mark:hover { opacity: 0.7; }
     .topbar-mark .dot {
       display: inline-block; width: 6px; height: 6px; border-radius: 50%;
       background: rgb(220, 40, 40); margin-right: 10px; vertical-align: middle;
@@ -118,6 +121,12 @@
       color: rgba(255, 255, 255, 0.4);
     }
     .btn-quiet:hover { color: #fff; }
+    .btn-quiet.btn-cog {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 4px; line-height: 0; cursor: pointer;
+    }
+    .btn-quiet.btn-cog svg { display: block; }
+    a.btn-quiet { text-decoration: none; display: inline-block; }
     .btn-danger { color: rgb(220, 80, 80); }
     .btn-danger:hover { color: rgb(255, 100, 100); }
 
@@ -140,6 +149,7 @@
     .pill.draft { color: rgba(255,255,255,0.5); }
     .pill.published { color: rgb(80, 220, 120); border-color: rgba(80,220,120,0.4); }
     .pill.archived { color: rgba(255,255,255,0.3); }
+    .pill.category { color: rgb(180, 160, 240); border-color: rgba(180,160,240,0.4); }
     .row-counts { font-size: 11px; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; }
     .row-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
@@ -415,11 +425,61 @@
     .frame-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .frame-time { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.6); font-size: 11px; }
     .modal-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+    /* Crop pane — 16:9 viewport over the source image; user drags to pan the
+       focal point and uses the slider / wheel to zoom 1.0–3.0×. */
+    .crop-stage {
+      width: 100%; aspect-ratio: 16/9; margin-bottom: 14px;
+      background: #000;
+      position: relative; overflow: hidden;
+      cursor: grab; user-select: none;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .crop-stage.dragging { cursor: grabbing; }
+    .crop-stage-img {
+      position: absolute; left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: #000;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      will-change: background-position, background-size;
+    }
+    .crop-stage-grid {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to right,  transparent 33.33%, rgba(255,255,255,0.18) 33.33%, rgba(255,255,255,0.18) 33.5%, transparent 33.5%, transparent 66.66%, rgba(255,255,255,0.18) 66.66%, rgba(255,255,255,0.18) 66.83%, transparent 66.83%),
+        linear-gradient(to bottom, transparent 33.33%, rgba(255,255,255,0.18) 33.33%, rgba(255,255,255,0.18) 33.5%, transparent 33.5%, transparent 66.66%, rgba(255,255,255,0.18) 66.66%, rgba(255,255,255,0.18) 66.83%, transparent 66.83%);
+      opacity: 0; transition: opacity 150ms ease;
+    }
+    .crop-stage:hover .crop-stage-grid,
+    .crop-stage.dragging .crop-stage-grid { opacity: 1; }
+    .crop-controls {
+      display: grid; grid-template-columns: 60px 1fr 50px; gap: 12px;
+      align-items: center; margin-bottom: 10px;
+      font-size: 11px; color: rgba(255,255,255,0.6);
+    }
+    .crop-controls input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 4px;
+      background: rgba(255,255,255,0.12); border-radius: 2px; outline: none;
+    }
+    .crop-controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: rgb(220, 40, 40); cursor: pointer; border: 0;
+    }
+    .crop-controls input[type="range"]::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgb(220, 40, 40); cursor: pointer; border: 0;
+    }
+    .crop-controls-row { display: flex; gap: 24px; margin-bottom: 14px; }
+    .crop-coord { font-variant-numeric: tabular-nums; }
+    .crop-hint { font-size: 10px; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+    .crop-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   </style>
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-mark"><span class="dot"></span>NIPC // Admin</div>
+    <a href="/" class="topbar-mark"><span class="dot"></span>NIPC // Admin</a>
     <div class="topbar-actions">
       <button class="topbar-link" id="back-link" style="display:none">&larr; Back to list</button>
       <a href="/" class="topbar-link">Clients</a>
@@ -447,6 +507,7 @@
       <div class="modal-tabs">
         <button class="modal-tab active" data-tab="frame">Pick frame</button>
         <button class="modal-tab" data-tab="upload">Upload image</button>
+        <button class="modal-tab" data-tab="crop">Crop &amp; scale</button>
       </div>
 
       <div class="modal-pane active" data-pane="frame">
@@ -464,6 +525,26 @@
           <div class="dropzone-sub">.jpg / .png / .webp</div>
           <button type="button" class="dropzone-btn" id="poster-pick" style="margin-top:14px;">Choose Image</button>
           <div class="frame-time" id="poster-upload-status" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="modal-pane" data-pane="crop">
+        <div class="crop-stage" id="crop-stage">
+          <div class="crop-stage-img" id="crop-stage-img"></div>
+          <div class="crop-stage-grid"></div>
+        </div>
+        <div class="crop-controls">
+          <div class="crop-hint">Zoom</div>
+          <input type="range" id="crop-zoom" min="100" max="300" step="1" value="100"/>
+          <div class="crop-coord" id="crop-zoom-val">1.00×</div>
+        </div>
+        <div class="crop-controls-row">
+          <div class="crop-hint">Focal <span class="crop-coord" id="crop-focal-val">50% &middot; 50%</span></div>
+          <div class="crop-hint" style="margin-left:auto;">Drag the image to pan &middot; scroll to zoom</div>
+        </div>
+        <div class="crop-actions">
+          <button class="btn-quiet" id="crop-reset">Reset crop</button>
+          <button class="btn btn-primary" id="crop-save">Save crop</button>
         </div>
       </div>
 
@@ -527,15 +608,33 @@
       return location.origin + '/reel.html?s=' + encodeURIComponent(slug);
     }
 
+    // Mirrors reel.html — category reels are virtual: their items come from
+    // /home/data/works.json filtered by typeOfWork, not from the database.
+    var HAIM_ID = '53569abe-003d-46d1-8a5f-593f06b6fa18';
+    var CATEGORY_REELS = [
+      { slug: 'film',        title: 'Film',        filter: function(w){ return w.typeOfWork === 'Trailer'; } },
+      { slug: 'commercial',  title: 'Commercial',  filter: function(w){ return w.typeOfWork === 'Commercial' && w.id !== HAIM_ID; } },
+      { slug: 'music-video', title: 'Music Video', filter: function(w){ return w.id === HAIM_ID; } },
+      { slug: 'documentary', title: 'Documentary', filter: function(){ return false; } }
+    ];
+
+    async function fetchCategoryReels() {
+      try {
+        var works = await fetch('/home/data/works.json').then(function(r){ return r.json(); });
+        var items = works.items || [];
+        return CATEGORY_REELS.map(function(c){
+          var count = items.filter(c.filter).length;
+          return { slug: c.slug, title: c.title, count: count, isCategory: true };
+        });
+      } catch (e) {
+        return CATEGORY_REELS.map(function(c){
+          return { slug: c.slug, title: c.title, count: 0, isCategory: true };
+        });
+      }
+    }
+
     function adminPosterFor(a) {
-      // Best-effort thumbnail for the admin row. Custom uploads need a presign — skip and fall back to Mux.
-      if (a.poster_time != null && a.mux_playback_id) {
-        return 'https://image.mux.com/' + a.mux_playback_id + '/thumbnail.jpg?width=320&time=' + a.poster_time;
-      }
-      if (a.mux_playback_id) {
-        return 'https://image.mux.com/' + a.mux_playback_id + '/thumbnail.jpg?width=320';
-      }
-      return '';
+      return a.poster || '';
     }
     function fmtSec(s) {
       if (s == null || isNaN(s)) return '';
@@ -551,48 +650,61 @@
       if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
       $main.innerHTML = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div><div class="loader"><div class="loader-text">Loading</div><div class="loader-bar"></div></div>';
 
-      var data;
-      try { data = await api('/api/reels/list'); } catch (e) { return $main.innerHTML = '<div class="gate-msg">' + escapeHtml(e.message) + '</div>'; }
+      var data, categories;
+      try {
+        var results = await Promise.all([api('/api/reels/list'), fetchCategoryReels()]);
+        data = results[0]; categories = results[1];
+      } catch (e) { return $main.innerHTML = '<div class="gate-msg">' + escapeHtml(e.message) + '</div>'; }
       var reels = data.reels || [];
+      var total = reels.length + categories.length;
 
       var html = '<div class="page-title">Reels</div><div class="page-sub">Curated work for prospective clients</div>';
       html += '<div class="toolbar">';
-      html += '  <div class="row-sub">' + reels.length + ' reel' + (reels.length === 1 ? '' : 's') + '</div>';
+      html += '  <div class="row-sub">' + total + ' reel' + (total === 1 ? '' : 's') + '</div>';
       html += '  <div style="display:flex; gap: 12px;">';
-      html += '    <button class="btn" id="sync-all-btn">Sync from bucket</button>';
       html += '    <button class="btn btn-primary" id="new-btn">+ New Reel</button>';
       html += '  </div>';
       html += '</div>';
 
-      if (!reels.length) {
-        html += '<div class="empty"><div class="empty-title">No reels yet</div><div class="empty-msg">Create one or drop a folder into the Storj bucket.</div></div>';
-      } else {
-        html += '<div class="list">';
-        for (var i = 0; i < reels.length; i++) {
-          var r = reels[i];
-          html += '<div class="list-row" data-id="' + r.id + '">';
-          html += '  <div><div class="row-title">' + escapeHtml(r.title) + '</div><div class="row-sub">' + (r.auto_created ? 'Auto-discovered &middot; ' : '') + escapeHtml(r.s3_prefix) + '</div></div>';
-          html += '  <div><span class="pill ' + escapeHtml(r.status) + '">' + escapeHtml(r.status) + '</span></div>';
-          html += '  <div class="row-counts">' + r.counts.ready + ' / ' + r.counts.total + ' ready</div>';
-          html += '  <div class="row-actions">';
-          html += '    <button class="btn-quiet" data-act="copy" data-slug="' + escapeHtml(r.slug) + '">Copy link</button>';
-          html += '    <button class="btn-quiet" data-act="open" data-id="' + r.id + '">Open &rarr;</button>';
-          html += '  </div>';
-          html += '</div>';
-        }
+      html += '<div class="list">';
+      for (var i = 0; i < reels.length; i++) {
+        var r = reels[i];
+        html += '<div class="list-row" data-id="' + r.id + '">';
+        html += '  <div><div class="row-title">' + escapeHtml(r.title) + '</div><div class="row-sub">' + (r.auto_created ? 'Auto-discovered &middot; ' : '') + escapeHtml(r.s3_prefix) + '</div></div>';
+        html += '  <div><span class="pill ' + escapeHtml(r.status) + '">' + escapeHtml(r.status) + '</span></div>';
+        html += '  <div class="row-counts">' + r.counts.ready + ' / ' + r.counts.total + ' ready</div>';
+        html += '  <div class="row-actions">';
+        html += '    <button class="btn-quiet" data-act="copy" data-slug="' + escapeHtml(r.slug) + '">Copy link</button>';
+        html += '    <a class="btn-quiet" data-act="open" href="' + escapeHtml(shareUrl(r.slug)) + '" target="_blank" rel="noopener">Open &rarr;</a>';
+        html += '    <button class="btn-quiet btn-cog" data-act="settings" data-id="' + r.id + '" aria-label="Reel settings" title="Settings">';
+        html += '      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+        html += '    </button>';
+        html += '  </div>';
         html += '</div>';
       }
+      for (var j = 0; j < categories.length; j++) {
+        var c = categories[j];
+        html += '<div class="list-row" data-slug="' + escapeHtml(c.slug) + '">';
+        html += '  <div><div class="row-title">' + escapeHtml(c.title) + '</div><div class="row-sub">Category &middot; works.json</div></div>';
+        html += '  <div><span class="pill category">category</span></div>';
+        html += '  <div class="row-counts">' + c.count + ' item' + (c.count === 1 ? '' : 's') + '</div>';
+        html += '  <div class="row-actions">';
+        html += '    <button class="btn-quiet" data-act="copy" data-slug="' + escapeHtml(c.slug) + '">Copy link</button>';
+        html += '    <a class="btn-quiet" data-act="open" href="' + escapeHtml(shareUrl(c.slug)) + '" target="_blank" rel="noopener">Open &rarr;</a>';
+        html += '  </div>';
+        html += '</div>';
+      }
+      html += '</div>';
       $main.innerHTML = html;
 
       document.getElementById('new-btn').addEventListener('click', onNewReel);
-      document.getElementById('sync-all-btn').addEventListener('click', onSyncAll);
       $main.querySelectorAll('[data-act="copy"]').forEach(function(b){
         b.addEventListener('click', function(){
           navigator.clipboard.writeText(shareUrl(b.dataset.slug));
           toast('Share link copied');
         });
       });
-      $main.querySelectorAll('[data-act="open"]').forEach(function(b){
+      $main.querySelectorAll('[data-act="settings"]').forEach(function(b){
         b.addEventListener('click', function(){ location.hash = '#/reel/' + b.dataset.id; });
       });
     }
@@ -605,18 +717,6 @@
         location.hash = '#/reel/' + r.reel.id;
       } catch (e) { toast('Error: ' + e.message); }
     }
-
-    async function onSyncAll() {
-      toast('Scanning bucket.');
-      try {
-        var r = await api('/api/reels/sync-all', { method: 'POST' });
-        var added = (r.reels || []).reduce(function(s, x){ return s + (x.added || []).length; }, 0);
-        var disc = (r.discovered || []).length;
-        toast('Synced: ' + disc + ' new reel(s), ' + added + ' new asset(s)');
-        renderList();
-      } catch (e) { toast('Sync error: ' + e.message); }
-    }
-
 
     // ── Editor view ──
     async function renderEditor(reelId) {
@@ -650,17 +750,13 @@
     }
 
     async function fetchAssets(reelId) {
-      // Use Supabase client with the user's JWT — RLS lets admins read reel_assets
-      var session = (await sb.auth.getSession()).data.session;
-      var sbAuthed = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-        global: { headers: { Authorization: 'Bearer ' + session.access_token } }
-      });
-      var { data, error } = await sbAuthed.from('reel_assets')
-        .select('id, s3_key, mux_playback_id, title, duration_seconds, sort_order, status')
-        .eq('reel_id', reelId)
-        .order('sort_order', { ascending: true });
-      if (error) { toast('Asset query: ' + error.message); return []; }
-      return data || [];
+      try {
+        var data = await api('/api/reels/admin-assets?reel_id=' + encodeURIComponent(reelId));
+        return data.assets || [];
+      } catch (e) {
+        toast('Asset query: ' + e.message);
+        return [];
+      }
     }
 
     function drawEditor(reel, assets, isUpdate) {
@@ -712,9 +808,6 @@
           html += '</div>';
         });
       }
-      html += '  </div>';
-      html += '  <div style="display:flex; justify-content:flex-end; margin-top: 16px;">';
-      html += '    <button class="btn-quiet" id="sync-this">Sync from bucket</button>';
       html += '  </div>';
       html += '</div>';
 
@@ -786,12 +879,6 @@
             toast('Renamed');
           } catch (e) { toast('Rename failed: ' + e.message); }
         });
-      });
-
-      document.getElementById('sync-this').addEventListener('click', async function(){
-        toast('Scanning.');
-        try { await api('/api/reels/sync', { method: 'POST', body: JSON.stringify({ reel_id: reel.id }) }); renderEditor(reel.id); }
-        catch (e) { toast('Sync failed: ' + e.message); }
       });
 
       // Drag-and-drop + Choose File button
@@ -940,6 +1027,9 @@
       document.getElementById('poster-file').value = '';
       document.getElementById('poster-upload-status').textContent = '';
 
+      // Hydrate crop pane from the asset's saved transform.
+      loadCropFromAsset(asset);
+
       posterModal.classList.add('open');
     }
 
@@ -1040,13 +1130,130 @@
       try {
         await api('/api/reels/update-asset', {
           method: 'POST',
-          body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_url: null, poster_time: null })
+          body: JSON.stringify({
+            reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id,
+            poster_url: null, poster_time: null,
+            poster_focal_x: 50, poster_focal_y: 50, poster_zoom: 1
+          })
         });
         toast('Reset to default poster');
         var reelId = posterCtx.reel.id;
         closePosterModal();
         renderEditor(reelId);
       } catch (e) { toast('Failed: ' + e.message); }
+    });
+
+    // ── Crop pane ──
+    // Lets the admin re-frame the chosen poster source (Mux frame OR uploaded
+    // image) inside a 16:9 viewport. Pure CSS transform — the source isn't
+    // re-encoded. Persists focal_x/focal_y/zoom on reel_assets.
+    var cropState = { focalX: 50, focalY: 50, zoom: 1 };
+    var cropStage    = document.getElementById('crop-stage');
+    var cropStageImg = document.getElementById('crop-stage-img');
+    var cropZoomEl   = document.getElementById('crop-zoom');
+    var cropZoomVal  = document.getElementById('crop-zoom-val');
+    var cropFocalVal = document.getElementById('crop-focal-val');
+
+    function applyCropToEl(el, state) {
+      // Pan with background-position; zoom with a CSS scale pivoted on the
+      // same focal point so magnifying always grows the image outward from
+      // the point the user said matters most. cover semantics keep the
+      // short axis filling the viewport with no letterboxing.
+      el.style.backgroundSize     = 'cover';
+      el.style.backgroundPosition = state.focalX + '% ' + state.focalY + '%';
+      el.style.transformOrigin    = state.focalX + '% ' + state.focalY + '%';
+      el.style.transform          = state.zoom === 1 ? 'none' : 'scale(' + state.zoom + ')';
+    }
+
+    function loadCropFromAsset(asset) {
+      cropState.focalX = asset.poster_focal_x != null ? Number(asset.poster_focal_x) : 50;
+      cropState.focalY = asset.poster_focal_y != null ? Number(asset.poster_focal_y) : 50;
+      cropState.zoom   = asset.poster_zoom    != null ? Number(asset.poster_zoom)    : 1;
+      cropStageImg.style.backgroundImage = 'url(' + adminPosterFor(asset) + ')';
+      cropZoomEl.value = Math.round(cropState.zoom * 100);
+      renderCropUi();
+    }
+
+    function renderCropUi() {
+      applyCropToEl(cropStageImg, cropState);
+      cropZoomVal.textContent  = cropState.zoom.toFixed(2) + '×';
+      cropFocalVal.textContent = Math.round(cropState.focalX) + '% · ' + Math.round(cropState.focalY) + '%';
+    }
+
+    // Mouse / touch pan: translate movement into focal-point shifts. The
+    // effective movement scale depends on zoom — at higher zoom small
+    // gestures should move the focal point less, so the pan feels 1:1
+    // with what the user sees.
+    var dragStart = null;
+    function pointerXY(e) {
+      if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+    cropStage.addEventListener('mousedown', function(e){ e.preventDefault(); startDrag(e); });
+    cropStage.addEventListener('touchstart', function(e){ startDrag(e); }, { passive: true });
+    function startDrag(e) {
+      var p = pointerXY(e);
+      dragStart = { x: p.x, y: p.y, fx: cropState.focalX, fy: cropState.focalY };
+      cropStage.classList.add('dragging');
+    }
+    function onMove(e) {
+      if (!dragStart) return;
+      var rect = cropStage.getBoundingClientRect();
+      var p = pointerXY(e);
+      // Movement in % of the stage divided by zoom (so at higher zoom the
+      // pan tracks the cursor in source-image space, not stage space).
+      var dx = (p.x - dragStart.x) / rect.width  / cropState.zoom * 100;
+      var dy = (p.y - dragStart.y) / rect.height / cropState.zoom * 100;
+      cropState.focalX = Math.max(0, Math.min(100, dragStart.fx - dx));
+      cropState.focalY = Math.max(0, Math.min(100, dragStart.fy - dy));
+      renderCropUi();
+    }
+    function endDrag() { dragStart = null; cropStage.classList.remove('dragging'); }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: true });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('touchcancel', endDrag);
+
+    // Wheel-to-zoom — keeps the same point under the cursor by inverting
+    // the focal-point shift implied by the zoom change.
+    cropStage.addEventListener('wheel', function(e){
+      e.preventDefault();
+      var delta = -e.deltaY / 400;  // ~3 turns to traverse zoom range
+      var next = Math.max(1, Math.min(3, cropState.zoom + delta));
+      cropState.zoom = next;
+      cropZoomEl.value = Math.round(next * 100);
+      renderCropUi();
+    }, { passive: false });
+
+    cropZoomEl.addEventListener('input', function(){
+      cropState.zoom = Number(cropZoomEl.value) / 100;
+      renderCropUi();
+    });
+
+    document.getElementById('crop-reset').addEventListener('click', function(){
+      cropState.focalX = 50; cropState.focalY = 50; cropState.zoom = 1;
+      cropZoomEl.value = 100;
+      renderCropUi();
+    });
+
+    document.getElementById('crop-save').addEventListener('click', async function(){
+      if (!posterCtx) return;
+      try {
+        await api('/api/reels/update-asset', {
+          method: 'POST',
+          body: JSON.stringify({
+            reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id,
+            poster_focal_x: Math.round(cropState.focalX * 10) / 10,
+            poster_focal_y: Math.round(cropState.focalY * 10) / 10,
+            poster_zoom:    Math.round(cropState.zoom   * 100) / 100,
+          })
+        });
+        toast('Crop saved');
+        var reelId = posterCtx.reel.id;
+        closePosterModal();
+        renderEditor(reelId);
+      } catch (e) { toast('Save failed: ' + e.message); }
     });
 
     // ── Router ──
