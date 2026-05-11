@@ -209,8 +209,12 @@ function setBindByClass(html, cls, value) {
 }
 
 function setHrefByClass(html, cls, value) {
-  const re = new RegExp(`(<a\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bhref=")([^"]*)(")`);
-  return html.replace(re, (_, lead, _href, tail) => `${lead}${escape(value)}${tail}`);
+  // Find the <a class="...cls..."> tag (either attribute order), then rewrite
+  // its href in-place. The previous single-regex required class to come
+  // before href in source order; Webflow's exports put href first, so the
+  // match silently failed and every visit-video link stayed as `#`.
+  const tagRe = new RegExp(`<a\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*>`);
+  return html.replace(tagRe, (tag) => tag.replace(/\bhref="[^"]*"/, `href="${escape(value)}"`));
 }
 
 function setImgSrcByClass(html, cls, src, alt) {
