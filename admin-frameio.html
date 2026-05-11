@@ -25,7 +25,8 @@
       padding: 22px 32px; display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    .topbar-mark { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+    .topbar-mark { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: inherit; text-decoration: none; }
+    .topbar-mark:hover { opacity: 0.7; }
     .topbar-mark .dot { display: inline-block; width:6px; height:6px; border-radius:50%; background: rgb(220,40,40); margin-right:10px; vertical-align:middle; }
     .topbar-actions { display: flex; gap: 16px; align-items: center; }
     .topbar-link { background: none; border: none; padding: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 150ms; }
@@ -105,6 +106,39 @@
     th { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
     td.muted { color: rgba(255,255,255,0.4); }
 
+    .projects-section { margin-top: 14px; }
+    .projects-section + .projects-section { margin-top: 18px; }
+    .projects-section > summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      user-select: none;
+    }
+    .projects-section > summary::-webkit-details-marker { display: none; }
+    .projects-section > summary::marker { content: ''; }
+    .projects-section > summary:hover { color: #fff; }
+    .projects-section > summary .twirl {
+      display: inline-block;
+      width: 10px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      transition: transform 120ms ease;
+    }
+    .projects-section[open] > summary .twirl { transform: rotate(90deg); }
+    .projects-section > summary .count {
+      margin-left: auto;
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.1em;
+    }
+
     .empty { color: rgba(255,255,255,0.4); text-align: center; padding: 36px 0; font-size: 12px; }
     .login { max-width: 380px; margin: 80px auto; text-align: center; }
     .login input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #fff; font: inherit; margin-bottom: 12px; }
@@ -179,7 +213,7 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-mark"><span class="dot"></span>NIPC | Admin</div>
+    <a href="/" class="topbar-mark"><span class="dot"></span>NIPC // Admin</a>
     <div class="topbar-actions">
       <a href="/" class="topbar-link">Clients</a>
     </div>
@@ -193,7 +227,7 @@
 
   <div class="container" id="root">
     <div class="page-title">Frame.io</div>
-    <div class="page-sub">Source of truth for projects</div>
+    <div class="page-sub">Client portal integration</div>
     <div id="loading" class="empty">Loading…</div>
   </div>
 
@@ -343,7 +377,7 @@
         `;
       }
 
-      const rows = projects.map(p => {
+      function renderRow(p) {
         const linked = !!p.frameio_project_id;
         const archived = p.status === 'archived';
         const visible = !!p.is_visible_to_clients;
@@ -377,18 +411,39 @@
             </td>
           </tr>
         `;
-      }).join('');
+      }
+
+      const activeProjects = projects.filter(p => p.status !== 'archived');
+      const archivedProjects = projects.filter(p => p.status === 'archived');
+
+      function renderSection(label, items, openByDefault) {
+        if (!items.length) return '';
+        const tableHead = `
+          <thead>
+            <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th><th></th></tr>
+          </thead>
+        `;
+        return `
+          <details class="projects-section"${openByDefault ? ' open' : ''}>
+            <summary>
+              <span class="twirl">&#9656;</span>
+              <span>${label}</span>
+              <span class="count">${items.length}</span>
+            </summary>
+            <table>
+              ${tableHead}
+              <tbody>${items.map(renderRow).join('')}</tbody>
+            </table>
+          </details>
+        `;
+      }
 
       return `
         <div class="card">
           <h2>Projects</h2>
           ${headerActions}
-          <table>
-            <thead>
-              <tr><th>Project</th><th>Status</th><th>Frame.io ID</th><th></th><th></th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+          ${renderSection('Active', activeProjects, true)}
+          ${renderSection('Archive', archivedProjects, false)}
         </div>
       `;
     }
@@ -699,7 +754,7 @@
       const flash = readUrlFlash();
       document.getElementById('root').innerHTML = `
         <div class="page-title">Frame.io</div>
-        <div class="page-sub">Source of truth for projects</div>
+        <div class="page-sub">Client portal integration</div>
         ${flash}
         ${renderConnectionCard()}
         ${renderProjectsList()}

@@ -22,6 +22,11 @@
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
   <script>!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js"+t+"ix3",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  <!-- Set <html data-route="..."> before body parse so the .landing-page CSS
+       rule below can apply the .slid state at first paint for /clients/* URLs.
+       The router (applyRouteState) keeps this attribute in sync for in-app
+       navigation; this inline script is just the cold-start path. -->
+  <script>document.documentElement.dataset.route=location.pathname.indexOf('/clients')===0?'clients':'landing';</script>
   <script>
     // Insert a master gain in front of every AudioContext destination so we can fade
     // the Scrubber's synthesized audio (Web Audio oscillators -> destination) in/out
@@ -115,7 +120,52 @@
       align-items: center;
       justify-content: center;
       z-index: 1;
-      transition: background-color 700ms ease;
+      transform: translateX(0);
+      transition: background-color 700ms ease,
+                  transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Reverse of the /home → /clients slide. Pressing BACK on the login screen
+       translates the red login pane to the right, revealing the cream-coloured
+       .home-return-preview underneath, then navigates to /home. */
+    body.is-returning-home .login-screen {
+      transform: translateX(calc(100% + 80px));
+      box-shadow: -20px 0 60px rgba(0, 0, 0, 0.4),
+                  -8px 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .home-return-preview {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-color: #f3f0ed;
+      font-family: 'DM Mono', monospace;
+      color: #282424;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    body.is-returning-home .home-return-preview { visibility: visible; }
+    .home-return-preview-clients {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.55px;
+      text-transform: uppercase;
+      color: #282424;
+    }
+    .home-return-preview-wordmark {
+      position: absolute;
+      top: 50%;
+      left: 12%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: 0.5px;
+      color: #dc2828;
+      text-transform: uppercase;
     }
 
     .login-screen.session-entering {
@@ -387,7 +437,7 @@
     }
 
     .project-switcher.open .project-dropdown {
-      max-height: 300px;
+      max-height: 1200px;
       opacity: 1;
       pointer-events: auto;
     }
@@ -2067,6 +2117,19 @@
       transform: translateX(calc(-100% - 80px));
     }
 
+    /* Apply the slid state during initial parse for /clients/* deep-links and
+       cross-document arrivals from /home. The data-route attribute is set by
+       a blocking script in <head> before the body parses, so the cream
+       landing-page never paints over the red login screen for one frame
+       before the IIFE at the end of <body> runs and applies .slid. The
+       transition is suppressed for this initial state so there's no slide
+       animation on first paint — the existing JS state machine handles
+       animated transitions for in-app navigation. */
+    html[data-route="clients"] .landing-page {
+      transform: translateX(calc(-100% - 80px));
+      transition: none;
+    }
+
     .container {
       display: flex;
       flex-direction: column;
@@ -2244,6 +2307,13 @@
   </style>
 </head>
 <body>
+
+  <!-- Home-return preview: cream-coloured snapshot of the /home page revealed
+       behind the login screen during the BACK slide-right animation. -->
+  <div class="home-return-preview" aria-hidden="true">
+    <span class="home-return-preview-clients">Clients</span>
+    <div class="home-return-preview-wordmark">New international<br/>picture company</div>
+  </div>
 
   <!-- Login screen (behind) -->
   <div class="login-screen">
@@ -2645,6 +2715,9 @@
 
 	    function applyRouteState(path, opts) {
 	      opts = opts || {};
+	      // Mirrors the inline head script — keeps the CSS rule in sync when
+	      // routes change without a page reload (popstate, Router.go).
+	      document.documentElement.dataset.route = path.indexOf('/clients') === 0 ? 'clients' : 'landing';
 	      switch (path) {
 	        case '/clients':                return goToLogin(opts);
 	        case '/clients/check-email':    return goToCheckEmail(opts);
@@ -2656,15 +2729,17 @@
 	    }
 
 	    function snapState(fn) {
-	      var lp = landingPage.style.transition;
-	      var ls = loginScreen.style.transition;
 	      landingPage.style.transition = 'none';
 	      loginScreen.style.transition = 'none';
 	      fn();
 	      void landingPage.offsetHeight;
 	      setTimeout(function() {
-	        landingPage.style.transition = lp;
-	        loginScreen.style.transition = ls;
+	        // Always clear inline transition rather than restoring a saved
+	        // value — back-to-back snapState calls (e.g. the sync pre-snap
+	        // IIFE followed by the async auth IIFE) would otherwise save
+	        // 'none' and lock the inline override in place forever.
+	        landingPage.style.transition = '';
+	        loginScreen.style.transition = '';
 	      }, 50);
 	    }
 
@@ -3008,6 +3083,10 @@
 	      schedulerProjectMessage.classList.remove('warning');
 	    }
 
+	    // Per-project unseen counts keyed by project id, populated by /api/auth/me
+	    // and updated optimistically when the user enters a room.
+	    var unseenByProject = {};
+
 	    function setCurrentProject(project) {
 	      currentProject = project ? {
 	        id: project.id || '',
@@ -3024,6 +3103,7 @@
 	          el.classList.toggle('active', !!(currentProject && el.dataset.id === currentProject.id));
 	        });
 	      }
+	      updateRoomBadges(currentProject ? unseenByProject[currentProject.id] : null);
 	      updateSchedulerProjectContext();
 	      resetSchedulerSelection();
 	      if (schedulerOpen) {
@@ -3210,7 +3290,9 @@
         badge.setAttribute('data-count', count);
         badge.textContent = '';
         if (count > 0) {
-          badge.textContent = count;
+          // Cap the visible badge at 9+; the 14×14 circle can't fit three
+          // glyphs. Tooltip still shows the exact count.
+          badge.textContent = count > 9 ? '9+' : count;
           var tooltip = document.createElement('span');
           tooltip.className = 'room-badge-tooltip';
           tooltip.textContent = count + (count === 1 ? ' update' : ' updates') + ' since last login';
@@ -3249,9 +3331,28 @@
       }
     }
 
+    // Mark a room as seen — clears the badge optimistically and tells the
+    // server to bump the membership's *_seen_at timestamp so the count stays
+    // at zero across reloads. Fire-and-forget; a failed request just leaves
+    // the timestamp stale and the badge will repopulate on the next /me.
+    function markRoomSeen(room) {
+      if (!currentProject || !currentProject.id) return;
+      var pid = currentProject.id;
+      if (unseenByProject[pid]) {
+        unseenByProject[pid][room] = 0;
+        updateRoomBadges(unseenByProject[pid]);
+      }
+      apiCall('/api/projects/' + pid + '/room-seen', {
+        method: 'POST',
+        body: JSON.stringify({ room: room })
+      }).catch(function() { /* badge already cleared locally */ });
+    }
+
     // Review Room button -> fade out, transition background, then navigate
     reviewBtn.addEventListener('click', function(e) {
       e.preventDefault();
+      if (!currentProject || !currentProject.id) return;
+      markRoomSeen('review');
       hideRoomElements();
       roomSelection.classList.add('buttons-faded');
       loginScreen.classList.add('review-entering');
@@ -3260,7 +3361,7 @@
       setTimeout(function() {
         // Absolute path: under /clients/* the rewrite would otherwise
         // re-resolve a relative URL through to /index.html.
-        window.location.href = '/review-queue.html';
+        window.location.href = '/review-queue.html?project=' + encodeURIComponent(currentProject.id);
       }, 800);
     });
 
@@ -3391,19 +3492,26 @@
 
 	    function populateDashboard(me) {
 	      document.getElementById('dev-login').style.display = 'none';
-	      roomWelcomeTitle.textContent = 'Welcome Back, ' + me.displayName + '.';
-	      if (me.projects && me.projects.length > 0) {
-	        var active = me.projects.filter(function(p) { return p.status === 'active'; });
-	        var archived = me.projects.filter(function(p) { return p.status === 'archived'; });
+	      roomWelcomeTitle.textContent = me.displayName ? 'Welcome Back, ' + me.displayName + '.' : 'Welcome Back.';
+	      var projects = me.projects || [];
+	      // Build the per-project unseen map before setCurrentProject runs so
+	      // it picks up the right badge counts on first render.
+	      unseenByProject = {};
+	      projects.forEach(function(p) {
+	        unseenByProject[p.id] = p.unseen || { review: 0, delivery: 0 };
+	      });
+	      var active = projects.filter(function(p) { return p.status === 'active'; });
+	      var archived = projects.filter(function(p) { return p.status === 'archived'; });
+	      // Always render the switcher so admins with no project memberships
+	      // still get the Admin link and Sign Out — and so clients with only
+	      // archived projects can still sign out.
+	      renderProjectSwitcher(active, archived, me.role);
+	      if (active.length > 0) {
 	        var portal = active.find(function(p) { return p.name === 'Portal'; });
-	        var current = portal || active[0] || me.projects[0];
-	        renderProjectSwitcher(active, archived, me.role);
-	        setCurrentProject(current);
+	        setCurrentProject(portal || active[0]);
 	      } else {
 	        setCurrentProject(null);
 	      }
-	      // Update notification badges
-	      updateRoomBadges(me.unseen || { review: 2, delivery: 1 });
 	    }
 
     namePromptForm.addEventListener('submit', async function(e) {
@@ -3632,12 +3740,6 @@
 
         deliveryGroupsContainer.innerHTML = html;
 
-        // Update badge count
-        var badge = document.querySelector('.room-badge[data-room="delivery"]');
-        if (badge) {
-          badge.setAttribute('data-count', resp.total || 0);
-        }
-
         // Stagger group entrance animations
         var groups = deliveryGroupsContainer.querySelectorAll('.delivery-group[data-animate]');
         groups.forEach(function(group, idx) {
@@ -3668,6 +3770,7 @@
 
     deliveryBtn.addEventListener('click', function(e) {
       e.preventDefault();
+      markRoomSeen('delivery');
       Router.go('/clients/delivery');
     });
 
@@ -4168,8 +4271,12 @@
         return;
       }
 
-      // Default: return to landing page.
-      Router.go('/');
+      // Default: leave the clients flow back to the marketing home page,
+      // mirroring the /home → /clients slide. The .home-return-preview layer
+      // sits behind the login screen so the cream backdrop is revealed as the
+      // red pane translates off-screen to the right.
+      document.body.classList.add('is-returning-home');
+      window.setTimeout(function () { window.location.href = '/home'; }, 650);
     });
 
     // Session back button

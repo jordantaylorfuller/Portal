@@ -144,11 +144,13 @@ async function onProjectUpsert(projectId) {
 
 async function onFileMaybeChanged(fileId, event) {
   // Check if we have a row first — avoid hitting Frame.io API for events
-  // about files we don't track.
+  // about files we don't track. Match either the asset-level id (plain files
+  // and stack heads) or the head file id (stacks, where frameio_asset_id
+  // holds the stack id, not the head file id Frame.io fires events against).
   const { data: row } = await adminClient
     .from('review_assets')
     .select('id, project_id')
-    .eq('frameio_asset_id', fileId)
+    .or(`frameio_asset_id.eq.${fileId},frameio_head_file_id.eq.${fileId}`)
     .maybeSingle();
   if (!row) return;
 
@@ -188,10 +190,13 @@ async function bumpComments(event, delta) {
   const fileId = parent && parent.id;
   if (!fileId) return;
 
+  // Comments are scoped to individual files. For stack-tracked rows the
+  // comment's parent id is the head file, not the stack id stored in
+  // frameio_asset_id — match either column.
   const { data: row } = await adminClient
     .from('review_assets')
     .select('id, notes_count')
-    .eq('frameio_asset_id', fileId)
+    .or(`frameio_asset_id.eq.${fileId},frameio_head_file_id.eq.${fileId}`)
     .maybeSingle();
   if (!row) return;
 
@@ -229,11 +234,14 @@ async function onShareEvent(shareId, event) {
   if (!shortUrl || assetIds.length === 0) return;
 
   for (const fileId of assetIds) {
+    // Share asset ids may be stack ids (when we create the share with the
+    // stack as the asset) or file ids (when shares are made externally) —
+    // attach the URL to any row that mirrors either.
     await adminClient.from('review_assets').update({
       frameio_share_id: shareId,
       frameio_review_url: shortUrl,
       updated_at: new Date().toISOString()
-    }).eq('frameio_asset_id', fileId);
+    }).or(`frameio_asset_id.eq.${fileId},frameio_head_file_id.eq.${fileId}`);
   }
 }
 

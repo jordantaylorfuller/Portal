@@ -1,6 +1,6 @@
 const { adminClient } = require('../../lib/supabase');
 
-const DEV_EMAIL = 'jordantaylorfuller@gmail.com';
+const DEV_EMAIL = 'logins@nipc.tv';
 const DEV_PASSWORD = 'dev-login-portal-2026';
 
 module.exports = async function handler(req, res) {

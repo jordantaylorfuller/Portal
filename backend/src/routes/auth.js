@@ -249,7 +249,7 @@ async function sendMagicLinkEmail(email, magicLinkUrl) {
 // POST /api/auth/dev-login
 // Dev-only: instant sign-in as a specific user (no email required)
 router.post('/dev-login', async (req, res) => {
-  const email = 'jordantaylorfuller@gmail.com';
+  const email = 'logins@nipc.tv';
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'magiclink',
