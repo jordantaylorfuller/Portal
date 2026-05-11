@@ -86,18 +86,22 @@ async function fetchFrameioDeliverables(portalProjectId) {
   if (!folder) return null;
 
   const children = await fio.listFolderChildren(accountId, folder.id);
-  const files = children.filter(c => {
-    const type = c.type || (c._type && c._type.toLowerCase());
-    return type === 'file' || type === 'version_stack';
-  });
-  if (!files.length) return [];
+  // Frame.io has shipped both `type` and `_type` discriminators across API
+  // versions; normalise once so the version_stack resolver below sees the
+  // same value the filter used. Otherwise a payload carrying only `_type`
+  // would pass the filter (via the OR fallback) but skip the head-version
+  // resolution and surface as a download with no working URL.
+  const typedFiles = children
+    .map(c => ({ child: c, type: ((c.type || c._type) || '').toLowerCase() }))
+    .filter(x => x.type === 'file' || x.type === 'version_stack');
+  if (!typedFiles.length) return [];
 
   // Resolve a download URL per file. version_stacks hand back the head
   // version; getFile with media_links.original gets us a signed
   // direct-download URL we can hand to the client without a Frame.io login.
-  const items = await Promise.all(files.map(async (child) => {
+  const items = await Promise.all(typedFiles.map(async ({ child, type }) => {
     let headFileId = child.id;
-    if ((child.type || '').toLowerCase() === 'version_stack') {
+    if (type === 'version_stack') {
       try {
         const stack = await fio.getVersionStack(accountId, child.id);
         if (stack && stack.head_version && stack.head_version.id) {
@@ -118,23 +122,28 @@ async function fetchFrameioDeliverables(portalProjectId) {
 
     const original = file.media_links && file.media_links.original;
     const url = (original && (original.download_url || original.url)) || null;
+    if (!url) return null;
     const fileSize = typeof file.file_size === 'number' ? formatFileSize(file.file_size) : null;
 
     return {
       id: child.id,
       title: file.name || child.name || 'Untitled',
-      url: url || '',
+      url,
       file_type: file.media_type || null,
       file_size: fileSize,
       specs: null,
       group_name: DELIVERABLES_FOLDER_NAME,
-      status: url ? 'ready' : 'processing',
+      status: 'ready',
       direction: 'studio_to_client',
       created_at: file.created_at || child.created_at || null
     };
   }));
 
-  return items;
+  // Drop files we couldn't resolve a URL for — the existing UI renders a
+  // Download button for any row regardless of url, and our empty-string
+  // fallback would hand the client a zero-byte placeholder. They'll show
+  // up on the next page load once Frame.io finishes processing.
+  return items.filter(Boolean);
 }
 
 function formatFileSize(bytes) {

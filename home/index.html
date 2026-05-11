@@ -2473,19 +2473,21 @@ body.is-sliding-out .clients-preview { visibility: visible; }
   if (!toggle) return;
   var body = document.body;
   var STORAGE_KEY = 'nipc_theme'; // localStorage key
-  // ---- 1) 初始：默认 Light；如果用户之前选过 Dark，就恢复 ----
-  var saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'dark') {
-    body.classList.remove('theme-light');
-    toggle.classList.remove('is-on');
-  } else {
-    body.classList.add('theme-light');
-    toggle.classList.add('is-on');
+  function setState(isLight) {
+    body.classList.toggle('theme-light', isLight);
+    toggle.classList.toggle('is-on', isLight);
+    // Keep aria-pressed in sync with the visual state so screen readers
+    // report whether light mode is active. The static markup ships
+    // aria-pressed="false", which would otherwise lie after first paint
+    // (default is light) and after every click.
+    toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
   }
+  // ---- 1) 初始：默认 Light；如果用户之前选过 Dark，就恢复 ----
+  setState(localStorage.getItem(STORAGE_KEY) !== 'dark');
   // ---- 2) 点击切换 ----
   toggle.addEventListener('click', function () {
-    var isLight = body.classList.toggle('theme-light');
-    toggle.classList.toggle('is-on', isLight);
+    var isLight = !body.classList.contains('theme-light');
+    setState(isLight);
     localStorage.setItem(STORAGE_KEY, isLight ? 'light' : 'dark');
   });
 })();
