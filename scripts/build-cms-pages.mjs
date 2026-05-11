@@ -156,4 +156,191 @@ for (const e of editors.items) {
   await writeFile(join(EDITORS_OUT, `${e.slug}.html`), buildEditor(e, worksById));
   count++;
 }
-console.log(`Generated ${count} pages: ${works.items.length} works, ${editors.items.length} editors`);
+
+// Pre-render editor rows into home/index.html so the page paints with content
+// already present, instead of: empty template row → cleared list → injected
+// rows. Mirrors the runtime behavior in home/js/cms-inject.js, which checks
+// data-cms-prerendered and skips its inject step when this build has run.
+const HOME_PATH = join(ROOT, 'home/index.html');
+const homeHtml = await readFile(HOME_PATH, 'utf8');
+
+const sortedEditors = [...editors.items].sort((a, b) => a.order - b.order);
+const renderedRows = renderEditorListHtml(homeHtml, sortedEditors, worksById);
+const newHomeHtml = injectEditorList(homeHtml, renderedRows, sortedEditors.length);
+if (newHomeHtml !== homeHtml) {
+  await writeFile(HOME_PATH, newHomeHtml);
+  count++;
+}
+
+console.log(`Generated ${count} pages: ${works.items.length} works, ${editors.items.length} editors, home/index.html`);
+
+// ── Editor list pre-render helpers ──
+// String-templating mirrors of home/js/cms-inject.js. They keep the runtime
+// markup and the build-time markup byte-identical, which is what lets the
+// page work correctly whether the user lands on a freshly-built deploy or
+// a dev session that has not yet built.
+
+function getTemplateHtml(homeHtml) {
+  const m = homeHtml.match(/<template id="cms-editor-row">([\s\S]*?)<\/template>/);
+  if (!m) throw new Error('cms-editor-row template not found in home/index.html');
+  return m[1].trim();
+}
+
+function setAttr(html, sel, attr, value) {
+  // Add an attribute to the first element matching `sel` (`tag.class` form).
+  const [tag, cls] = sel.split('.');
+  const re = new RegExp(`<${tag}\\b([^>]*\\bclass="[^"]*\\b${cls}\\b[^"]*"[^>]*)>`);
+  return html.replace(re, (_, attrs) => `<${tag}${attrs} ${attr}="${escape(value)}">`);
+}
+
+function setTextByClass(html, cls, value) {
+  // Replace inner text of the first element with class `cls` (any tag).
+  const re = new RegExp(`(<([a-zA-Z]+)\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*>)([\\s\\S]*?)(</\\2>)`);
+  return html.replace(re, (_, open, _tag, _inner, close) => `${open}${escape(value || '')}${close}`);
+}
+
+function setBindByClass(html, cls, value) {
+  // Like setTextByClass, but also strip the w-dyn-bind-empty marker when value is non-empty.
+  const re = new RegExp(`(<([a-zA-Z]+)\\b[^>]*\\bclass=")([^"]*\\b${escapeRegex(cls)}\\b[^"]*)("[^>]*>)([\\s\\S]*?)(</\\2>)`);
+  return html.replace(re, (_, openLead, _tag, classes, openTail, _inner, close) => {
+    const newClasses = value ? classes.replace(/\s*\bw-dyn-bind-empty\b/, '') : classes;
+    return `${openLead}${newClasses}${openTail}${escape(value || '')}${close}`;
+  });
+}
+
+function setHrefByClass(html, cls, value) {
+  const re = new RegExp(`(<a\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bhref=")([^"]*)(")`);
+  return html.replace(re, (_, lead, _href, tail) => `${lead}${escape(value)}${tail}`);
+}
+
+function setImgSrcByClass(html, cls, src, alt) {
+  const re = new RegExp(`(<img\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bsrc=")([^"]*)("[^>]*\\balt=")([^"]*)(")`);
+  return html.replace(re, (_, leadSrc, _src, midAlt, _alt, tail) => `${leadSrc}${escape(src)}${midAlt}${escape(alt || '')}${tail}`);
+}
+
+function setStyleByClass(html, cls, prop, value) {
+  // Append `prop:value;` to the first element with `cls`. Replace existing style if present.
+  const reStyle = new RegExp(`(<[a-zA-Z]+\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bstyle=")([^"]*)(")`);
+  if (reStyle.test(html)) {
+    return html.replace(reStyle, (_, lead, existing, tail) => `${lead}${existing}${prop}:${escape(value)};${tail}`);
+  }
+  const reNoStyle = new RegExp(`(<[a-zA-Z]+\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*")([^>]*>)`);
+  return html.replace(reNoStyle, (_, lead, tail) => `${lead} style="${prop}:${escape(value)};"${tail}`);
+}
+
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderWorkSlide(template, work) {
+  let html = template;
+  // The slide template has two .client-agency spots (top and bottom).
+  // Replace them in order: first occurrence = client, second = typeOfWork.
+  let firstReplaced = false;
+  html = html.replace(/(<p\b[^>]*\bclass="[^"]*\bclient-agency\b[^"]*"[^>]*>)([\s\S]*?)(<\/p>)/g, (_, open, _inner, close) => {
+    const value = firstReplaced ? work.typeOfWork : work.client;
+    firstReplaced = true;
+    return `${open}${escape(value || '')}${close}`;
+  });
+  html = setTextByClass(html, 'brand-film', work.name || '');
+  html = setTextByClass(html, '_2024-2', work.year || '');
+  if (work.visitLink) html = setHrefByClass(html, 'visit-video', work.visitLink);
+  const posterSrc = work.video?.thumbnail || work.thumbnailCover || '';
+  if (posterSrc) {
+    const alt = work.video?.title || work.name || '';
+    html = setImgSrcByClass(html, 'vimeo-poster-img', posterSrc, alt);
+  }
+  if (work.video?.url) {
+    html = html.replace(/(<div\b[^>]*\bclass="vimeo-url"[^>]*>)([\s\S]*?)(<\/div>)/, (_, open, _inner, close) => `${open}${escape(work.video.url)}${close}`);
+  }
+  if (work.id) {
+    html = html.replace(/<div\b([^>]*)\bclass="(work_slider_cms_item[^"]*)"([^>]*)>/, (_, before, classes, after) => `<div${before} class="${classes}"${after} data-asset-id="${escape(work.id)}">`);
+  }
+  if (work.video?.playbackId) {
+    html = html.replace(/<div\b([^>]*)\bclass="([^"]*\bvimeo-shell\b[^"]*)"([^>]*)>/, (_, before, classes, after) => `<div${before} class="${classes}"${after} data-mux-playback-id="${escape(work.video.playbackId)}">`);
+  }
+  return html;
+}
+
+function renderEditorRow(template, ed, worksById) {
+  let html = template;
+
+  // Slug + preview src as data-attrs on the row.
+  if (ed.slug || ed.workPreviewLoopingGif) {
+    html = html.replace(/^(\s*)<div\b([^>]*)\bclass="w-dyn-item"([^>]*)>/, (_, ws, before, after) => {
+      const attrs = [];
+      if (ed.slug) attrs.push(`data-editor-slug="${escape(ed.slug)}"`);
+      if (ed.workPreviewLoopingGif) attrs.push(`data-preview-src="${escape(ed.workPreviewLoopingGif)}"`);
+      return `${ws}<div${before} class="w-dyn-item"${after} ${attrs.join(' ')}>`;
+    });
+  }
+
+  // The editor toggle has 4 .text-13 cells: number, name, role, featureClients.
+  const toggleCells = [ed.numOnList, ed.name, ed.role, ed.featureClients];
+  let cellIdx = 0;
+  // Match only .text-13 in the dropdown-toggle row (before the dropdown-list nav).
+  const toggleEnd = html.indexOf('<nav class="dropdown-list w-dropdown-list">');
+  if (toggleEnd === -1) throw new Error('dropdown-list nav not found in editor template');
+  const toggleHtml = html.slice(0, toggleEnd);
+  const restHtml = html.slice(toggleEnd);
+  const newToggleHtml = toggleHtml.replace(/(<div\b[^>]*\bclass="text-13"[^>]*>)([\s\S]*?)(<\/div>)/g, (_, open, _inner, close) => {
+    const v = toggleCells[cellIdx++];
+    return `${open}${escape(v || '')}${close}`;
+  });
+  const yearReplacedToggle = newToggleHtml.replace(/(<div\b[^>]*\bclass="text-14"[^>]*>)([\s\S]*?)(<\/div>)/, (_, open, _inner, close) => `${open}${escape(ed.yearRange || '')}${close}`);
+  html = yearReplacedToggle + restHtml;
+
+  // Bio panel fields.
+  html = setBindByClass(html, 'sarah-chen-2', ed.name);
+  html = setBindByClass(html, 'founder-editor-2', ed.role);
+  html = setBindByClass(html, 'a-visual-exploration-of-athletic-transformation-through-abstract-motion-and-dynamic-typography-the-p', ed.bio);
+
+  // Inner work slider — extract slide template, then replace the slider's
+  // children with one rendered slide per referenced work.
+  const sliderRe = /<div\b[^>]*\bclass="work_slider_cms_list[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/;
+  const sliderMatch = html.match(sliderRe);
+  if (sliderMatch) {
+    const slideTemplate = sliderMatch[1].trim();
+    const refs = (ed.referencingWork || []).map(id => worksById.get(id)).filter(Boolean);
+    const slidesHtml = refs.length
+      ? refs.map(w => renderWorkSlide(slideTemplate, w)).join('\n')
+      : '';
+    html = html.replace(sliderRe, (_match) => {
+      // Reconstruct the wrapper with new children.
+      const openMatch = _match.match(/<div\b[^>]*\bclass="work_slider_cms_list[^"]*"[^>]*>/);
+      const open = openMatch[0];
+      return `${open}${slidesHtml}</div></div>`;
+    });
+  }
+
+  if (ed.workPreviewLoopingGif) {
+    html = setStyleByClass(html, 'works-loop-gif', 'background-image', `url("${ed.workPreviewLoopingGif}")`);
+  }
+
+  return html;
+}
+
+function renderEditorListHtml(homeHtml, editors, worksById) {
+  const template = getTemplateHtml(homeHtml);
+  return editors.map(ed => renderEditorRow(template, ed, worksById)).join('\n              ');
+}
+
+function injectEditorList(homeHtml, renderedRows, totalEntries) {
+  // Replace marker zone contents with rendered rows.
+  const startMarker = '<!-- @cms:editors:start -->';
+  const endMarker = '<!-- @cms:editors:end -->';
+  const i = homeHtml.indexOf(startMarker);
+  const j = homeHtml.indexOf(endMarker);
+  if (i === -1 || j === -1 || j < i) throw new Error('cms editor markers not found in home/index.html');
+  const before = homeHtml.slice(0, i + startMarker.length);
+  const after = homeHtml.slice(j);
+  let next = `${before}\n              ${renderedRows}\n              ${after}`;
+  // Stamp data-cms-prerendered on the list so cms-inject.js skips runtime
+  // injection. Strip any pre-existing copy first so re-running the build is
+  // idempotent (same input → byte-identical output).
+  next = next.replace(/(<div\b[^>]*\bclass="editor-dropdown-list w-dyn-items"[^>]*?)\s*data-cms-prerendered="true"/g, '$1');
+  next = next.replace(/<div\b([^>]*)\bclass="editor-dropdown-list w-dyn-items"([^>]*)>/, (_, lead, tail) => `<div${lead.replace(/\s+$/, '')} class="editor-dropdown-list w-dyn-items"${tail.replace(/\s+$/, '')} data-cms-prerendered="true">`);
+  // Update TOTAL ENTRIES count.
+  next = next.replace(/(<div\b[^>]*\bclass="text-11"[^>]*>)TOTAL ENTRIES:[^<]*(<\/div>)/, `$1TOTAL ENTRIES: ${totalEntries}$2`);
+  return next;
+}

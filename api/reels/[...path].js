@@ -29,6 +29,7 @@ module.exports = async function handler(req, res) {
     if (!auth) return;
 
     if (route === 'list' && req.method === 'GET') return listReels(res);
+    if (route === 'admin-assets' && req.method === 'GET') return adminAssets(req, res);
     if (route === 'create' && req.method === 'POST') return createReel(req, res, auth);
     if (route === 'update' && req.method === 'POST') return patchReel(req, res);
     if (route === 'delete' && req.method === 'POST') return deleteReel(req, res);
@@ -205,12 +206,24 @@ async function insertAsset(reelId, s3_key, title) {
 async function patchAsset(req, res) {
   const { reel_id, asset_id } = req.body || {};
   if (!reel_id || !asset_id) return res.status(400).json({ error: 'reel_id and asset_id required' });
-  const allowed = ['title', 'sort_order', 'poster_url', 'poster_time'];
+  const allowed = [
+    'title', 'sort_order',
+    'poster_url', 'poster_time',
+    'poster_focal_x', 'poster_focal_y', 'poster_zoom',
+  ];
   const patch = {};
   for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
   // Setting one poster source clears the other so they can't fight.
   if ('poster_url' in patch && patch.poster_url) patch.poster_time = null;
   if ('poster_time' in patch && patch.poster_time != null) patch.poster_url = null;
+  // Picking a new source resets the crop transform unless one was supplied
+  // alongside — fresh source media usually needs a fresh framing.
+  const switchingSource = ('poster_url' in patch) || ('poster_time' in patch);
+  if (switchingSource) {
+    if (!('poster_focal_x' in patch)) patch.poster_focal_x = 50;
+    if (!('poster_focal_y' in patch)) patch.poster_focal_y = 50;
+    if (!('poster_zoom'    in patch)) patch.poster_zoom    = 1;
+  }
   const { data, error } = await adminClient
     .from('reel_assets').update(patch)
     .eq('id', asset_id).eq('reel_id', reel_id).select().single();
@@ -300,6 +313,20 @@ async function reconcileReel(reel) {
   return { added, removed };
 }
 
+async function resolvePoster(a) {
+  if (a.poster_url) {
+    try { return await presignGet(a.poster_url, 60 * 60 * 24); }
+    catch (e) { console.error('poster presign failed', e.message); }
+  }
+  if (a.poster_time != null && a.mux_playback_id) {
+    return `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280&time=${a.poster_time}`;
+  }
+  if (a.mux_playback_id) {
+    return `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280`;
+  }
+  return null;
+}
+
 async function publicReel(req, res) {
   const slug = req.query.s;
   if (!slug) return res.status(400).json({ error: 's query param required' });
@@ -313,18 +340,6 @@ async function publicReel(req, res) {
 
   const assets = [];
   for (const a of rawAssets || []) {
-    let poster;
-    if (a.poster_url) {
-      // Custom uploaded poster — generate a long-lived presigned GET URL.
-      try { poster = await presignGet(a.poster_url, 60 * 60 * 24); }
-      catch (e) { console.error('poster presign failed', e.message); }
-    }
-    if (!poster && a.poster_time != null) {
-      poster = `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280&time=${a.poster_time}`;
-    }
-    if (!poster) {
-      poster = `https://image.mux.com/${a.mux_playback_id}/thumbnail.jpg?width=1280`;
-    }
     assets.push({
       id: a.id,
       reel_id: a.reel_id,
@@ -332,8 +347,46 @@ async function publicReel(req, res) {
       title: a.title,
       sort_order: a.sort_order,
       duration_seconds: a.duration_seconds,
-      poster,
+      poster: await resolvePoster(a),
+      poster_focal_x: a.poster_focal_x,
+      poster_focal_y: a.poster_focal_y,
+      poster_zoom: a.poster_zoom,
     });
   }
   res.json({ reel, assets });
+}
+
+async function adminAssets(req, res) {
+  const reelId = req.query.reel_id;
+  if (!reelId) return res.status(400).json({ error: 'reel_id required' });
+  // SELECT * so this endpoint keeps working before the poster-crop
+  // migration is applied (poster_focal_x/_y/_zoom are added later and the
+  // explicit column list would otherwise 500).
+  const { data: rawAssets, error } = await adminClient
+    .from('reel_assets')
+    .select('*')
+    .eq('reel_id', reelId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+
+  const assets = [];
+  for (const a of rawAssets || []) {
+    assets.push({
+      id: a.id,
+      reel_id: a.reel_id,
+      s3_key: a.s3_key,
+      mux_playback_id: a.mux_playback_id,
+      title: a.title,
+      sort_order: a.sort_order,
+      duration_seconds: a.duration_seconds,
+      status: a.status,
+      poster_url: a.poster_url,
+      poster_time: a.poster_time,
+      poster_focal_x: a.poster_focal_x,
+      poster_focal_y: a.poster_focal_y,
+      poster_zoom: a.poster_zoom,
+      poster: await resolvePoster(a),
+    });
+  }
+  res.json({ assets });
 }

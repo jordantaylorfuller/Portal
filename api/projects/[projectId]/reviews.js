@@ -8,8 +8,9 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     const { data: assets, error } = await adminClient
       .from('review_assets')
-      .select('id, title, version, status, video_url, thumb_time, notes_count, frameio_asset_id, frameio_review_url, frameio_thumb_url, created_at, updated_at')
+      .select('id, title, version, status, video_url, thumb_time, notes_count, frameio_asset_id, frameio_review_url, frameio_thumb_url, frameio_created_at, frameio_duration_seconds, frameio_file_size, frameio_media_type, created_at, updated_at')
       .eq('project_id', projectId)
+      .order('frameio_created_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -30,6 +31,8 @@ module.exports = async function handler(req, res) {
     }
 
     var result = (assets || []).map(function(a) {
+      // Prefer Frame.io's real upload date over the row's sync time.
+      const displayDate = a.frameio_created_at || a.created_at;
       return {
         id: a.id,
         title: a.title,
@@ -38,11 +41,14 @@ module.exports = async function handler(req, res) {
         video_url: a.video_url,
         thumb_time: a.thumb_time,
         notes: a.notes_count != null ? a.notes_count : (commentCounts[a.id] || 0),
+        duration_seconds: a.frameio_duration_seconds != null ? Number(a.frameio_duration_seconds) : null,
+        file_size: a.frameio_file_size != null ? Number(a.frameio_file_size) : null,
+        media_type: a.frameio_media_type || null,
         frameio_asset_id: a.frameio_asset_id || null,
         frameio_review_url: a.frameio_review_url || null,
         frameio_thumb_url: a.frameio_thumb_url || null,
-        date: new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        created_at: a.created_at
+        date: new Date(displayDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        created_at: displayDate
       };
     });
 

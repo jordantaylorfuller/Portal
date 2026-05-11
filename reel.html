@@ -275,6 +275,19 @@
     mux-player::part(center),
     mux-player::part(centered-chrome),
     mux-player::part(big-button) { display: none !important; }
+
+    /* Apply the admin-saved focal point and zoom to mux-player's internal
+       poster image so the brief load flash before the video starts matches
+       what the user framed. Mux Player exports the inner <img> as the
+       "img" part (with the wrapper exporting "poster"); styling both keeps
+       us working across player versions. */
+    mux-player::part(poster),
+    mux-player::part(img) {
+      object-fit: cover;
+      object-position: var(--poster-x, 50%) var(--poster-y, 50%);
+      transform: scale(var(--poster-zoom, 1));
+      transform-origin: var(--poster-x, 50%) var(--poster-y, 50%);
+    }
     .cf-card { filter: blur(var(--blur, 0px)); }
     /* cf-stage forms a stacking context (via perspective), which would otherwise
        paint above non-positioned siblings — covering meta text where the active
@@ -711,6 +724,7 @@
     var ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
 
     var slug = new URLSearchParams(location.search).get('s');
+    var deepLinkAssetId = (location.hash || '').replace(/^#/, '').trim() || null;
     var assets = [];
     var reel = null;
     var current = 0;
@@ -749,6 +763,34 @@
     }
     function posterFor(a) {
       return a.poster || thumbUrl(a.mux_playback_id);
+    }
+    // Mirror of admin-reels.html applyCropToEl — applies focal point + zoom
+    // to any element whose background-image is the poster. We never touch
+    // the source: pan via background-position, magnify via transform.
+    //
+    // For <mux-player>, the poster lives inside the player's shadow DOM and
+    // can't be styled directly, so we publish the focal/zoom values as CSS
+    // custom properties that a global `mux-player::part(poster)` rule picks
+    // up.
+    function applyPosterCropToEl(el, a) {
+      var fx = a && a.poster_focal_x != null ? Number(a.poster_focal_x) : 50;
+      var fy = a && a.poster_focal_y != null ? Number(a.poster_focal_y) : 50;
+      var z  = a && a.poster_zoom    != null ? Number(a.poster_zoom)    : 1;
+      if (el.tagName && el.tagName.toLowerCase() === 'mux-player') {
+        el.style.setProperty('--poster-x',    fx + '%');
+        el.style.setProperty('--poster-y',    fy + '%');
+        el.style.setProperty('--poster-zoom', String(z));
+        return;
+      }
+      el.style.backgroundSize     = 'cover';
+      el.style.backgroundPosition = fx + '% ' + fy + '%';
+      if (z !== 1) {
+        el.style.transformOrigin = fx + '% ' + fy + '%';
+        el.style.transform       = 'scale(' + z + ')';
+      } else {
+        el.style.transformOrigin = '';
+        el.style.transform       = '';
+      }
     }
     function fmtDuration(seconds) {
       if (!seconds) return '';
@@ -844,6 +886,12 @@
 
       document.getElementById('main').innerHTML = html;
 
+      if (deepLinkAssetId) {
+        for (var di = 0; di < assets.length; di++) {
+          if (assets[di].id === deepLinkAssetId) { current = di; break; }
+        }
+      }
+
       setView(view, true);
       bindViewTabs();
 
@@ -862,49 +910,73 @@
         var s = reelSlugByWork.get(a.id);
         if (s && slugs.indexOf(s) === -1) slugs.push(s);
       });
-      var posterByAssetId = new Map();
+      var freshByAssetId = new Map();
       await Promise.all(slugs.map(async function(s){
         try {
           var r = await fetch('/api/reels/public?s=' + encodeURIComponent(s));
           if (!r.ok) return;
           var d = await r.json();
           (d.assets || []).forEach(function(a){
-            if (a.id && a.poster) posterByAssetId.set(a.id, a.poster);
+            if (a.id && a.poster) freshByAssetId.set(a.id, a);
           });
         } catch (e) { /* leave the static thumb in place */ }
       }));
-      if (!posterByAssetId.size) return;
+      if (!freshByAssetId.size) return;
       var changed = false;
       assets.forEach(function(a){
-        var fresh = posterByAssetId.get(a.id);
-        if (fresh && fresh !== a.poster) { a.poster = fresh; changed = true; }
+        var fresh = freshByAssetId.get(a.id);
+        if (!fresh) return;
+        // Patch the live asset's poster URL and crop transform so subsequent
+        // re-mounts (e.g. cfMountActive) read the up-to-date values.
+        if (fresh.poster && fresh.poster !== a.poster) { a.poster = fresh.poster; changed = true; }
+        if (fresh.poster_focal_x != null) a.poster_focal_x = fresh.poster_focal_x;
+        if (fresh.poster_focal_y != null) a.poster_focal_y = fresh.poster_focal_y;
+        if (fresh.poster_zoom    != null) a.poster_zoom    = fresh.poster_zoom;
       });
-      if (changed) applyPosterUpdates(posterByAssetId);
+      if (changed) applyPosterUpdates(freshByAssetId);
     }
 
-    function applyPosterUpdates(posterByAssetId) {
+    function applyPosterUpdates(freshByAssetId) {
       assets.forEach(function(a, i){
-        var fresh = posterByAssetId.get(a.id);
+        var fresh = freshByAssetId.get(a.id);
         if (!fresh) return;
-        var bg = 'url(' + fresh + ')';
+        var bg = 'url(' + fresh.poster + ')';
         document.querySelectorAll('[data-i="' + i + '"]').forEach(function(card){
           if (card.classList.contains('cf-card') || card.classList.contains('stk-thumb')) {
             card.style.backgroundImage = bg;
+            // cf-card carries the cover-flow animation transform — only the
+            // inner .poster div receives the crop. stk-thumb has no inner
+            // overlay and no competing transform, so it can be cropped
+            // directly.
+            if (card.classList.contains('stk-thumb')) applyPosterCropToEl(card, a);
           }
-          card.querySelectorAll('.poster').forEach(function(p){ p.style.backgroundImage = bg; });
-          card.querySelectorAll('mux-player').forEach(function(m){ m.setAttribute('poster', fresh); });
+          card.querySelectorAll('.poster').forEach(function(p){
+            p.style.backgroundImage = bg;
+            applyPosterCropToEl(p, a);
+          });
+          card.querySelectorAll('mux-player').forEach(function(m){
+            m.setAttribute('poster', fresh.poster);
+            applyPosterCropToEl(m, a);
+          });
         });
       });
       // List view: each list-item renders mux-player directly with poster attr.
       document.querySelectorAll('.list-item mux-player').forEach(function(m, i){
-        var fresh = posterByAssetId.get(assets[i] && assets[i].id);
-        if (fresh) m.setAttribute('poster', fresh);
+        var a = assets[i];
+        var fresh = freshByAssetId.get(a && a.id);
+        if (fresh) {
+          m.setAttribute('poster', fresh.poster);
+          applyPosterCropToEl(m, a);
+        }
       });
       // Stack view: featured card background is set imperatively.
       var stkCard = document.querySelector('.stk-card');
       if (stkCard && typeof current === 'number' && assets[current]) {
-        var fresh = posterByAssetId.get(assets[current].id);
-        if (fresh) stkCard.style.backgroundImage = 'url(' + fresh + ')';
+        var fresh = freshByAssetId.get(assets[current].id);
+        if (fresh) {
+          stkCard.style.backgroundImage = 'url(' + fresh.poster + ')';
+          applyPosterCropToEl(stkCard, assets[current]);
+        }
       }
     }
 
@@ -947,11 +1019,18 @@
     }
 
     function initList() {
-      document.querySelectorAll('.list-item').forEach(function(item){
+      document.querySelectorAll('.list-item').forEach(function(item, i){
         var p = item.querySelector('mux-player');
         var g = item.querySelector('.play-glyph');
         attachGlyph(p, g);
+        // Stamp crop CSS variables so the mux-player's internal poster
+        // image honors the admin-saved focal point + zoom.
+        if (p && assets[i]) applyPosterCropToEl(p, assets[i]);
       });
+      if (deepLinkAssetId && current > 0) {
+        var target = document.querySelectorAll('.list-item')[current];
+        if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
     }
 
     // ── List view ──
@@ -995,6 +1074,14 @@
 
     function initCoverFlow() {
       var stage = document.getElementById('cf-stage');
+      // Apply the crop transform to the inner .poster div only. The .cf-card
+      // itself has its own transform driven by the cover-flow stack logic
+      // (rotateY / translateZ / scale), so touching it here would fight that.
+      stage.querySelectorAll('.cf-card').forEach(function(card){
+        var a = assets[Number(card.dataset.i)];
+        if (!a) return;
+        card.querySelectorAll('.poster').forEach(function(p){ applyPosterCropToEl(p, a); });
+      });
       stage.querySelectorAll('.cf-card').forEach(function(card){
         card.addEventListener('click', function(e){
           // mux-player handles its own clicks (play button, scrubber, volume,
@@ -1081,6 +1168,7 @@
       muxEl.setAttribute('poster', posterFor(a));
       muxEl.setAttribute('autoplay', '');
       muxEl.setAttribute('preload', 'auto');
+      applyPosterCropToEl(muxEl, a);
       card.appendChild(muxEl);
       attachGlyph(muxEl, card.querySelector('.play-glyph'));
       // iOS Safari requires the play() call to happen inside the user-gesture
@@ -1312,6 +1400,11 @@
     }
 
     function initStack() {
+      // Stamp the saved crop transform onto every side-rail thumbnail.
+      document.querySelectorAll('#stk-thumbs .stk-thumb').forEach(function(item){
+        var a = assets[Number(item.dataset.i)];
+        if (a) applyPosterCropToEl(item, a);
+      });
       document.querySelectorAll('#stk-thumbs .stk-thumb').forEach(function(item){
         item.addEventListener('click', function(){
           var i = Number(item.dataset.i);
@@ -1355,7 +1448,9 @@
       if (!card) return;
       var a = assets[current];
       card.style.backgroundImage = 'url(' + posterFor(a) + ')';
+      applyPosterCropToEl(card, a);
       muxEl = makeMux(a.mux_playback_id);
+      applyPosterCropToEl(muxEl, a);
       card.appendChild(muxEl);
       attachGlyph(muxEl, document.getElementById('stk-glyph'));
       var g = document.getElementById('stk-glyph');
