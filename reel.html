@@ -782,15 +782,18 @@
         el.style.setProperty('--poster-zoom', String(z));
         return;
       }
-      el.style.backgroundSize     = 'cover';
+      // Zoom via background-size, not transform: scale on the element. The
+      // call sites pass outer frames (.stk-card, .stk-thumb, .cf-card > .poster)
+      // that don't clip their painted overflow, so a scale > 1 would render
+      // outside the 16:9 frame and overlap neighbors. Scaling both axes by z
+      // keeps the image aspect intact because reel frames and source posters
+      // are both 16:9 — uniform scaling on a matching-aspect box is identical
+      // to a transform: scale, without leaving the box.
+      var pct = (100 * z) + '%';
+      el.style.backgroundSize     = z === 1 ? 'cover' : (pct + ' ' + pct);
       el.style.backgroundPosition = fx + '% ' + fy + '%';
-      if (z !== 1) {
-        el.style.transformOrigin = fx + '% ' + fy + '%';
-        el.style.transform       = 'scale(' + z + ')';
-      } else {
-        el.style.transformOrigin = '';
-        el.style.transform       = '';
-      }
+      el.style.transformOrigin    = '';
+      el.style.transform          = '';
     }
     function fmtDuration(seconds) {
       if (!seconds) return '';
