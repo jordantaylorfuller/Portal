@@ -2609,12 +2609,31 @@
     var SUPABASE_ANON_KEY = 'sb_publishable_-aYfVQUgQrh7vwczlGi3pw_MCEC8fXY';
     var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Guard against double-firing the sign-out flow if multiple in-flight
+    // apiCalls each get a 401 back from the same expired token.
+    var _signingOut = false;
     async function apiCall(path, opts) {
       var session = (await supabaseClient.auth.getSession()).data.session;
       var headers = { 'Content-Type': 'application/json' };
       if (session) headers['Authorization'] = 'Bearer ' + session.access_token;
       var res = await fetch(API_BASE + path, Object.assign({ headers: headers }, opts));
-      if (res.status === 401) { supabaseClient.auth.signOut(); location.reload(); }
+      if (res.status === 401) {
+        if (!_signingOut) {
+          _signingOut = true;
+          // Await signOut before reloading — otherwise the stale token can still
+          // be in localStorage on the next pageload, /clients/rooms tries the
+          // same API call, gets another 401, and the page enters an infinite
+          // reload loop. Awaiting guarantees the session is cleared before the
+          // next page paints.
+          try { await supabaseClient.auth.signOut(); } catch (e) {}
+          location.reload();
+        }
+        // Stop the caller from continuing with an unauthenticated response —
+        // its `.json()` body would be an error object the caller isn't ready
+        // to read, and any side-effects (state updates, further apiCalls)
+        // would race the reload.
+        throw new Error('Unauthorized');
+      }
       return res.json();
     }
 
