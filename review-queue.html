@@ -621,13 +621,12 @@
 
       // Use Frame.io's thumbnail whenever one is provided — that covers videos,
       // JPEGs, TIFFs, and anything else Frame.io can preview. Fall back to the
-      // NIPC wordmark only when there's no thumb URL at all, replacing the
-      // earlier broken fallback that pointed at a missing demo video file.
-      // Reuse the four-line wordmark already shipped with the marketing site
-      // rather than maintaining a duplicate copy under /images.
+      // NIPC acronym mark only when there's no thumb URL at all. The acronym
+      // reads at thumbnail size; the four-line wordmark we tried first was
+      // illegible at 120x68.
       var thumbHtml = asset.frameioThumbUrl
         ? '<img src="' + asset.frameioThumbUrl + '" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
-        : '<img src="/home/images/NIPC_Four-line-logo_Light-p-500.png" alt="NIPC" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;background:rgb(243,240,237);padding:8px;box-sizing:border-box;"/>';
+        : '<img src="images/nipc-acronym.png" alt="NIPC" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;background:rgb(243,240,237);"/>';
 
       var linkAttrs = asset.frameioUrl
         ? ' target="_blank" rel="noopener" data-external="1"'
