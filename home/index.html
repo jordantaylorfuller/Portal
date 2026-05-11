@@ -94,11 +94,20 @@ body:not(.theme-light) .home-logo-dark { display: block; }
    (~192px regardless of slide width), which only looks 16:9 at 1-col widths
    where 100%-leftover happens to match 16/9 of the slide width. At 2 / 3
    slides-per-view the shell becomes squarish. Forcing height:auto lets
-   aspect-ratio compute height from width at every breakpoint. */
+   aspect-ratio compute height from width at every breakpoint.
+
+   .divspace-y-2 ships hard-coded to height:295.5px (baked from Figma). That
+   leaves a 3-5px margin below the last metadata line at mobile/tablet, so any
+   2-line wrap or font-rendering shift clips "VISIT VIDEO" off the bottom.
+   Letting it auto-size lets the slide grow to its natural content height. */
 .work_slider_cms_item .divaspect-video,
 .work_slider_cms_item .work-card-gif.vimeo-shell {
   height: auto !important;
   flex: 0 0 auto !important;
+}
+.work_slider_cms_item .divspace-y-2 {
+  height: auto !important;
+  padding-bottom: 16px;
 }
 /* TEST SOME CUSTOMZIED FONT FOR LOGO*/
 .example {
