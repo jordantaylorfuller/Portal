@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const { getAuthUser } = require('../../../lib/auth');
 const { adminClient } = require('../../../lib/supabase');
 const { buildAuthorizeUrl } = require('../../../lib/frameio');
+const { isAdmin } = require('../../../lib/admin');
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -18,8 +19,8 @@ module.exports = async function handler(req, res) {
   if (!auth) return res.status(401).json({ error: 'Unauthorized' });
 
   const { data: profile } = await adminClient
-    .from('user_profiles').select('role').eq('id', auth.id).single();
-  if (!profile || profile.role !== 'admin') {
+    .from('user_profiles').select('role').eq('id', auth.id).maybeSingle();
+  if (!isAdmin(profile, auth.email)) {
     return res.status(403).json({ error: 'Admin only' });
   }
 
