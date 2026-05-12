@@ -43,11 +43,11 @@ const layout = ({ title, description, body }) => `<!DOCTYPE html>
     .detail-meta dt { opacity: 0.5; text-transform: uppercase; letter-spacing: 0.04em; }
     .detail-meta dd { margin: 0; }
     .bio { max-width: 720px; margin-top: 48px; font-size: 14px; line-height: 1.6; opacity: 0.85; }
-    .video-frame { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; margin: 64px 0; background: #000; }
+    .video-frame { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; margin: 64px 0; background: #000; overflow: hidden; }
     .video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; margin-top: 48px; }
     .card { display: block; color: inherit; }
-    .card .thumb { aspect-ratio: 16/9; background: #2a2424 center/cover no-repeat; margin-bottom: 8px; }
+    .card .thumb { aspect-ratio: 16/9; background: #2a2424 center/cover no-repeat; margin-bottom: 8px; overflow: hidden; }
     .card .title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
     .card .meta { font-size: 11px; opacity: 0.6; }
     .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin: 64px 0 16px; }
@@ -56,9 +56,22 @@ const layout = ({ title, description, body }) => `<!DOCTYPE html>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
   ${body}
+  <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>
 `;
+
+// Inline-style helper: bakes the canonical crop (focal point + zoom) into a
+// background-image element at build time. poster-sync.js still overlays the
+// live values from /api/posters at runtime, so this exists only to make first
+// paint correct between deploys.
+function bakeBgCrop(url, focalX, focalY, zoom) {
+  const fx = Number(focalX ?? 50);
+  const fy = Number(focalY ?? 50);
+  const z  = Number(zoom   ?? 1);
+  const size = z === 1 ? 'cover' : `${(100 * z).toFixed(2)}% ${(100 * z).toFixed(2)}%`;
+  return `background-image:url(${escape(url)});background-size:${size};background-position:${fx}% ${fy}%;background-repeat:no-repeat;`;
+}
 
 const buildWork = (work, editorsById) => {
   const credits = (work.referenceEditors || []).map(id => editorsById.get(id)).filter(Boolean);
@@ -67,9 +80,11 @@ const buildWork = (work, editorsById) => {
     const m = String(u || '').match(/vimeo\.com\/(?:.*\/)?(\d+)(?:\b|\/|\?)/);
     return m ? m[1] : null;
   })();
+  const playbackId = work.video?.playbackId || '';
+  const pidAttr = playbackId ? ` data-mux-playback-id="${escape(playbackId)}"` : '';
   const embed = vimeoId
-    ? `<div class="video-frame"><iframe src="https://player.vimeo.com/video/${vimeoId}?title=0&byline=0&portrait=0&dnt=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
-    : (work.thumbnailCover ? `<div class="video-frame" style="background:url(${escape(work.thumbnailCover)}) center/cover"></div>` : '');
+    ? `<div class="video-frame"${pidAttr}><iframe src="https://player.vimeo.com/video/${vimeoId}?title=0&byline=0&portrait=0&dnt=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`
+    : (work.thumbnailCover ? `<div class="video-frame"${pidAttr} style="${bakeBgCrop(work.thumbnailCover, work.posterFocalX, work.posterFocalY, work.posterZoom)}"></div>` : '');
   const visitLink = work.visitLink
     ? `<dt>VISIT</dt><dd><a href="${escape(work.visitLink)}" target="_blank" rel="noopener">${escape(work.visitLink)} ↗</a></dd>`
     : '';
@@ -111,13 +126,20 @@ const buildEditor = (editor, worksById) => {
   const workCards = works.length
     ? `<div class="section-label">Selected Works</div>
        <div class="grid">
-         ${works.map(w => `
+         ${works.map(w => {
+           const pid = w.video?.playbackId || '';
+           const pidAttr = pid ? ` data-mux-playback-id="${escape(pid)}"` : '';
+           const thumb = w.thumbnailCover
+             ? `<div class="thumb"${pidAttr} style="${bakeBgCrop(w.thumbnailCover, w.posterFocalX, w.posterFocalY, w.posterZoom)}"></div>`
+             : `<div class="thumb"${pidAttr}></div>`;
+           return `
            <a class="card" href="/works/${escape(w.slug)}">
-             ${w.thumbnailCover ? `<div class="thumb" style="background-image:url(${escape(w.thumbnailCover)})"></div>` : '<div class="thumb"></div>'}
+             ${thumb}
              <div class="title">${escape(w.name)}</div>
              <div class="meta">${escape(w.client)} · ${escape(w.year)} · ${escape(w.typeOfWork)}</div>
            </a>
-         `).join('')}
+         `;
+         }).join('')}
        </div>`
     : '';
   const bio = editor.bio

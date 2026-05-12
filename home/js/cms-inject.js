@@ -387,6 +387,28 @@
     });
   }
 
+  // Apply the admin's saved focal-point + zoom to a poster <img>. The
+  // .vimeo-shell parent already has overflow:hidden + 16:9 aspect, and the
+  // img already has object-fit:cover + width/height 100%, so panning via
+  // object-position and zooming via a CSS scale (pivoted on the same focal
+  // point) reproduces the framing that reel.html shows for the same asset.
+  function applyPosterTransform(img, asset) {
+    const fx = asset.poster_focal_x != null ? Number(asset.poster_focal_x) : 50;
+    const fy = asset.poster_focal_y != null ? Number(asset.poster_focal_y) : 50;
+    const z  = asset.poster_zoom    != null ? Number(asset.poster_zoom)    : 1;
+    // Force object-fit:cover inline — the mobile media query swaps to `fill`,
+    // which would stretch instead of crop and defeat the framing.
+    img.style.objectFit = 'cover';
+    img.style.objectPosition = fx + '% ' + fy + '%';
+    if (z === 1) {
+      img.style.transform = '';
+      img.style.transformOrigin = '';
+    } else {
+      img.style.transformOrigin = fx + '% ' + fy + '%';
+      img.style.transform = 'scale(' + z + ')';
+    }
+  }
+
   async function refreshPostersFromApi(editors) {
     const slugs = [...new Set(editors.map(e => e.reelSlug || e.slug).filter(Boolean))];
     await Promise.all(slugs.map(async slug => {
@@ -397,11 +419,15 @@
       const data = await res.json().catch(() => null);
       if (!data || !Array.isArray(data.assets)) return;
       for (const asset of data.assets) {
-        if (!asset.id || !asset.poster) continue;
+        if (!asset.id) continue;
         const wi = document.querySelector('[data-asset-id="' + asset.id + '"]');
         if (!wi) continue;
         const img = wi.querySelector('.vimeo-poster-img');
-        if (img && img.src !== asset.poster) img.src = asset.poster;
+        if (!img) continue;
+        if (asset.poster && img.src !== asset.poster) img.src = asset.poster;
+        // Even when the poster URL hasn't changed (e.g. admin only tweaked
+        // crop, not frame), the focal/zoom may have — always re-apply.
+        applyPosterTransform(img, asset);
       }
     }));
   }

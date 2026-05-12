@@ -204,32 +204,74 @@ async function insertAsset(reelId, s3_key, title) {
   return row;
 }
 
+const POSTER_FIELDS = ['poster_url', 'poster_time', 'poster_focal_x', 'poster_focal_y', 'poster_zoom'];
+
 async function patchAsset(req, res) {
   const { reel_id, asset_id } = req.body || {};
   if (!reel_id || !asset_id) return res.status(400).json({ error: 'reel_id and asset_id required' });
-  const allowed = [
-    'title', 'sort_order',
-    'poster_url', 'poster_time',
-    'poster_focal_x', 'poster_focal_y', 'poster_zoom',
-  ];
-  const patch = {};
-  for (const k of allowed) if (k in req.body) patch[k] = req.body[k];
+
+  // Split the patch into row-local fields (title, sort_order — still on
+  // reel_assets) and canonical poster fields (now on video_posters, keyed by
+  // mux_playback_id so the same video shows the same poster everywhere).
+  const rowPatch = {};
+  for (const k of ['title', 'sort_order']) if (k in req.body) rowPatch[k] = req.body[k];
+
+  const posterPatch = {};
+  for (const k of POSTER_FIELDS) if (k in req.body) posterPatch[k] = req.body[k];
   // Setting one poster source clears the other so they can't fight.
-  if ('poster_url' in patch && patch.poster_url) patch.poster_time = null;
-  if ('poster_time' in patch && patch.poster_time != null) patch.poster_url = null;
+  if ('poster_url' in posterPatch && posterPatch.poster_url) posterPatch.poster_time = null;
+  if ('poster_time' in posterPatch && posterPatch.poster_time != null) posterPatch.poster_url = null;
   // Picking a new source resets the crop transform unless one was supplied
   // alongside — fresh source media usually needs a fresh framing.
-  const switchingSource = ('poster_url' in patch) || ('poster_time' in patch);
+  const switchingSource = ('poster_url' in posterPatch) || ('poster_time' in posterPatch);
   if (switchingSource) {
-    if (!('poster_focal_x' in patch)) patch.poster_focal_x = 50;
-    if (!('poster_focal_y' in patch)) patch.poster_focal_y = 50;
-    if (!('poster_zoom'    in patch)) patch.poster_zoom    = 1;
+    if (!('poster_focal_x' in posterPatch)) posterPatch.poster_focal_x = 50;
+    if (!('poster_focal_y' in posterPatch)) posterPatch.poster_focal_y = 50;
+    if (!('poster_zoom'    in posterPatch)) posterPatch.poster_zoom    = 1;
   }
-  const { data, error } = await adminClient
-    .from('reel_assets').update(patch)
-    .eq('id', asset_id).eq('reel_id', reel_id).select().single();
-  if (error) throw error;
-  res.json({ asset: data });
+
+  // Apply row-local changes first so we always return the latest title/order.
+  let asset;
+  if (Object.keys(rowPatch).length) {
+    const { data, error } = await adminClient
+      .from('reel_assets').update(rowPatch)
+      .eq('id', asset_id).eq('reel_id', reel_id).select().single();
+    if (error) throw error;
+    asset = data;
+  } else {
+    const { data, error } = await adminClient
+      .from('reel_assets').select('*')
+      .eq('id', asset_id).eq('reel_id', reel_id).single();
+    if (error) throw error;
+    asset = data;
+  }
+
+  // Poster changes are canonical: they apply to every reel that includes this
+  // Mux video, not just this reel_assets row. Upsert by mux_playback_id.
+  if (Object.keys(posterPatch).length) {
+    if (!asset.mux_playback_id) {
+      return res.status(409).json({ error: 'Asset has no mux_playback_id yet; wait for encoding' });
+    }
+    const { error: upErr } = await adminClient
+      .from('video_posters')
+      .upsert({ mux_playback_id: asset.mux_playback_id, ...posterPatch }, { onConflict: 'mux_playback_id' });
+    if (upErr) throw upErr;
+  }
+
+  // Merge the canonical poster fields back into the response shape the admin
+  // UI expects (its loadCropFromAsset reads asset.poster_focal_x/_y/_zoom).
+  const canonical = await getCanonicalPoster(asset.mux_playback_id);
+  res.json({ asset: { ...asset, ...canonical, poster: await resolvePoster({ ...asset, ...canonical }) } });
+}
+
+async function getCanonicalPoster(muxPlaybackId) {
+  if (!muxPlaybackId) return { poster_url: null, poster_time: null, poster_focal_x: 50, poster_focal_y: 50, poster_zoom: 1 };
+  const { data } = await adminClient
+    .from('video_posters')
+    .select('poster_url, poster_time, poster_focal_x, poster_focal_y, poster_zoom')
+    .eq('mux_playback_id', muxPlaybackId)
+    .maybeSingle();
+  return data || { poster_url: null, poster_time: null, poster_focal_x: 50, poster_focal_y: 50, poster_zoom: 1 };
 }
 
 async function deleteAssetRoute(req, res) {
@@ -360,9 +402,6 @@ async function publicReel(req, res) {
 async function adminAssets(req, res) {
   const reelId = req.query.reel_id;
   if (!reelId) return res.status(400).json({ error: 'reel_id required' });
-  // SELECT * so this endpoint keeps working before the poster-crop
-  // migration is applied (poster_focal_x/_y/_zoom are added later and the
-  // explicit column list would otherwise 500).
   const { data: rawAssets, error } = await adminClient
     .from('reel_assets')
     .select('*')
@@ -370,8 +409,23 @@ async function adminAssets(req, res) {
     .order('sort_order', { ascending: true });
   if (error) throw error;
 
+  // Posters are canonical per mux_playback_id (video_posters table), not per
+  // reel_assets row. Fetch them in one batch and merge so the admin tool sees
+  // the same framing regardless of which reel it edits.
+  const playbackIds = [...new Set((rawAssets || []).map(a => a.mux_playback_id).filter(Boolean))];
+  const postersByPid = await fetchCanonicalPosters(playbackIds);
+
   const assets = [];
   for (const a of rawAssets || []) {
+    const p = postersByPid.get(a.mux_playback_id) || {};
+    const merged = {
+      ...a,
+      poster_url:     p.poster_url     ?? null,
+      poster_time:    p.poster_time    ?? null,
+      poster_focal_x: p.poster_focal_x ?? 50,
+      poster_focal_y: p.poster_focal_y ?? 50,
+      poster_zoom:    p.poster_zoom    ?? 1,
+    };
     assets.push({
       id: a.id,
       reel_id: a.reel_id,
@@ -381,13 +435,24 @@ async function adminAssets(req, res) {
       sort_order: a.sort_order,
       duration_seconds: a.duration_seconds,
       status: a.status,
-      poster_url: a.poster_url,
-      poster_time: a.poster_time,
-      poster_focal_x: a.poster_focal_x,
-      poster_focal_y: a.poster_focal_y,
-      poster_zoom: a.poster_zoom,
-      poster: await resolvePoster(a),
+      poster_url:     merged.poster_url,
+      poster_time:    merged.poster_time,
+      poster_focal_x: merged.poster_focal_x,
+      poster_focal_y: merged.poster_focal_y,
+      poster_zoom:    merged.poster_zoom,
+      poster: await resolvePoster(merged),
     });
   }
   res.json({ assets });
+}
+
+async function fetchCanonicalPosters(playbackIds) {
+  const map = new Map();
+  if (!playbackIds.length) return map;
+  const { data } = await adminClient
+    .from('video_posters')
+    .select('mux_playback_id, poster_url, poster_time, poster_focal_x, poster_focal_y, poster_zoom')
+    .in('mux_playback_id', playbackIds);
+  for (const row of data || []) map.set(row.mux_playback_id, row);
+  return map;
 }
