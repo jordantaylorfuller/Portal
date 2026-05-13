@@ -209,6 +209,89 @@
     .toast.err { border-color: rgba(255,100,100,0.4); color: rgb(255,180,180); }
 
     .members-count { font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 6px; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .topbar { padding: 18px 16px; }
+      .admin-tabs { padding: 0 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .admin-tab { padding: 14px 14px; white-space: nowrap; flex-shrink: 0; }
+      .container { padding: 32px 16px 96px; }
+
+      .signout-bottom { right: 16px; bottom: 16px; padding: 10px 12px; }
+
+      .page-title { font-size: 18px; }
+      .card { padding: 18px 16px; }
+
+      /* Connection card: stack pieces vertically so the Re-authorize
+         button doesn't get pushed off the right edge. */
+      .card .row { gap: 10px; }
+      #reconnectBtn, #connectBtn { margin-left: 0 !important; width: 100%; }
+
+      /* Projects header row: keep count and sync button on their own lines. */
+      #syncProjectsBtn { margin-left: 0 !important; width: 100%; }
+
+      /* Convert the projects table into stacked cards. Five columns
+         (name, status, frame.io id, sync, gear) won't fit on a phone, and
+         horizontal scroll hides the action buttons until you swipe. */
+      table { display: block; }
+      thead { display: none; }
+      tbody { display: block; }
+      tbody tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "name   gear"
+          "status gear"
+          "id     id"
+          "sync   sync";
+        column-gap: 12px;
+        row-gap: 8px;
+        padding: 14px 0 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+      tbody tr > td {
+        display: block;
+        border-bottom: none;
+        padding: 0;
+        font-size: 12px;
+      }
+      tbody tr > td:nth-child(1) { grid-area: name; min-width: 0; }
+      tbody tr > td:nth-child(2) { grid-area: status; }
+      tbody tr > td:nth-child(3) { grid-area: id; word-break: break-all; }
+      tbody tr > td:nth-child(4) { grid-area: sync; }
+      tbody tr > td:nth-child(5) { grid-area: gear; text-align: right !important; align-self: start; }
+      tbody tr > td:nth-child(4):empty { display: none; }
+      tbody tr > td:nth-child(4) .btn { width: 100%; padding: 10px 12px !important; font-size: 11px !important; }
+
+      /* Side panel: full width on phones. */
+      .panel { width: 100%; max-width: 100vw; }
+      .panel-header { padding: 18px 18px 14px; }
+      .panel-body { padding: 18px; }
+
+      /* Segmented control: wrap so labels stay readable. */
+      .segmented { flex-wrap: wrap; }
+      .segmented button { font-size: 11px; padding: 9px 14px; }
+
+      /* Bigger tap targets. */
+      .btn { padding: 12px 16px; font-size: 11px; }
+      .btn-icon { width: 40px; height: 40px; }
+      .btn-remove { padding: 8px 10px; font-size: 11px; }
+      .pill { font-size: 10px; padding: 4px 10px; }
+
+      /* Invite row in the settings panel: the email + role + button can't
+         share one line on a phone — wrap them. */
+      .panel-section .field-row { flex-wrap: wrap; }
+      .panel-section > div[style*="display:flex"] { flex-wrap: wrap; }
+      #invite-email { flex: 1 1 100% !important; }
+      #invite-role { flex: 1 1 110px !important; }
+      #invite-btn { flex: 1 1 auto; }
+
+      /* Member row: pill + remove wrap below the email instead of clipping. */
+      .member-row { flex-wrap: wrap; row-gap: 6px; }
+      .member-row .member-email { flex: 1 1 100%; }
+
+      .login { margin: 64px auto; padding: 0 16px; }
+    }
   </style>
 </head>
 <body>

@@ -260,9 +260,12 @@ body.theme-light{
 /* At 480-767px the 1/6-grid column is only ~80-128px wide; the default 14px
    side padding leaves too little room for "INTERNATIONAL". Tighten the
    horizontal padding so the 4-line stack fits without bleeding into the
-   adjacent SEASON cell. */
+   adjacent SEASON cell.
+   The :not(.home-hide-on-mobile) guard keeps this from also tightening
+   .divcol-span-2-3 (which holds POST-PRODUCTION/STUDIO on mobile — the
+   wordmark inside it is display:none there). */
 @media screen and (max-width: 767px) {
-  [class*="divcol-"]:has(> .home-logo-mark) {
+  [class*="divcol-"]:has(> .home-logo-mark:not(.home-hide-on-mobile)) {
     padding-left: 6px;
     padding-right: 6px;
   }

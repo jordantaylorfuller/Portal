@@ -16,6 +16,7 @@
       font-family: 'DM Mono', monospace;
       overflow: hidden;
       height: 100vh;
+      height: 100dvh;
     }
 
     /* ── Delivery Room (copied from index.html, adapted for standalone) ── */
@@ -49,6 +50,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh;
       box-sizing: border-box;
     }
 
@@ -259,6 +261,31 @@
     }
     .dev-banner a { color: rgba(255,255,255,0.7); margin-left: 12px; text-decoration: none; }
     .dev-banner a:hover { color: #fff; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .delivery-content { padding: 64px 20px 24px; }
+
+      .delivery-item {
+        flex-wrap: wrap;
+        row-gap: 6px;
+        padding: 16px 0;
+      }
+      .delivery-info { flex: 1 1 100%; order: 1; }
+      .delivery-status { order: 0; }
+      .delivery-size { order: 2; margin: 0; margin-right: auto; padding-left: 20px; }
+      .delivery-download {
+        order: 3;
+        padding: 10px 16px;
+        font-size: 11px;
+      }
+      .delivery-info-btn {
+        order: 4;
+        width: 32px;
+        height: 32px;
+        margin-left: 4px;
+      }
+    }
   </style>
 </head>
 <body>
