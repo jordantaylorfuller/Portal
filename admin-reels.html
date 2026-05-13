@@ -475,6 +475,78 @@
     .crop-coord { font-variant-numeric: tabular-nums; }
     .crop-hint { font-size: 10px; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); text-transform: uppercase; }
     .crop-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .topbar { padding: 18px 16px; }
+      .admin-tabs { padding: 0 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .admin-tab { padding: 14px 14px; white-space: nowrap; flex-shrink: 0; }
+      .container { padding: 32px 16px 96px; }
+
+      .signout-bottom { right: 16px; bottom: 16px; padding: 10px 12px; }
+
+      .page-title { font-size: 18px; }
+      .toolbar { flex-wrap: wrap; gap: 12px; }
+
+      /* List rows: stack title/counts on top, status + actions below. */
+      .list-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "title   status"
+          "counts  actions";
+        gap: 8px 12px;
+      }
+      .list-row > :nth-child(1) { grid-area: title; }
+      .list-row > :nth-child(2) { grid-area: status; justify-self: end; }
+      .list-row > :nth-child(3) { grid-area: counts; }
+      .list-row > :nth-child(4) { grid-area: actions; justify-self: end; }
+
+      .pill { font-size: 10px; padding: 4px 10px; }
+      .row-counts { font-size: 11px; }
+      .row-actions { gap: 8px; flex-wrap: wrap; }
+      .btn-quiet { font-size: 11px; padding: 8px 8px; }
+
+      /* Assets table: drop the drag handle, give the title input a full row
+         under thumb+status so it doesn't get squeezed. */
+      .asset {
+        grid-template-columns: 56px 1fr;
+        grid-template-areas:
+          "thumb  title"
+          "thumb  status"
+          "actA   actB";
+        gap: 6px 12px;
+        padding: 12px;
+      }
+      .asset-handle { display: none; }
+      .asset-thumb { width: 56px; height: 32px; grid-area: thumb; }
+      .asset-title-input { grid-area: title; font-size: 13px; }
+      .asset-status { grid-area: status; text-align: left; font-size: 10px; }
+      .asset > div:nth-of-type(4) { grid-area: actA; text-align: left !important; }
+      .asset > div:nth-of-type(5) { grid-area: actB; text-align: right !important; }
+
+      /* Upload rows: just name + pct, status wraps under. */
+      .upload-row {
+        grid-template-columns: 1fr 56px;
+        gap: 8px;
+      }
+      .upload-status { grid-column: 1 / -1; text-align: left; }
+
+      /* Buttons: bigger tap targets. */
+      .btn { padding: 12px 16px; font-size: 11px; }
+      .dropzone { padding: 24px 16px; }
+      .dropzone-btn { padding: 12px 20px; }
+
+      /* Modal: full-bleed on phones. */
+      .modal { width: 100%; max-width: 100vw; max-height: 100vh; max-height: 100dvh; padding: 18px; border: none; }
+      .modal-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .modal-tab { white-space: nowrap; flex-shrink: 0; }
+      .pane-current { flex-wrap: wrap; }
+      .pane-current-thumb { width: 100%; height: auto; aspect-ratio: 16/9; }
+      .modal-foot { flex-wrap: wrap; }
+
+      /* Gate / login screen padding. */
+      .gate, .login-shell { margin: 64px auto; padding: 0 16px; }
+    }
   </style>
 </head>
 <body>
