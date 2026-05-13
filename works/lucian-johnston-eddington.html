@@ -28,11 +28,11 @@
     .detail-meta dt { opacity: 0.5; text-transform: uppercase; letter-spacing: 0.04em; }
     .detail-meta dd { margin: 0; }
     .bio { max-width: 720px; margin-top: 48px; font-size: 14px; line-height: 1.6; opacity: 0.85; }
-    .video-frame { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; margin: 64px 0; background: #000; }
+    .video-frame { position: relative; width: 100%; max-width: 1200px; aspect-ratio: 16/9; margin: 64px 0; background: #000; overflow: hidden; }
     .video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; margin-top: 48px; }
     .card { display: block; color: inherit; }
-    .card .thumb { aspect-ratio: 16/9; background: #2a2424 center/cover no-repeat; margin-bottom: 8px; }
+    .card .thumb { aspect-ratio: 16/9; background: #2a2424 center/cover no-repeat; margin-bottom: 8px; overflow: hidden; }
     .card .title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
     .card .meta { font-size: 11px; opacity: 0.6; }
     .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin: 64px 0 16px; }
@@ -48,9 +48,10 @@
         <dt>YEAR</dt><dd>2026</dd>
         <dt>VISIT</dt><dd><a href="/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19" target="_blank" rel="noopener">/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19 ↗</a></dd>
       </dl>
-      <div class="video-frame" style="background:url(https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&amp;fit_mode=preserve) center/cover"></div>
+      <div class="video-frame" data-mux-playback-id="UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII" style="background-image:url(https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
       
       
     
+  <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>

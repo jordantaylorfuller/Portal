@@ -636,12 +636,33 @@
     function adminPosterFor(a) {
       return a.poster || '';
     }
+    // Mirrors reel.html applyPosterCropToEl for static <div> thumbs: pan with
+    // background-position, magnify by oversizing the background. The list and
+    // the modal "Current poster" preview must show the saved framing, or
+    // saving the crop appears to be a no-op even though it persisted.
+    function adminThumbStyleAttr(a) {
+      var fx = a && a.poster_focal_x != null ? Number(a.poster_focal_x) : 50;
+      var fy = a && a.poster_focal_y != null ? Number(a.poster_focal_y) : 50;
+      var z  = a && a.poster_zoom    != null ? Number(a.poster_zoom)    : 1;
+      var size = z === 1 ? 'cover' : ((100 * z).toFixed(2) + '% ' + (100 * z).toFixed(2) + '%');
+      return 'background-image:url(' + escapeHtml(adminPosterFor(a)) + ');' +
+             'background-size:' + size + ';' +
+             'background-position:' + fx + '% ' + fy + '%;';
+    }
     function fmtSec(s) {
       if (s == null || isNaN(s)) return '';
       var t = Math.round(s * 10) / 10;
       var m = Math.floor(t / 60);
       var r = (t - m * 60).toFixed(1);
       return m + ':' + (r < 10 ? '0' + r : r);
+    }
+    // Millisecond-precision time format for the frame picker — "0:01.567".
+    function fmtFrameTime(s) {
+      if (s == null || !isFinite(s)) return '0:00.000';
+      var m = Math.floor(s / 60);
+      var rest = s - m * 60;
+      var ss = rest.toFixed(3);
+      return m + ':' + (rest < 10 ? '0' + ss : ss);
     }
 
     // ── List view ──
@@ -800,7 +821,7 @@
         assets.forEach(function(a, i){
           html += '<div class="asset" data-id="' + a.id + '" draggable="true">';
           html += '  <div class="asset-handle">::</div>';
-          html += '  <div class="asset-thumb" data-role="thumb" style="background-image:url(' + escapeHtml(adminPosterFor(a)) + ')"></div>';
+          html += '  <div class="asset-thumb" data-role="thumb" style="' + adminThumbStyleAttr(a) + '"></div>';
           html += '  <input class="asset-title-input" data-id="' + a.id + '" value="' + escapeHtml(a.title || a.s3_key.split("/").pop()) + '"/>';
           html += '  <div class="asset-status ' + escapeHtml(a.status) + '">' + escapeHtml(a.status) + (a.duration_seconds ? ' &middot; ' + Math.round(a.duration_seconds) + 's' : '') + '</div>';
           html += '  <div style="text-align:right;"><button class="btn-quiet" data-act="poster" data-id="' + a.id + '">Poster</button></div>';
@@ -995,18 +1016,40 @@
     var posterCtx = null;  // { reel, asset }
     var posterModal = document.getElementById('poster-modal');
     var posterPlayer = null;
+    // Tracks whether anything was persisted while the modal was open. Used to
+    // decide if closing should re-render the editor (refresh thumb / labels).
+    // Avoids a redundant render when the user opens the modal and immediately
+    // closes it without changes.
+    var posterDirty = false;
 
-    function openPosterModal(reel, asset) {
-      posterCtx = { reel: reel, asset: asset };
-      document.getElementById('poster-title').textContent = 'Poster: ' + (asset.title || asset.s3_key.split('/').pop());
-
-      var current = document.getElementById('poster-current');
+    function renderPosterCurrent(asset) {
       var label = 'Default (Mux auto frame)';
       if (asset.poster_url) label = 'Custom uploaded image';
       else if (asset.poster_time != null) label = 'Mux frame at ' + fmtSec(asset.poster_time);
-      current.innerHTML =
-        '<div class="pane-current-thumb" style="background-image:url(' + escapeHtml(adminPosterFor(asset)) + ')"></div>' +
+      document.getElementById('poster-current').innerHTML =
+        '<div class="pane-current-thumb" style="' + adminThumbStyleAttr(asset) + '"></div>' +
         '<div class="pane-current-meta"><strong>Current poster</strong>' + escapeHtml(label) + '</div>';
+    }
+
+    // After a source-change operation (Use this frame / Upload), pull the
+    // fresh asset row so the crop pane and Current-poster header reflect the
+    // new poster URL and the API-reset focal/zoom defaults.
+    async function refreshPosterCtx() {
+      if (!posterCtx) return;
+      var assets = await fetchAssets(posterCtx.reel.id);
+      var fresh = assets.find(function(a){ return a.id === posterCtx.asset.id; });
+      if (!fresh) return;
+      posterCtx.asset = fresh;
+      renderPosterCurrent(fresh);
+      loadCropFromAsset(fresh);
+    }
+
+    function openPosterModal(reel, asset) {
+      posterCtx = { reel: reel, asset: asset };
+      posterDirty = false;
+      document.getElementById('poster-title').textContent = 'Poster: ' + (asset.title || asset.s3_key.split('/').pop());
+
+      renderPosterCurrent(asset);
 
       // Default tab
       switchTab('frame');
@@ -1019,9 +1062,16 @@
       posterPlayer.setAttribute('stream-type', 'on-demand');
       posterPlayer.setAttribute('accent-color', '#dc2828');
       posterPlayer.setAttribute('disable-cookies', '');
+      // Disable the player's own ← / → handling (default ±5s) so our
+      // frame-step handler below owns the keys.
+      posterPlayer.setAttribute('hotkeys', 'noarrowleft noarrowright');
       if (asset.poster_time != null) posterPlayer.setAttribute('start-time', String(asset.poster_time));
       wrap.appendChild(posterPlayer);
-      document.getElementById('frame-time').textContent = 'Scrub the video, then pick a frame.';
+      posterPlayer.addEventListener('timeupdate', renderFrameTime);
+      posterPlayer.addEventListener('seeked', renderFrameTime);
+      posterPlayer.addEventListener('loadedmetadata', renderFrameTime);
+      renderFrameTime();
+      document.addEventListener('keydown', onPosterKeydown, true);
 
       // Reset upload pane
       document.getElementById('poster-file').value = '';
@@ -1034,12 +1084,55 @@
     }
 
     function closePosterModal() {
+      var reelId = posterCtx && posterCtx.reel.id;
+      var dirty = posterDirty;
       posterModal.classList.remove('open');
       var wrap = document.getElementById('frame-player-wrap');
       if (posterPlayer) { try { posterPlayer.pause(); } catch (e) {} }
       wrap.innerHTML = '';
       posterPlayer = null;
       posterCtx = null;
+      posterDirty = false;
+      document.removeEventListener('keydown', onPosterKeydown, true);
+      if (dirty && reelId) renderEditor(reelId);
+    }
+
+    // Frame-by-frame stepping for the poster picker. 1/30s per arrow press
+    // is one full frame at 30fps and a fraction of a frame at higher rates —
+    // either way it's a clear win over the player's default 5s jump. Shift
+    // accelerates to ~1s steps so you can still cover ground quickly.
+    var FRAME_STEP_S = 1 / 30;
+    function renderFrameTime() {
+      var el = document.getElementById('frame-time');
+      if (!el) return;
+      var t = posterPlayer && isFinite(posterPlayer.currentTime) ? posterPlayer.currentTime : 0;
+      el.textContent = 'Frame at ' + fmtFrameTime(t) + '  ·  ← / → step frame  ·  Shift+← / → step 1s';
+    }
+    function stepFrame(dir, big) {
+      if (!posterPlayer) return;
+      try { posterPlayer.pause(); } catch (e) {}
+      var t = posterPlayer.currentTime;
+      if (!isFinite(t)) return;
+      var step = big ? 1 : FRAME_STEP_S;
+      var dur = posterPlayer.duration;
+      var next = t + dir * step;
+      if (isFinite(dur) && dur > 0) next = Math.max(0, Math.min(dur, next));
+      else next = Math.max(0, next);
+      posterPlayer.currentTime = next;
+      renderFrameTime();
+    }
+    function onPosterKeydown(e) {
+      if (!posterModal.classList.contains('open')) return;
+      // Only the frame-picker tab cares about arrow keys — let the crop pane
+      // do whatever it wants (currently nothing).
+      var activeTab = posterModal.querySelector('.modal-tab.active');
+      if (!activeTab || activeTab.dataset.tab !== 'frame') return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      // Capture-phase + stopPropagation keeps the event from reaching Mux's
+      // internal handlers even if the hotkeys attribute isn't honored.
+      e.preventDefault();
+      e.stopPropagation();
+      stepFrame(e.key === 'ArrowLeft' ? -1 : 1, e.shiftKey);
     }
 
     function switchTab(name) {
@@ -1066,10 +1159,13 @@
           method: 'POST',
           body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_time: t, poster_url: null })
         });
-        toast('Poster set to frame at ' + fmtSec(t));
-        var reelId = posterCtx.reel.id;
-        closePosterModal();
-        renderEditor(reelId);
+        posterDirty = true;
+        toast('Poster set to frame at ' + fmtSec(t) + ' — adjust framing or close');
+        // Hand the user straight to the crop pane on the same poster they
+        // just picked; the API has already reset focal/zoom to defaults so
+        // they're starting from a clean uncropped frame.
+        await refreshPosterCtx();
+        switchTab('crop');
       } catch (e) { toast('Failed: ' + e.message); }
     });
 
@@ -1115,10 +1211,13 @@
           method: 'POST',
           body: JSON.stringify({ reel_id: posterCtx.reel.id, asset_id: posterCtx.asset.id, poster_url: p.key, poster_time: null })
         });
-        toast('Poster uploaded');
-        var reelId = posterCtx.reel.id;
-        closePosterModal();
-        renderEditor(reelId);
+        posterDirty = true;
+        status.textContent = '';
+        toast('Poster uploaded — adjust framing or close');
+        // Same flow as Use this frame: drop the user onto the crop pane with
+        // the freshly uploaded image as the source.
+        await refreshPosterCtx();
+        switchTab('crop');
       } catch (e) {
         status.textContent = 'Failed: ' + e.message;
         toast('Upload failed: ' + e.message);
@@ -1136,10 +1235,9 @@
             poster_focal_x: 50, poster_focal_y: 50, poster_zoom: 1
           })
         });
+        posterDirty = true;
         toast('Reset to default poster');
-        var reelId = posterCtx.reel.id;
         closePosterModal();
-        renderEditor(reelId);
       } catch (e) { toast('Failed: ' + e.message); }
     });
 
@@ -1249,10 +1347,9 @@
             poster_zoom:    Math.round(cropState.zoom   * 100) / 100,
           })
         });
+        posterDirty = true;
         toast('Crop saved');
-        var reelId = posterCtx.reel.id;
         closePosterModal();
-        renderEditor(reelId);
       } catch (e) { toast('Save failed: ' + e.message); }
     });
 

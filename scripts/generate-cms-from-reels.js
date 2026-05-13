@@ -85,13 +85,39 @@ async function main() {
     .from('reels').select('id, slug, title, description').in('slug', slugs);
   if (re) throw re;
 
-  const { data: assets, error: ae } = await adminClient
+  const { data: rawAssets, error: ae } = await adminClient
     .from('reel_assets')
-    .select('id, reel_id, title, mux_playback_id, duration_seconds, sort_order, poster_url, poster_time')
+    .select('id, reel_id, title, mux_playback_id, duration_seconds, sort_order')
     .in('reel_id', reels.map(r => r.id))
     .eq('status', 'ready')
     .order('sort_order');
   if (ae) throw ae;
+
+  // Posters are canonical per mux_playback_id (video_posters table). Pull them
+  // separately so works.json carries the admin-curated frame and crop, and
+  // build-cms-pages.mjs can bake the correct first-paint poster into static
+  // editor/work pages.
+  const playbackIds = [...new Set((rawAssets || []).map(a => a.mux_playback_id).filter(Boolean))];
+  const { data: posters, error: pe } = playbackIds.length
+    ? await adminClient
+        .from('video_posters')
+        .select('mux_playback_id, poster_url, poster_time, poster_focal_x, poster_focal_y, poster_zoom')
+        .in('mux_playback_id', playbackIds)
+    : { data: [], error: null };
+  if (pe) throw pe;
+  const posterByPid = new Map((posters || []).map(p => [p.mux_playback_id, p]));
+
+  const assets = (rawAssets || []).map(a => {
+    const p = posterByPid.get(a.mux_playback_id) || {};
+    return {
+      ...a,
+      poster_url:     p.poster_url     ?? null,
+      poster_time:    p.poster_time    ?? null,
+      poster_focal_x: p.poster_focal_x ?? 50,
+      poster_focal_y: p.poster_focal_y ?? 50,
+      poster_zoom:    p.poster_zoom    ?? 1,
+    };
+  });
 
   const reelById = new Map(reels.map(r => [r.id, r]));
 
@@ -123,6 +149,13 @@ async function main() {
       director: parsed.director,
       visitLink: `/reel.html?s=${editor.slug}#${asset.id}`,
       thumbnailCover: poster,
+      // Canonical crop transform for this video's poster. Baked into works.json
+      // so the build can stamp first-paint-correct framing onto static pages;
+      // runtime poster-sync.js still overlays the latest values from
+      // /api/posters in case the build is stale.
+      posterFocalX: Number(asset.poster_focal_x ?? 50),
+      posterFocalY: Number(asset.poster_focal_y ?? 50),
+      posterZoom:   Number(asset.poster_zoom    ?? 1),
       video: {
         url: `/reel.html?s=${editor.slug}#${asset.id}`,
         title: asset.title,

@@ -1,7 +1,7 @@
 {
   "_meta": {
     "source": "Generated from Supabase reel_assets",
-    "snapshotAt": "2026-05-05",
+    "snapshotAt": "2026-05-12",
     "totalItems": 27
   },
   "items": [
@@ -15,6 +15,9 @@
       "director": null,
       "visitLink": "/reel.html?s=lucian-johnston#1ceb4ada-ade3-4086-8319-655d7d2b2549",
       "thumbnailCover": "https://image.mux.com/mR1ZLUyM558PMFaui1gt01UmnfwwBppcIZ8yIxLI7jYE/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=lucian-johnston#1ceb4ada-ade3-4086-8319-655d7d2b2549",
         "title": "Beau Is Afraid A24",
@@ -22,28 +25,6 @@
         "thumbnail": "https://image.mux.com/mR1ZLUyM558PMFaui1gt01UmnfwwBppcIZ8yIxLI7jYE/thumbnail.jpg?width=1280&fit_mode=preserve",
         "playbackId": "mR1ZLUyM558PMFaui1gt01UmnfwwBppcIZ8yIxLI7jYE",
         "durationSeconds": 144.269133
-      },
-      "referenceEditors": null,
-      "order": 0,
-      "isDraft": false
-    },
-    {
-      "id": "edbe9209-90ca-41a1-8d0c-9bcb115219d5",
-      "name": "APPLE",
-      "slug": "carla-luffe-apple",
-      "client": "APPLE",
-      "year": "2026",
-      "typeOfWork": "Commercial",
-      "director": "Mackenzie Sheppard",
-      "visitLink": "/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5",
-      "thumbnailCover": "https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&fit_mode=preserve",
-      "video": {
-        "url": "/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5",
-        "title": "APPLE x Mackenzie Sheppard",
-        "provider": "Mux",
-        "thumbnail": "https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&fit_mode=preserve",
-        "playbackId": "xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4",
-        "durationSeconds": 15.057667
       },
       "referenceEditors": null,
       "order": 0,
@@ -59,6 +40,9 @@
       "director": null,
       "visitLink": "/reel.html?s=josh-lee#6508d726-a28f-4288-a5e6-a1b46a57387b",
       "thumbnailCover": "https://image.mux.com/uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=josh-lee#6508d726-a28f-4288-a5e6-a1b46a57387b",
         "title": "Ripley Netflix",
@@ -72,28 +56,6 @@
       "isDraft": false
     },
     {
-      "id": "cf05c78c-c345-48f0-9f96-0303e66c9f19",
-      "name": "Eddington",
-      "slug": "lucian-johnston-eddington",
-      "client": "A24",
-      "year": "2026",
-      "typeOfWork": "Trailer",
-      "director": null,
-      "visitLink": "/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19",
-      "thumbnailCover": "https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&fit_mode=preserve",
-      "video": {
-        "url": "/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19",
-        "title": "Eddington A24",
-        "provider": "Mux",
-        "thumbnail": "https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&fit_mode=preserve",
-        "playbackId": "UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII",
-        "durationSeconds": 142.559089
-      },
-      "referenceEditors": null,
-      "order": 1,
-      "isDraft": false
-    },
-    {
       "id": "f6563ce6-c2e9-4c94-a019-fb2150adc2c6",
       "name": "BURBERRY",
       "slug": "carla-luffe-burberry",
@@ -103,6 +65,9 @@
       "director": "Camille Summersvalli",
       "visitLink": "/reel.html?s=carla-luffe#f6563ce6-c2e9-4c94-a019-fb2150adc2c6",
       "thumbnailCover": "https://image.mux.com/EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#f6563ce6-c2e9-4c94-a019-fb2150adc2c6",
         "title": "BURBERRY x Camille Summersvalli",
@@ -112,7 +77,7 @@
         "durationSeconds": 60.044
       },
       "referenceEditors": null,
-      "order": 1,
+      "order": 0,
       "isDraft": false
     },
     {
@@ -125,6 +90,9 @@
       "director": null,
       "visitLink": "/reel.html?s=josh-lee#0b617920-1cbe-459b-aa06-144c21b4f9ea",
       "thumbnailCover": "https://image.mux.com/63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=josh-lee#0b617920-1cbe-459b-aa06-144c21b4f9ea",
         "title": "The Drama A24",
@@ -132,6 +100,31 @@
         "thumbnail": "https://image.mux.com/63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4/thumbnail.jpg?width=1280&fit_mode=preserve",
         "playbackId": "63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4",
         "durationSeconds": 136.845044
+      },
+      "referenceEditors": null,
+      "order": 1,
+      "isDraft": false
+    },
+    {
+      "id": "cf05c78c-c345-48f0-9f96-0303e66c9f19",
+      "name": "Eddington",
+      "slug": "lucian-johnston-eddington",
+      "client": "A24",
+      "year": "2026",
+      "typeOfWork": "Trailer",
+      "director": null,
+      "visitLink": "/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19",
+      "thumbnailCover": "https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
+      "video": {
+        "url": "/reel.html?s=lucian-johnston#cf05c78c-c345-48f0-9f96-0303e66c9f19",
+        "title": "Eddington A24",
+        "provider": "Mux",
+        "thumbnail": "https://image.mux.com/UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "playbackId": "UFZoW003rXNkc5IbHtqWbN9d73YZItkfP3uPXvVq2fII",
+        "durationSeconds": 142.559089
       },
       "referenceEditors": null,
       "order": 1,
@@ -146,14 +139,42 @@
       "typeOfWork": "Commercial",
       "director": null,
       "visitLink": "/reel.html?s=carla-luffe#cb61972d-64d0-4d5a-a978-cd8b7ba79a0d",
-      "thumbnailCover": "https://image.mux.com/cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "thumbnailCover": "https://image.mux.com/cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU/thumbnail.jpg?width=1280&time=63.207646",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#cb61972d-64d0-4d5a-a978-cd8b7ba79a0d",
         "title": "CANON RedefineOrdinary ENG",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "thumbnail": "https://image.mux.com/cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU/thumbnail.jpg?width=1280&time=63.207646",
         "playbackId": "cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU",
         "durationSeconds": 67.84
+      },
+      "referenceEditors": null,
+      "order": 1,
+      "isDraft": false
+    },
+    {
+      "id": "e5fce17c-d2b8-466d-a244-edefb3fc85e7",
+      "name": "COACH Charles",
+      "slug": "carla-luffe-coach-charles",
+      "client": "COACH Charles",
+      "year": "2026",
+      "typeOfWork": "Commercial",
+      "director": "Camille Summersvalli",
+      "visitLink": "/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7",
+      "thumbnailCover": "https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
+      "video": {
+        "url": "/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7",
+        "title": "COACH Charles x Camille Summersvalli",
+        "provider": "Mux",
+        "thumbnail": "https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "playbackId": "Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o",
+        "durationSeconds": 52.762
       },
       "referenceEditors": null,
       "order": 2,
@@ -169,6 +190,9 @@
       "director": null,
       "visitLink": "/reel.html?s=lucian-johnston#9d37cc4c-34ff-46fe-a126-31d33a38cdcc",
       "thumbnailCover": "https://image.mux.com/6nER6gxpExVkTb8N4YZcAtgkPKg2PWsc13WcY00Tagwg/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=lucian-johnston#9d37cc4c-34ff-46fe-a126-31d33a38cdcc",
         "title": "Hereditary A24",
@@ -182,6 +206,31 @@
       "isDraft": false
     },
     {
+      "id": "edbe9209-90ca-41a1-8d0c-9bcb115219d5",
+      "name": "APPLE",
+      "slug": "carla-luffe-apple",
+      "client": "APPLE",
+      "year": "2026",
+      "typeOfWork": "Commercial",
+      "director": "Mackenzie Sheppard",
+      "visitLink": "/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5",
+      "thumbnailCover": "https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&time=1.21937",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
+      "video": {
+        "url": "/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5",
+        "title": "APPLE x Mackenzie Sheppard",
+        "provider": "Mux",
+        "thumbnail": "https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&time=1.21937",
+        "playbackId": "xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4",
+        "durationSeconds": 15.057667
+      },
+      "referenceEditors": null,
+      "order": 3,
+      "isDraft": false
+    },
+    {
       "id": "abddfb54-ce0d-46c6-9c60-4e5e3aeea76a",
       "name": "If I Had Legs I'd Kick You",
       "slug": "lucian-johnston-if-i-had-legs-i-d-kick-you",
@@ -191,6 +240,9 @@
       "director": null,
       "visitLink": "/reel.html?s=lucian-johnston#abddfb54-ce0d-46c6-9c60-4e5e3aeea76a",
       "thumbnailCover": "https://image.mux.com/0102sZnvznqh48q1wgFVm8hhfRV1v702eiQkMYsyrDYqwU/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=lucian-johnston#abddfb54-ce0d-46c6-9c60-4e5e3aeea76a",
         "title": "If I Had Legs I'd Kick You",
@@ -204,25 +256,28 @@
       "isDraft": false
     },
     {
-      "id": "e5fce17c-d2b8-466d-a244-edefb3fc85e7",
-      "name": "COACH Charles",
-      "slug": "carla-luffe-coach-charles",
-      "client": "COACH Charles",
+      "id": "18fde76a-f85c-44bf-b981-645cbf1dca53",
+      "name": "Janet Planet",
+      "slug": "lucian-johnston-janet-planet",
+      "client": "A24",
       "year": "2026",
-      "typeOfWork": "Commercial",
-      "director": "Camille Summersvalli",
-      "visitLink": "/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7",
-      "thumbnailCover": "https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "typeOfWork": "Trailer",
+      "director": null,
+      "visitLink": "/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53",
+      "thumbnailCover": "https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
-        "url": "/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7",
-        "title": "COACH Charles x Camille Summersvalli",
+        "url": "/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53",
+        "title": "Janet Planet A24",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&fit_mode=preserve",
-        "playbackId": "Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o",
-        "durationSeconds": 52.762
+        "thumbnail": "https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "playbackId": "jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200",
+        "durationSeconds": 139.139011
       },
       "referenceEditors": null,
-      "order": 3,
+      "order": 4,
       "isDraft": false
     },
     {
@@ -235,6 +290,9 @@
       "director": "Camille Summersvalli",
       "visitLink": "/reel.html?s=carla-luffe#1d214279-5865-4112-b004-5b2a216f62f6",
       "thumbnailCover": "https://image.mux.com/XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#1d214279-5865-4112-b004-5b2a216f62f6",
         "title": "COACH Elle x Camille Summersvalli",
@@ -242,28 +300,6 @@
         "thumbnail": "https://image.mux.com/XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc/thumbnail.jpg?width=1280&fit_mode=preserve",
         "playbackId": "XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc",
         "durationSeconds": 43.002256
-      },
-      "referenceEditors": null,
-      "order": 4,
-      "isDraft": false
-    },
-    {
-      "id": "18fde76a-f85c-44bf-b981-645cbf1dca53",
-      "name": "Janet Planet",
-      "slug": "lucian-johnston-janet-planet",
-      "client": "A24",
-      "year": "2026",
-      "typeOfWork": "Trailer",
-      "director": null,
-      "visitLink": "/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53",
-      "thumbnailCover": "https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&fit_mode=preserve",
-      "video": {
-        "url": "/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53",
-        "title": "Janet Planet A24",
-        "provider": "Mux",
-        "thumbnail": "https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&fit_mode=preserve",
-        "playbackId": "jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200",
-        "durationSeconds": 139.139011
       },
       "referenceEditors": null,
       "order": 4,
@@ -278,12 +314,15 @@
       "typeOfWork": "Commercial",
       "director": "Nicolás Méndez aka CANADA",
       "visitLink": "/reel.html?s=carla-luffe#a6cef2f9-9a2d-4a81-ad56-50c89da4589e",
-      "thumbnailCover": "https://image.mux.com/QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "thumbnailCover": "https://image.mux.com/QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A/thumbnail.jpg?width=1280&time=0",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1.27,
       "video": {
         "url": "/reel.html?s=carla-luffe#a6cef2f9-9a2d-4a81-ad56-50c89da4589e",
         "title": "EXPEDIA Lemons x Nicolás Méndez aka CANADA",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "thumbnail": "https://image.mux.com/QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A/thumbnail.jpg?width=1280&time=0",
         "playbackId": "QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A",
         "durationSeconds": 60.042667
       },
@@ -300,12 +339,15 @@
       "typeOfWork": "Commercial",
       "director": "Matthew Frost",
       "visitLink": "/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe",
-      "thumbnailCover": "https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "thumbnailCover": "https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&time=50.146069",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe",
         "title": "GOOGLE x Matthew Frost",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "thumbnail": "https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&time=50.146069",
         "playbackId": "NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM",
         "durationSeconds": 79.2885
       },
@@ -322,12 +364,15 @@
       "typeOfWork": "Commercial",
       "director": "Camille Ummersvalli",
       "visitLink": "/reel.html?s=carla-luffe#53569abe-003d-46d1-8a5f-593f06b6fa18",
-      "thumbnailCover": "https://image.mux.com/3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "thumbnailCover": "https://image.mux.com/3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU/thumbnail.jpg?width=1280&time=9.22404",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#53569abe-003d-46d1-8a5f-593f06b6fa18",
         "title": "HAIM Relationships x Camille Ummersvalli",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "thumbnail": "https://image.mux.com/3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU/thumbnail.jpg?width=1280&time=9.22404",
         "playbackId": "3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU",
         "durationSeconds": 205.251
       },
@@ -344,12 +389,15 @@
       "typeOfWork": "Commercial",
       "director": "Jonas Lindström",
       "visitLink": "/reel.html?s=carla-luffe#cbc9054e-f14c-4c69-aa48-cb719b6ffd9a",
-      "thumbnailCover": "https://image.mux.com/aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "thumbnailCover": "https://image.mux.com/aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps/thumbnail.jpg?width=1280&time=43.919946",
+      "posterFocalX": 49,
+      "posterFocalY": 28.8,
+      "posterZoom": 1.28,
       "video": {
         "url": "/reel.html?s=carla-luffe#cbc9054e-f14c-4c69-aa48-cb719b6ffd9a",
         "title": "HERMÉS x Jonas Lindström",
         "provider": "Mux",
-        "thumbnail": "https://image.mux.com/aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps/thumbnail.jpg?width=1280&fit_mode=preserve",
+        "thumbnail": "https://image.mux.com/aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps/thumbnail.jpg?width=1280&time=43.919946",
         "playbackId": "aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps",
         "durationSeconds": 48.562667
       },
@@ -367,6 +415,9 @@
       "director": "Jonas Lindström",
       "visitLink": "/reel.html?s=carla-luffe#f2af8115-138b-4bfd-806c-6c95da704b69",
       "thumbnailCover": "https://image.mux.com/L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#f2af8115-138b-4bfd-806c-6c95da704b69",
         "title": "LACOSTE x Jonas Lindström",
@@ -389,6 +440,9 @@
       "director": "Justyna Obasi",
       "visitLink": "/reel.html?s=carla-luffe#143b5824-a71e-429d-a39f-5b43c9e8e339",
       "thumbnailCover": "https://image.mux.com/P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#143b5824-a71e-429d-a39f-5b43c9e8e339",
         "title": "META x Justyna Obasi",
@@ -411,6 +465,9 @@
       "director": "Matias & Mathias",
       "visitLink": "/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361",
       "thumbnailCover": "https://image.mux.com/hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361",
         "title": "OLGA BASHA x Matias & Mathias",
@@ -433,6 +490,9 @@
       "director": "Matthew Frost",
       "visitLink": "/reel.html?s=carla-luffe#98cd8683-1182-473b-a596-8fab8f823ae3",
       "thumbnailCover": "https://image.mux.com/024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#98cd8683-1182-473b-a596-8fab8f823ae3",
         "title": "REFORMATION x Matthew Frost",
@@ -455,6 +515,9 @@
       "director": "Daniel Kragh Jacobsen",
       "visitLink": "/reel.html?s=carla-luffe#15ecdcde-5b6b-464d-8c47-fda912f5fca0",
       "thumbnailCover": "https://image.mux.com/KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#15ecdcde-5b6b-464d-8c47-fda912f5fca0",
         "title": "THE LIFT x Daniel Kragh Jacobsen",
@@ -477,6 +540,9 @@
       "director": "Leigh Powis x Flowershop",
       "visitLink": "/reel.html?s=carla-luffe#5d08ac46-1b32-49da-9a40-89a6f06264ed",
       "thumbnailCover": "https://image.mux.com/vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#5d08ac46-1b32-49da-9a40-89a6f06264ed",
         "title": "TONAL x Leigh Powis x Flowershop",
@@ -499,6 +565,9 @@
       "director": "Mother x Michael Spiccia",
       "visitLink": "/reel.html?s=carla-luffe#f2a07bc0-51a0-41c6-b2d3-50372e596cf6",
       "thumbnailCover": "https://image.mux.com/BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#f2a07bc0-51a0-41c6-b2d3-50372e596cf6",
         "title": "UBER x Mother x Michael Spiccia",
@@ -521,6 +590,9 @@
       "director": "Niclas Larsson",
       "visitLink": "/reel.html?s=carla-luffe#611b7aba-c303-4dc0-ae58-2a7847f2609a",
       "thumbnailCover": "https://image.mux.com/qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#611b7aba-c303-4dc0-ae58-2a7847f2609a",
         "title": "VOGUE x Niclas Larsson",
@@ -543,6 +615,9 @@
       "director": "Niclas Larsson",
       "visitLink": "/reel.html?s=carla-luffe#5fe70455-6a01-4101-b141-c9036946d09c",
       "thumbnailCover": "https://image.mux.com/SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#5fe70455-6a01-4101-b141-c9036946d09c",
         "title": "VOLVO x Niclas Larsson",
@@ -565,6 +640,9 @@
       "director": "Leigh Powis x JohannesLeonardo",
       "visitLink": "/reel.html?s=carla-luffe#f9ad543b-f40c-4835-8eba-6cb039a231b9",
       "thumbnailCover": "https://image.mux.com/vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#f9ad543b-f40c-4835-8eba-6cb039a231b9",
         "title": "VW x Leigh Powis x JohannesLeonardo",
@@ -587,6 +665,9 @@
       "director": "Niclas Larsson",
       "visitLink": "/reel.html?s=carla-luffe#678ef582-90d4-4006-a610-ba29f3da8dd8",
       "thumbnailCover": "https://image.mux.com/xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc/thumbnail.jpg?width=1280&fit_mode=preserve",
+      "posterFocalX": 50,
+      "posterFocalY": 50,
+      "posterZoom": 1,
       "video": {
         "url": "/reel.html?s=carla-luffe#678ef582-90d4-4006-a610-ba29f3da8dd8",
         "title": "WHATSAPP x Niclas Larsson",
