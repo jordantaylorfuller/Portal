@@ -260,9 +260,12 @@ body.theme-light{
 /* At 480-767px the 1/6-grid column is only ~80-128px wide; the default 14px
    side padding leaves too little room for "INTERNATIONAL". Tighten the
    horizontal padding so the 4-line stack fits without bleeding into the
-   adjacent SEASON cell. */
+   adjacent SEASON cell.
+   The :not(.home-hide-on-mobile) guard keeps this from also tightening
+   .divcol-span-2-3 (which holds POST-PRODUCTION/STUDIO on mobile — the
+   wordmark inside it is display:none there). */
 @media screen and (max-width: 767px) {
-  [class*="divcol-"]:has(> .home-logo-mark) {
+  [class*="divcol-"]:has(> .home-logo-mark:not(.home-hide-on-mobile)) {
     padding-left: 6px;
     padding-right: 6px;
   }
@@ -1410,7 +1413,7 @@ body.is-sliding-out .clients-preview { visibility: visible; }
           <div class="editor-dropdown-wrapper editor-dropdown-scope w-dyn-list">
             <div role="list" class="editor-dropdown-list w-dyn-items" data-cms-prerendered="true">
               <!-- @cms:editors:start -->
-              <div role="listitem"  class="w-dyn-item" data-editor-slug="carla-luffe" data-preview-src="https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/animated.gif?width=640&amp;height=360&amp;fps=15">
+              <div role="listitem"  class="w-dyn-item" data-editor-slug="carla-luffe" data-preview-src="https://image.mux.com/EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w/animated.gif?width=640&amp;height=360&amp;fps=15">
               <div data-delay="0" data-hover="false" class="dropdown editor-dropdown w-dropdown">
                 <div class="dropdown-toggle w-dropdown-toggle">
                   <div data-wf--editor-roll--variant="base" class="divgrid-9 div-block-11">
@@ -1430,7 +1433,7 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                       <div class="text-14">2026</div>
                     </div>
                   </div>
-                  <div class="works-loop-gif" style="background-image:url(&quot;https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/animated.gif?width=640&amp;height=360&amp;fps=15&quot;);"></div>
+                  <div class="works-loop-gif" style="background-image:url(&quot;https://image.mux.com/EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w/animated.gif?width=640&amp;height=360&amp;fps=15&quot;);"></div>
                 </div>
                 <nav class="dropdown-list w-dropdown-list">
                   <div data-figma-id="4:6168" class="div-3">
@@ -1453,33 +1456,7 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                       </div>
                       <div class="div-block-9">
                         <div class="work_slider_cms_wrap swiper w-dyn-list">
-                          <div role="list" class="work_slider_cms_list swiper-wrapper w-dyn-items"><div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="edbe9209-90ca-41a1-8d0c-9bcb115219d5">
-                              <div data-figma-id="4:6194" class="divspace-y-2">
-                                <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
-                                  <p data-figma-id="4:6196" class="client-agency">APPLE</p>
-                                </div>
-                                <div data-figma-id="4:6197" class="divaspect-video">
-                                  <div  class="work-card-gif vimeo-shell" data-mux-playback-id="xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
-                                    <div class="vimeo-url">/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5</div>
-                                  </div>
-                                </div>
-                                <div data-figma-id="4:6201" class="divspace-y-1">
-                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6203" class="brand-film">APPLE</p>
-                                  </div>
-                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
-                                  </div>
-                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
-                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
-                                  </div>
-                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
-                                    <a href="/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5" class="visit-video">Visit Video ⇥</a>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-<div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f6563ce6-c2e9-4c94-a019-fb2150adc2c6">
+                          <div role="list" class="work_slider_cms_list swiper-wrapper w-dyn-items"><div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="f6563ce6-c2e9-4c94-a019-fb2150adc2c6">
                               <div data-figma-id="4:6194" class="divspace-y-2">
                                 <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
                                   <p data-figma-id="4:6196" class="client-agency">BURBERRY</p>
@@ -1553,6 +1530,32 @@ body.is-sliding-out .clients-preview { visibility: visible; }
                                   </div>
                                   <div data-figma-id="4:6208" class="atext-terminal-sm-2">
                                     <a href="/reel.html?s=carla-luffe#e5fce17c-d2b8-466d-a244-edefb3fc85e7" class="visit-video">Visit Video ⇥</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+<div role="listitem"  class="work_slider_cms_item swiper-slide w-dyn-item" data-asset-id="edbe9209-90ca-41a1-8d0c-9bcb115219d5">
+                              <div data-figma-id="4:6194" class="divspace-y-2">
+                                <div data-figma-id="4:6195" class="ptext-terminal-sm-6">
+                                  <p data-figma-id="4:6196" class="client-agency">APPLE</p>
+                                </div>
+                                <div data-figma-id="4:6197" class="divaspect-video">
+                                  <div  class="work-card-gif vimeo-shell" data-mux-playback-id="xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4"><img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt="" class="vimeo-poster-img">
+                                    <div class="vimeo-url">/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5</div>
+                                  </div>
+                                </div>
+                                <div data-figma-id="4:6201" class="divspace-y-1">
+                                  <div data-figma-id="4:6202" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6203" class="brand-film">APPLE</p>
+                                  </div>
+                                  <div data-figma-id="4:6204" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6205" class="_2024-2">2026</p>
+                                  </div>
+                                  <div data-figma-id="4:6206" class="ptext-terminal-sm-6">
+                                    <p data-figma-id="4:6207" class="client-agency">Commercial</p>
+                                  </div>
+                                  <div data-figma-id="4:6208" class="atext-terminal-sm-2">
+                                    <a href="/reel.html?s=carla-luffe#edbe9209-90ca-41a1-8d0c-9bcb115219d5" class="visit-video">Visit Video ⇥</a>
                                   </div>
                                 </div>
                               </div>

@@ -31,6 +31,7 @@
       color: #fff;
       font-family: 'DM Mono', monospace;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -502,6 +503,7 @@
       right: 0;
       width: 320px;
       height: 100vh;
+      height: 100dvh;
       background: rgba(0,0,0,0.75);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -780,6 +782,97 @@
 
     .scrub-marker.resolved {
       background: rgba(255,255,255,0.3);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      /* Comment panel slides full-width on phones so it isn't a
+         320px sliver covering the player. */
+      .comment-panel {
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .panel-close {
+        width: 40px;
+        height: 40px;
+      }
+
+      .resolve-btn {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+
+      /* Annotation toolbar: move to bottom of viewport, horizontal row,
+         so it doesn't fight the comment panel or player edge. */
+      .annotation-toolbar {
+        top: auto;
+        bottom: 80px;
+        right: 50%;
+        transform: translateX(50%);
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: calc(100% - 24px);
+        gap: 4px;
+      }
+
+      .anno-divider {
+        width: 1px;
+        height: 24px;
+        margin: 0 6px;
+      }
+
+      .anno-tool-btn,
+      .anno-done-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .anno-color-btn {
+        width: 24px;
+        height: 24px;
+        margin: 0 2px;
+      }
+
+      /* Transport bar: drop volume + duration; bump touch targets;
+         keep playhead readable. */
+      .volume-group {
+        display: none;
+      }
+
+      .transport-time + .transport-time,
+      .playhead-group .transport-time:nth-of-type(2) {
+        display: none;
+      }
+
+      .transport-btn,
+      .video-control-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .playhead-group {
+        width: 40%;
+      }
+
+      /* Bigger slider thumbs so the scrub handle is actually tappable. */
+      .playhead-slider,
+      .volume-slider {
+        height: 6px;
+      }
+
+      .playhead-slider::-webkit-slider-thumb,
+      .volume-slider::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+      }
+
+      .playhead-slider::-moz-range-thumb,
+      .volume-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+      }
     }
   </style>
 </head>
