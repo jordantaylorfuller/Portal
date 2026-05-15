@@ -286,54 +286,20 @@ body.dropdowns-armed .switch .theme-icon {
   height: auto;
   min-height: 0;
 }
-/* Desktop only: lock the page wrapper to exactly the viewport height so the
-   footer sits anchored at the bottom and doesn't move when an editor row
-   expands — the editor-index region scrolls internally instead of growing
-   the page. `min-height: 0` lets the flex preview-area shrink to give the
-   footer its space; flex-shrink:0 + overflow:visible on the inner section
-   keeps it at its own content height (the webflow rule overflow:hidden on
-   .sectionrelative-2 otherwise zeroes its flex min-size and the totals row
-   + expanded panel get clipped instead of scrolling).
-
-   Restricted to ≥992px because below that the hero column stacks vertically
-   and the natural page is already several screens tall — forcing 100vh
-   would crush the hero to 0 and hide most of the page. Tablet/mobile keep
-   the natural growing-page behavior. */
-@media (min-width: 992px) {
-  .divrelative {
-    height: 100vh;
-  }
-  .divrelative > .mainrelative.preview-area {
-    flex: 1 1 0;
-    min-height: 0;
-    overflow-y: auto;
-    /* Webflow's export ships padding:56px 0 140px on .preview-area, which
-       inside the overflow-y:auto scroller becomes empty scrollable strips
-       (56 above the EDITOR INDEX header, 140 below the totals row).
-       Scrolling either direction reveals nothing. Zero both on desktop. */
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .divrelative > .mainrelative.preview-area > .sectionrelative-2 {
-    flex-shrink: 0;
-    overflow: visible;
-  }
+/* Sticky-footer pattern at every breakpoint: the page is at least one viewport
+   tall so the footer sits at the bottom on short pages, but grows to fit all
+   content (including expanded editor profile + poster row) on taller content
+   so the footer never overlaps anything. The previous desktop-only lock to
+   100vh with overflow-y:auto on .preview-area clipped expanded editor content
+   behind the footer on shorter viewports. Also trims webflow's 140px base
+   padding-bottom to 32px so there's a normal section gap below the totals
+   row instead of an empty strip. */
+.divrelative {
+  min-height: 100vh;
 }
-/* Below 992 keep the original sticky-footer pattern: page grows to at least
-   viewport height, preview-area flex-grows to push the footer to the bottom
-   on tall windows, content can extend below the fold naturally. */
-@media (max-width: 991px) {
-  .divrelative {
-    min-height: 100vh;
-  }
-  .divrelative > .mainrelative.preview-area {
-    flex: 1 0 auto;
-    /* Webflow's base padding-bottom is 140px — sized for the desktop layout
-       where the totals row sits well above the footer. On mobile that leaves
-       a large empty strip below "SYS: …" before the footer kicks in. Tighten
-       to a normal section gap. */
-    padding-bottom: 32px;
-  }
+.divrelative > .mainrelative.preview-area {
+  flex: 1 0 auto;
+  padding-bottom: 32px;
 }
 /* Top-left logo mark — replaces the old "STUDIO / New International Picture
    Company" text block. Two image variants are stacked in markup; CSS reveals
