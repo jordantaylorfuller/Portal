@@ -7,7 +7,8 @@
       "statusCode": 302
     },
     { "source": "/reel-coverflow.html", "destination": "/reel.html", "statusCode": 301 },
-    { "source": "/reel-stack.html",     "destination": "/reel.html", "statusCode": 301 }
+    { "source": "/reel-stack.html",     "destination": "/reel.html", "statusCode": 301 },
+    { "source": "/", "destination": "/home", "statusCode": 308 }
   ],
   "rewrites": [
     { "source": "/home", "destination": "/home/index.html" },
