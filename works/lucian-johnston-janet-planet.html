@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Janet Planet | NIPC</title>
-  <meta name="description" content="Trailer for A24, 2026.">
+  <meta name="description" content="Film for A24, 2026.">
   <meta property="og:title" content="Janet Planet | NIPC">
-  <meta property="og:description" content="Trailer for A24, 2026.">
+  <meta property="og:description" content="Film for A24, 2026.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/home/images/nipc-favicon.svg" type="image/svg+xml">
@@ -19,6 +19,11 @@
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -40,18 +45,14 @@
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  
-      <h1 class="detail-title">Janet Planet</h1>
+<h1 class="detail-title">Janet Planet</h1>
       <dl class="detail-meta">
         <dt>CLIENT</dt><dd>A24</dd>
-        <dt>TYPE</dt><dd>Trailer</dd>
+        <dt>TYPE</dt><dd>Film</dd>
         <dt>YEAR</dt><dd>2026</dd>
         <dt>VISIT</dt><dd><a href="/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53" target="_blank" rel="noopener">/reel.html?s=lucian-johnston#18fde76a-f85c-44bf-b981-645cbf1dca53 ↗</a></dd>
       </dl>
-      <div class="video-frame" data-mux-playback-id="jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200" style="background-image:url(https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
-      
-      
-    
+      <div class="video-frame" data-mux-playback-id="jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200" style="background-image:url(https://image.mux.com/jn2012TaJQh6dJrv02zMjqvJR7wHzwGtwWOPdoKY9F60200/thumbnail.jpg?width=1280&amp;time=52.82322);background-size:117.00% 117.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>

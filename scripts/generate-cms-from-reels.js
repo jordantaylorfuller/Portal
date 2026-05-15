@@ -12,13 +12,17 @@ const { adminClient } = require('../lib/supabase');
 
 const DATA_DIR = path.join(__dirname, '..', 'home', 'data');
 
+// Source of truth for editor metadata. Array order = display order on the home
+// page (numOnList + order fields are derived from index below). Run this script
+// to regenerate editors.json + works.json from Supabase whenever this list
+// changes OR an admin updates a reel/asset/poster.
 const EDITORS = [
   {
-    slug: 'carla-luffe',
-    name: 'Carla Luffe',
-    bio: 'Carla cuts brand and fashion films across the world’s biggest names — spanning beauty, luxury, automotive, and culture.',
-    featureClients: 'Apple, Burberry, Hermès, Vogue, Meta, Volvo',
-    typeOfWork: 'Commercial',
+    slug: 'lucian-johnston',
+    name: 'Lucian Johnston',
+    bio: 'Lucian edits some of A24’s most singular films — where dread, tone, and rhythm do the heavy lifting.',
+    featureClients: 'A24',
+    typeOfWork: 'Film',
   },
   {
     slug: 'josh-lee',
@@ -28,11 +32,11 @@ const EDITORS = [
     typeOfWork: 'Trailer',
   },
   {
-    slug: 'lucian-johnston',
-    name: 'Lucian Johnston',
-    bio: 'Lucian shapes trailers for some of A24’s most singular films — where dread, tone, and rhythm do the heavy lifting.',
-    featureClients: 'A24',
-    typeOfWork: 'Trailer',
+    slug: 'carla-luffe',
+    name: 'Carla Luffe',
+    bio: 'Carla cuts brand and fashion films across the world’s biggest names — spanning beauty, luxury, automotive, and culture.',
+    featureClients: 'Apple, Burberry, Hermès, Vogue, Meta, Volvo',
+    typeOfWork: 'Commercial',
   },
 ];
 
