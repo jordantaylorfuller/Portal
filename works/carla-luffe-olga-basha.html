@@ -19,6 +19,11 @@
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -40,18 +45,14 @@
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  
-      <h1 class="detail-title">OLGA BASHA</h1>
+<h1 class="detail-title">OLGA BASHA</h1>
       <dl class="detail-meta">
         <dt>CLIENT</dt><dd>OLGA BASHA</dd>
         <dt>TYPE</dt><dd>Commercial</dd>
         <dt>YEAR</dt><dd>2026</dd>
         <dt>VISIT</dt><dd><a href="/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361" target="_blank" rel="noopener">/reel.html?s=carla-luffe#c7d00cee-e408-4626-b851-61cad2930361 ↗</a></dd>
       </dl>
-      <div class="video-frame" data-mux-playback-id="hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY" style="background-image:url(https://image.mux.com/hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
-      
-      
-    
+      <div class="video-frame" data-mux-playback-id="hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY" style="background-image:url(https://image.mux.com/hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY/thumbnail.jpg?width=1280&amp;time=88.829773);background-size:106.00% 106.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>

@@ -68,6 +68,16 @@
   wireDropdowns(list);
   wireEditorPreview(list);
 
+  // Arm dropdown transitions only after the page has settled, so the
+  // pre-rendered open panel can't briefly animate from any layout shift that
+  // happens during initial load (Swiper measuring, posters loading, etc.).
+  // A double rAF lands after layout + paint of the current frame.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.classList.add('dropdowns-armed');
+    });
+  });
+
   document.dispatchEvent(new CustomEvent('cms:editors-ready'));
 
   // Auto-expand a random editor on page load. Wait for:
@@ -109,12 +119,13 @@
         if (value) el.classList.remove('w-dyn-bind-empty');
       };
 
+      // The toggle template ships 3 .text-13 cells now: number, editor, clients.
+      // (role + year columns were removed earlier.) The build-time path in
+      // scripts/build-cms-pages.mjs mirrors this — keep them in sync.
       const cells = item.querySelectorAll('.dropdown-toggle .text-13');
       if (cells[0]) cells[0].textContent = ed.numOnList || '';
       if (cells[1]) cells[1].textContent = ed.name || '';
-      if (cells[2]) cells[2].textContent = ed.role || '';
-      if (cells[3]) cells[3].textContent = ed.featureClients || '';
-      setText('.dropdown-toggle .text-14', ed.yearRange || '');
+      if (cells[2]) cells[2].textContent = ed.featureClients || '';
 
       setBind('.sarah-chen-2', ed.name);
       setBind('.founder-editor-2', ed.role);
@@ -174,23 +185,36 @@
       const toggle = dropdown.querySelector('.w-dropdown-toggle');
       const panel = dropdown.querySelector('.w-dropdown-list');
       if (!toggle || !panel) return;
-      toggle.setAttribute('aria-expanded', 'false');
+      // Initialize from actual state — the build pre-opens one editor with
+      // `w--open`, so blindly stamping aria-expanded="false" lies to assistive
+      // tech about the first row until the user interacts with it.
+      toggle.setAttribute('aria-expanded', dropdown.classList.contains('w--open') ? 'true' : 'false');
       toggle.style.cursor = 'pointer';
       toggle.addEventListener('click', e => {
         e.preventDefault();
         const willOpen = !dropdown.classList.contains('w--open');
+        // Always keep one editor open — clicking the currently-open row would
+        // close it and leave the page visually empty below the list, so ignore
+        // that click.
+        if (!willOpen) return;
+        // To prevent rows below from shifting mid-animation, force the
+        // opening panel's target height to match the CURRENT height of the
+        // closing panel. Both animations then have identical magnitudes and
+        // their sum stays constant for every frame of the 360 ms transition.
+        let outgoingHeight = null;
         list.querySelectorAll('.w-dropdown.w--open').forEach(other => {
           if (other === dropdown) return;
-          const ot = other.querySelector('.w-dropdown-toggle');
           const op = other.querySelector('.w-dropdown-list');
+          if (op && outgoingHeight == null) outgoingHeight = op.offsetHeight;
+          const ot = other.querySelector('.w-dropdown-toggle');
           if (ot && op) setDropdownOpen(other, ot, op, false);
         });
-        setDropdownOpen(dropdown, toggle, panel, willOpen);
+        setDropdownOpen(dropdown, toggle, panel, willOpen, outgoingHeight);
       });
     });
   }
 
-  function setDropdownOpen(dropdown, toggle, panel, open) {
+  function setDropdownOpen(dropdown, toggle, panel, open, overrideTarget) {
     if (panel._dropdownEnd) {
       panel.removeEventListener('transitionend', panel._dropdownEnd);
       panel._dropdownEnd = null;
@@ -201,7 +225,12 @@
     }
     if (open) {
       panel.style.display = 'block';
-      const target = panel.scrollHeight;
+      // When switching editors, the caller passes the closing panel's current
+      // height as `overrideTarget` so the open animation has exactly the same
+      // magnitude as the close — the two heights stay sum-constant at every
+      // point in the transition, so the editor rows below (and the TOTAL
+      // ENTRIES row) don't shift mid-animation.
+      const target = overrideTarget != null ? overrideTarget : panel.scrollHeight;
       panel.style.height = '0px';
       panel.style.opacity = '0';
       void panel.offsetHeight;
@@ -219,8 +248,12 @@
       // Watch the panel's content and re-target the inline height live —
       // CSS transitions are interruptible, so the in-flight animation just
       // continues smoothly to the new target.
+      // Skip the live-retarget observer when caller forced a target — the
+      // whole point of forcing it is that close + open stay sum-constant,
+      // and the observer would defeat that by chasing scrollHeight drifts
+      // mid-animation.
       const content = panel.firstElementChild;
-      if (content && typeof ResizeObserver !== 'undefined') {
+      if (overrideTarget == null && content && typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(() => {
           if (!panel.classList.contains('w--open')) return;
           const next = panel.scrollHeight;
@@ -257,6 +290,13 @@
         panel.style.opacity = '';
         return;
       }
+      // Pin display:block inline before removing w--open. Pre-opened panels
+      // (rendered with w--open from the build step) don't have an inline
+      // display set — they rely on the CSS rule `.w-dropdown-list.w--open`.
+      // The moment w--open is removed below, the base `.w-dropdown-list` rule
+      // takes over and snaps display to none, killing the height transition
+      // and making the panel disappear instantly instead of collapsing.
+      panel.style.display = 'block';
       panel.style.height = panel.scrollHeight + 'px';
       void panel.offsetHeight;
       dropdown.classList.remove('w--open');
@@ -283,6 +323,10 @@
   // animated setDropdownOpen path as user clicks, so the user sees the row
   // ease open instead of a hard cut from all-closed to one-open.
   function autoExpandRandomEditor(list) {
+    // Skip if the build step (scripts/build-cms-pages.mjs) already pre-rendered
+    // an editor as open. That path paints the panel open on first frame, which
+    // avoids the 1-2s wait + slide-down animation we'd otherwise show here.
+    if (list.querySelector('.editor-dropdown.w--open')) return;
     const items = list.querySelectorAll('.w-dyn-item');
     if (items.length < 1) return;
     const STORAGE_KEY = 'nipc_last_auto_editor';

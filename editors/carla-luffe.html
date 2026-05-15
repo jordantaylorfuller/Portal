@@ -19,6 +19,11 @@
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -40,8 +45,7 @@
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  
-      <h1 class="detail-title">Carla Luffe</h1>
+<h1 class="detail-title">Carla Luffe</h1>
       <dl class="detail-meta">
         <dt>ROLE</dt><dd>Senior Editor</dd>
         <dt>CLIENTS</dt><dd>Apple, Burberry, Hermès, Vogue, Meta, Volvo</dd>
@@ -50,129 +54,107 @@
       <p class="bio">Carla cuts brand and fashion films across the world’s biggest names — spanning beauty, luxury, automotive, and culture.</p>
       <div class="section-label">Selected Works</div>
        <div class="grid">
-         
+         <a class="card" href="/works/carla-luffe-apple">
+             <div class="thumb" data-mux-playback-id="xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4" style="background-image:url(https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&amp;time=1.21937);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="title">APPLE</div>
+             <div class="meta">APPLE · 2026 · Commercial</div>
+           </a>
            <a class="card" href="/works/carla-luffe-burberry">
-             <div class="thumb" data-mux-playback-id="EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w" style="background-image:url(https://image.mux.com/EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w" style="background-image:url(https://image.mux.com/EkFgdVehEFcsWknSr7sV6rS73gC2n02WVjY9VFi1M021w/thumbnail.jpg?width=1280&amp;time=38.369132);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">BURBERRY</div>
              <div class="meta">BURBERRY · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-canon-redefineordinary-eng">
              <div class="thumb" data-mux-playback-id="cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU" style="background-image:url(https://image.mux.com/cfK3G9aRkgKN2mYnZyoiCA1WGNMLc02KHCda01R3AqUpU/thumbnail.jpg?width=1280&amp;time=63.207646);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">CANON RedefineOrdinary ENG</div>
              <div class="meta">Carla Luffe · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-coach-charles">
-             <div class="thumb" data-mux-playback-id="Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o" style="background-image:url(https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o" style="background-image:url(https://image.mux.com/Y5C9r02gPrGr02fO1b7t28IZW9BafQdcLImUR02kH5YV4o/thumbnail.jpg?width=1280&amp;time=45.735752);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">COACH Charles</div>
              <div class="meta">COACH Charles · 2026 · Commercial</div>
            </a>
-         
-           <a class="card" href="/works/carla-luffe-apple">
-             <div class="thumb" data-mux-playback-id="xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4" style="background-image:url(https://image.mux.com/xF3fEfY801wEBGBKUC9vXFUrwXZpONjFpAkgR02TjLoF4/thumbnail.jpg?width=1280&amp;time=1.21937);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
-             <div class="title">APPLE</div>
-             <div class="meta">APPLE · 2026 · Commercial</div>
-           </a>
-         
            <a class="card" href="/works/carla-luffe-coach-elle">
              <div class="thumb" data-mux-playback-id="XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc" style="background-image:url(https://image.mux.com/XfUkImPOcewBeqcOQHJsRxC7GTOdUAuk5N00qQIsyOvc/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">COACH Elle</div>
              <div class="meta">COACH Elle · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-expedia-lemons">
              <div class="thumb" data-mux-playback-id="QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A" style="background-image:url(https://image.mux.com/QdXEqVjy1XQABnKMnmNld923B1w25BjRk1Kf4Jsit01A/thumbnail.jpg?width=1280&amp;time=0);background-size:127.00% 127.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">EXPEDIA Lemons</div>
              <div class="meta">EXPEDIA Lemons · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-google">
-             <div class="thumb" data-mux-playback-id="NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM" style="background-image:url(https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&amp;time=50.146069);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM" style="background-image:url(https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&amp;time=54.295064);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">GOOGLE</div>
              <div class="meta">GOOGLE · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-haim-relationships">
              <div class="thumb" data-mux-playback-id="3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU" style="background-image:url(https://image.mux.com/3BvI2PQGipqMYAqASE6zI4Idouz7I7aL8ywOBoRAnQU/thumbnail.jpg?width=1280&amp;time=9.22404);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">HAIM Relationships</div>
              <div class="meta">HAIM Relationships · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-herm-s">
              <div class="thumb" data-mux-playback-id="aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps" style="background-image:url(https://image.mux.com/aHgaZYOClw2iXgW3i4G00UvqIbAUFqKF9vacz7GwAUps/thumbnail.jpg?width=1280&amp;time=43.919946);background-size:128.00% 128.00%;background-position:49% 28.8%;background-repeat:no-repeat;"></div>
              <div class="title">HERMÉS</div>
              <div class="meta">HERMÉS · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-lacoste">
-             <div class="thumb" data-mux-playback-id="L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc" style="background-image:url(https://image.mux.com/L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc" style="background-image:url(https://image.mux.com/L4nGiSvj6kLaKc3DrKfWPeDSkprkkE1bzhdAc5bAvWc/thumbnail.jpg?width=1280&amp;time=2.788807);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">LACOSTE</div>
              <div class="meta">LACOSTE · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-meta">
-             <div class="thumb" data-mux-playback-id="P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8" style="background-image:url(https://image.mux.com/P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8" style="background-image:url(https://image.mux.com/P3tqkMjisXx6v006c2G01d6oLjws02VMiXx01hpWL1nr4V8/thumbnail.jpg?width=1280&amp;time=122.263601);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">META</div>
              <div class="meta">META · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-olga-basha">
-             <div class="thumb" data-mux-playback-id="hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY" style="background-image:url(https://image.mux.com/hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY" style="background-image:url(https://image.mux.com/hdjf02asr00f6afogwDySNXoTFMii3ZOORpPcIPIctPsY/thumbnail.jpg?width=1280&amp;time=88.829773);background-size:106.00% 106.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">OLGA BASHA</div>
              <div class="meta">OLGA BASHA · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-reformation">
-             <div class="thumb" data-mux-playback-id="024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo" style="background-image:url(https://image.mux.com/024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo" style="background-image:url(https://image.mux.com/024yPfYbdOSLOxKF7nmtEc8VETk017l7cVpU2q1utsjqo/thumbnail.jpg?width=1280&amp;time=0);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">REFORMATION</div>
              <div class="meta">REFORMATION · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-the-lift">
-             <div class="thumb" data-mux-playback-id="KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs" style="background-image:url(https://image.mux.com/KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs" style="background-image:url(https://image.mux.com/KpROkr300ZcyZ5A46022gXY6IBp3KVqtDUEJ2oZ6fQwDs/thumbnail.jpg?width=1280&amp;time=200.250649);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">THE LIFT</div>
              <div class="meta">THE LIFT · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-tonal">
-             <div class="thumb" data-mux-playback-id="vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8" style="background-image:url(https://image.mux.com/vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8" style="background-image:url(https://image.mux.com/vUfOdWmCc700tw02VbLJApJ3ZxDBdTAEALpeheMaXJZE8/thumbnail.jpg?width=1280&amp;time=11.9529);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">TONAL</div>
              <div class="meta">TONAL · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-uber">
-             <div class="thumb" data-mux-playback-id="BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I" style="background-image:url(https://image.mux.com/BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I" style="background-image:url(https://image.mux.com/BM01knliJYjLJe7CjFqexmVF92wMV02VmjWp02xAvH713I/thumbnail.jpg?width=1280&amp;time=76.937297);background-size:131.00% 131.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">UBER</div>
              <div class="meta">UBER · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-vogue">
-             <div class="thumb" data-mux-playback-id="qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc" style="background-image:url(https://image.mux.com/qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc" style="background-image:url(https://image.mux.com/qPvd6hEfMiw02MYXGWLU02i6ZuJO013zd34701m6PoVGLvc/thumbnail.jpg?width=1280&amp;time=47.80879);background-size:142.00% 142.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">VOGUE</div>
              <div class="meta">VOGUE · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-volvo">
-             <div class="thumb" data-mux-playback-id="SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4" style="background-image:url(https://image.mux.com/SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4" style="background-image:url(https://image.mux.com/SWXzdrEX4nINSfAOA02QljCCSSUrsZwJuA3c48ID6ki4/thumbnail.jpg?width=1280&amp;time=30.273704);background-size:137.00% 137.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">VOLVO</div>
              <div class="meta">VOLVO · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-vw">
-             <div class="thumb" data-mux-playback-id="vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw" style="background-image:url(https://image.mux.com/vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw" style="background-image:url(https://image.mux.com/vn00H1j6DyMP1BVWxruzrD4Q3n4omj5500ht2gaDgpHdw/thumbnail.jpg?width=1280&amp;time=12.518409);background-size:109.00% 109.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">VW</div>
              <div class="meta">VW · 2026 · Commercial</div>
            </a>
-         
            <a class="card" href="/works/carla-luffe-whatsapp">
-             <div class="thumb" data-mux-playback-id="xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc" style="background-image:url(https://image.mux.com/xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc" style="background-image:url(https://image.mux.com/xSdUCsOesEm00009cz00RoHPB2nIVOYUdFRbCvH001zWArc/thumbnail.jpg?width=1280&amp;time=39.470888);background-size:112.00% 112.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">WHATSAPP</div>
              <div class="meta">WHATSAPP · 2026 · Commercial</div>
            </a>
-         
        </div>
-    
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>

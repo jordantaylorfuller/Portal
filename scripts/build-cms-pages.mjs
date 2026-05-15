@@ -13,7 +13,7 @@ const escape = s => String(s ?? '').replace(/[&<>"']/g, c => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 }[c]));
 
-const layout = ({ title, description, body }) => `<!DOCTYPE html>
+const layout = ({ title, description, body }) => (`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -34,6 +34,11 @@ const layout = ({ title, description, body }) => `<!DOCTYPE html>
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -55,11 +60,11 @@ const layout = ({ title, description, body }) => `<!DOCTYPE html>
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  ${body}
+${String(body).trim()}
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>
-`;
+`).replace(/[ \t]+$/gm, '');
 
 // Inline-style helper: bakes the canonical crop (focal point + zoom) into a
 // background-image element at build time. poster-sync.js still overlays the
@@ -132,14 +137,12 @@ const buildEditor = (editor, worksById) => {
            const thumb = w.thumbnailCover
              ? `<div class="thumb"${pidAttr} style="${bakeBgCrop(w.thumbnailCover, w.posterFocalX, w.posterFocalY, w.posterZoom)}"></div>`
              : `<div class="thumb"${pidAttr}></div>`;
-           return `
-           <a class="card" href="/works/${escape(w.slug)}">
+           return `<a class="card" href="/works/${escape(w.slug)}">
              ${thumb}
              <div class="title">${escape(w.name)}</div>
              <div class="meta">${escape(w.client)} · ${escape(w.year)} · ${escape(w.typeOfWork)}</div>
-           </a>
-         `;
-         }).join('')}
+           </a>`;
+         }).join('\n           ')}
        </div>`
     : '';
   const bio = editor.bio
@@ -240,8 +243,17 @@ function setHrefByClass(html, cls, value) {
 }
 
 function setImgSrcByClass(html, cls, src, alt) {
-  const re = new RegExp(`(<img\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*\\bsrc=")([^"]*)("[^>]*\\balt=")([^"]*)(")`);
-  return html.replace(re, (_, leadSrc, _src, midAlt, _alt, tail) => `${leadSrc}${escape(src)}${midAlt}${escape(alt || '')}${tail}`);
+  // Find the <img> tag carrying `cls`, then rewrite its src and alt attrs
+  // regardless of attribute order. Webflow's export emits `src` before `class`,
+  // which broke an earlier single-regex version that required class to come
+  // first — every work-card poster shipped with the placeholder.svg until
+  // cms-inject.js stamped the real URL at runtime (~1s flicker on load).
+  const tagRe = new RegExp(`<img\\b[^>]*\\bclass="[^"]*\\b${escapeRegex(cls)}\\b[^"]*"[^>]*>`);
+  return html.replace(tagRe, tag => {
+    let next = tag.replace(/\bsrc="[^"]*"/, `src="${escape(src)}"`);
+    next = next.replace(/\balt="[^"]*"/, `alt="${escape(alt || '')}"`);
+    return next;
+  });
 }
 
 function setStyleByClass(html, cls, prop, value) {
@@ -276,6 +288,19 @@ function renderWorkSlide(template, work) {
     const alt = work.video?.title || work.name || '';
     html = setImgSrcByClass(html, 'vimeo-poster-img', posterSrc, alt);
   }
+  // Bake the admin's focal point + zoom inline so the first paint is already
+  // cropped/scaled correctly. Without this the runtime applyPosterTransform
+  // (cms-inject.js) applies these styles after /api/reels/public returns,
+  // causing a visible jump on each reload.
+  html = setStyleByClass(html, 'vimeo-poster-img', 'object-fit', 'cover');
+  const fx = Number(work.posterFocalX ?? 50);
+  const fy = Number(work.posterFocalY ?? 50);
+  const z  = Number(work.posterZoom   ?? 1);
+  html = setStyleByClass(html, 'vimeo-poster-img', 'object-position', `${fx}% ${fy}%`);
+  if (z !== 1) {
+    html = setStyleByClass(html, 'vimeo-poster-img', 'transform-origin', `${fx}% ${fy}%`);
+    html = setStyleByClass(html, 'vimeo-poster-img', 'transform', `scale(${z})`);
+  }
   if (work.video?.url) {
     html = html.replace(/(<div\b[^>]*\bclass="vimeo-url"[^>]*>)([\s\S]*?)(<\/div>)/, (_, open, _inner, close) => `${open}${escape(work.video.url)}${close}`);
   }
@@ -301,8 +326,8 @@ function renderEditorRow(template, ed, worksById) {
     });
   }
 
-  // The editor toggle has 4 .text-13 cells: number, name, role, featureClients.
-  const toggleCells = [ed.numOnList, ed.name, ed.role, ed.featureClients];
+  // The editor toggle has 3 .text-13 cells: number, name, featureClients.
+  const toggleCells = [ed.numOnList, ed.name, ed.featureClients];
   let cellIdx = 0;
   // Match only .text-13 in the dropdown-toggle row (before the dropdown-list nav).
   const toggleEnd = html.indexOf('<nav class="dropdown-list w-dropdown-list">');
@@ -313,8 +338,7 @@ function renderEditorRow(template, ed, worksById) {
     const v = toggleCells[cellIdx++];
     return `${open}${escape(v || '')}${close}`;
   });
-  const yearReplacedToggle = newToggleHtml.replace(/(<div\b[^>]*\bclass="text-14"[^>]*>)([\s\S]*?)(<\/div>)/, (_, open, _inner, close) => `${open}${escape(ed.yearRange || '')}${close}`);
-  html = yearReplacedToggle + restHtml;
+  html = newToggleHtml + restHtml;
 
   // Bio panel fields.
   html = setBindByClass(html, 'sarah-chen-2', ed.name);
@@ -355,7 +379,29 @@ function renderEditorRow(template, ed, worksById) {
 
 function renderEditorListHtml(homeHtml, editors, worksById) {
   const template = getTemplateHtml(homeHtml);
-  return editors.map(ed => renderEditorRow(template, ed, worksById)).join('\n              ');
+  return editors
+    .map((ed, idx) => {
+      const html = renderEditorRow(template, ed, worksById);
+      // Mark the first editor as initially open so the page paints with its
+      // panel already expanded — no 1–2s wait + slide-down animation on load.
+      // cms-inject.js skips its auto-expand step when it finds one already open.
+      return idx === 0 ? markEditorOpen(html) : html;
+    })
+    .join('\n              ');
+}
+
+function markEditorOpen(html) {
+  // Add `w--open` to the dropdown, toggle, and panel; set aria-expanded="true".
+  // Webflow's CSS toggles .w-dropdown-list display via this class.
+  html = html.replace(/(<div\b[^>]*\bclass=")dropdown editor-dropdown w-dropdown(")/, '$1dropdown editor-dropdown w-dropdown w--open$2');
+  html = html.replace(/(<div\b[^>]*\bclass=")dropdown-toggle w-dropdown-toggle(")/, '$1dropdown-toggle w-dropdown-toggle w--open$2 aria-expanded="true"');
+  html = html.replace(/(<nav\b[^>]*\bclass=")dropdown-list w-dropdown-list(")/, '$1dropdown-list w-dropdown-list w--open$2');
+  // Force-eager-load this editor's poster <img>s: the panel is open from frame
+  // one, so the browser would otherwise wait on intersection-observer-based
+  // lazy loading and the posters would still flicker in late.
+  html = html.replace(/<img\b([^>]*)\bloading="lazy"([^>]*)\bclass="([^"]*\bvimeo-poster-img\b[^"]*)"/g,
+    '<img$1loading="eager" fetchpriority="high"$2class="$3"');
+  return html;
 }
 
 function injectEditorList(homeHtml, renderedRows, totalEntries) {
