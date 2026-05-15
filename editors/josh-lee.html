@@ -19,6 +19,11 @@
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -40,8 +45,7 @@
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  
-      <h1 class="detail-title">Josh Lee</h1>
+<h1 class="detail-title">Josh Lee</h1>
       <dl class="detail-meta">
         <dt>ROLE</dt><dd>Senior Editor</dd>
         <dt>CLIENTS</dt><dd>Netflix, A24</dd>
@@ -50,21 +54,17 @@
       <p class="bio">Josh edits long-form narrative — prestige film and television trailers driven by character, restraint, and tension.</p>
       <div class="section-label">Selected Works</div>
        <div class="grid">
-         
-           <a class="card" href="/works/josh-lee-ripley">
-             <div class="thumb" data-mux-playback-id="uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA" style="background-image:url(https://image.mux.com/uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+         <a class="card" href="/works/josh-lee-ripley">
+             <div class="thumb" data-mux-playback-id="uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA" style="background-image:url(https://image.mux.com/uvxPAZ6OAUuOtCc4R2pV6WcfmhCyNsynNS6aZrAmLFA/thumbnail.jpg?width=1280&amp;time=115.706121);background-size:130.00% 130.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">Ripley</div>
              <div class="meta">Netflix · 2026 · Trailer</div>
            </a>
-         
            <a class="card" href="/works/josh-lee-the-drama">
-             <div class="thumb" data-mux-playback-id="63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4" style="background-image:url(https://image.mux.com/63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4/thumbnail.jpg?width=1280&amp;fit_mode=preserve);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
+             <div class="thumb" data-mux-playback-id="63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4" style="background-image:url(https://image.mux.com/63i45J2eyQbc79pLQSU7SL00HrzjBZY01HQkFk01LmHco4/thumbnail.jpg?width=1280&amp;time=91.985559);background-size:106.00% 106.00%;background-position:50% 50%;background-repeat:no-repeat;"></div>
              <div class="title">The Drama</div>
              <div class="meta">A24 · 2026 · Trailer</div>
            </a>
-         
        </div>
-    
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>

@@ -19,6 +19,11 @@
   <link rel="stylesheet" href="/home/css/webflow.css">
   <link rel="stylesheet" href="/home/css/nipc.webflow.css">
   <style>
+    /* no-blue-selection: kill the browser's default highlight color so the
+       site feels like an app — users can still Cmd+A / Cmd+C, but selected
+       text doesn't show a blue background. */
+    ::selection { background: transparent; color: inherit; }
+    ::-moz-selection { background: transparent; color: inherit; }
     body { font-family: 'DM Mono', monospace; background: #1a1818; color: #e9e6e2; margin: 0; padding: 48px 64px; min-height: 100vh; }
     a { color: #dc2828; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -40,18 +45,14 @@
 </head>
 <body>
   <nav class="crumb"><a href="/home">← NIPC HOME</a></nav>
-  
-      <h1 class="detail-title">GOOGLE</h1>
+<h1 class="detail-title">GOOGLE</h1>
       <dl class="detail-meta">
         <dt>CLIENT</dt><dd>GOOGLE</dd>
         <dt>TYPE</dt><dd>Commercial</dd>
         <dt>YEAR</dt><dd>2026</dd>
         <dt>VISIT</dt><dd><a href="/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe" target="_blank" rel="noopener">/reel.html?s=carla-luffe#2c9e127e-a6c3-43fc-8dfd-2c3cc7b21abe ↗</a></dd>
       </dl>
-      <div class="video-frame" data-mux-playback-id="NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM" style="background-image:url(https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&amp;time=50.146069);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
-      
-      
-    
+      <div class="video-frame" data-mux-playback-id="NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM" style="background-image:url(https://image.mux.com/NXJmyVyFamIqMnSDKdH6r02X6niss4YjjN0201sCb8CUwM/thumbnail.jpg?width=1280&amp;time=54.295064);background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
   <script src="/home/js/poster-sync.js"></script>
 </body>
 </html>
