@@ -328,6 +328,11 @@ body.dropdowns-armed .switch .theme-icon {
   }
   .divrelative > .mainrelative.preview-area {
     flex: 1 0 auto;
+    /* Webflow's base padding-bottom is 140px — sized for the desktop layout
+       where the totals row sits well above the footer. On mobile that leaves
+       a large empty strip below "SYS: …" before the footer kicks in. Tighten
+       to a normal section gap. */
+    padding-bottom: 32px;
   }
 }
 /* Top-left logo mark — replaces the old "STUDIO / New International Picture
@@ -444,6 +449,37 @@ body.dropdowns-armed .switch .theme-icon {
   font-size: clamp(13px, 11.8cqi, 22px);
 }
 
+/* Mobile (≤479px): place the stacked wordmark and the CLIENT LOGIN / theme
+   toggle square in a single row. The wordmark cell flex-grows to fill the
+   remaining width; the switch cell stays a 1:1 square whose height matches
+   the wordmark's natural height (align-self: stretch + aspect-ratio). The
+   empty divider cell that normally sits between them on the webflow grid
+   is hidden so the two cells sit flush. */
+@media (max-width: 479px) {
+  .divrelative-2 > .divgrid {
+    flex-flow: row nowrap;
+    align-items: stretch;
+  }
+  .divrelative-2 > .divgrid > .divcol-span-4 {
+    width: auto;
+    height: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    border-right: 1px solid var(--border-subtle);
+  }
+  .divrelative-2 > .divgrid > .divcol-span-2-2 {
+    display: none;
+  }
+  .divrelative-2 .divcol-span-2-1._w-switch {
+    align-self: stretch;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    flex: 0 0 auto;
+  }
+}
+
 /* Floating editor preview — wired up to follow the cursor when an editor row
    is hovered. The original Webflow markup left .preview-box as opacity:0 with
    a placeholder image; we override it to be a fixed, cursor-tracked thumbnail. */
@@ -489,15 +525,6 @@ body.dropdowns-armed .switch .theme-icon {
 .editor-dropdown-list > .w-dyn-item {
   display: flex;
   flex-direction: column;
-}
-/* Studio description in the contact footer — render in brand red. The
-   "SOUND MIX, COLOR & VFX UPON REQUEST." trailer stays black because it's
-   an inline span with its own color, not part of the red description. */
-.new-international-picture-company-is-a-post-production-studio-specializing-in-editorial-motion-graph {
-  color: var(--text-accent, #dc2828);
-}
-.upon-request-line {
-  color: var(--text-primary, #1c1919);
 }
 /* Editor name column — Webflow's mobile/tablet rules ship overflow-wrap:
    anywhere, which breaks names mid-word ("LUCIAN / JOHNSTO / N"). Force
@@ -2790,6 +2817,35 @@ body.is-sliding-out .clients-preview { visibility: visible; }
     };
   }
   connect();
+})();
+</script>
+<script>
+// On the ≤479px mobile breakpoint the CLIENT LOGIN / theme-toggle cell sits
+// directly to the right of the stacked wordmark and is supposed to be a 1:1
+// square whose height matches the wordmark. CSS aspect-ratio gets overridden
+// when align-self:stretch sets a definite height, so the cell ends up tall
+// and narrow. Mirror the wordmark's content height onto the switch as both
+// width and height — height-cap (26px font) means a wider column doesn't
+// grow the wordmark further, so a single pass is stable.
+(function () {
+  var wordmark = document.querySelector('.divrelative-2 > .divgrid > .divcol-span-4');
+  var sw = document.querySelector('.divrelative-2 .divcol-span-2-1._w-switch');
+  if (!wordmark || !sw) return;
+  function sync() {
+    if (window.innerWidth <= 479) {
+      var h = wordmark.getBoundingClientRect().height;
+      sw.style.width = h + 'px';
+      sw.style.height = h + 'px';
+    } else {
+      sw.style.width = '';
+      sw.style.height = '';
+    }
+  }
+  sync();
+  window.addEventListener('resize', sync);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(sync);
+  }
 })();
 </script>
 </body>
